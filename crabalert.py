@@ -65,10 +65,12 @@ class Crabalert(commands.Bot):
         current_timestamp_ago = int(round(utc_time.timestamp(), 0)) - SPAN_TIMESTAMP
 
         #Look for last block up to one day ago
+        print(f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={current_timestamp_ago}&closest=before&apikey={SNOWTRACE_API_KEY}")
         req = urllib.request.Request(f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={current_timestamp_ago}&closest=before&apikey={SNOWTRACE_API_KEY}", headers=HEADERS)
         block_number_ago = int(json.loads(urllib.request.urlopen(req).read())["result"])
 
         # Get last block for crabada transaction
+        #print("https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}")
         req = urllib.request.Request(
             f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
             headers=HEADERS
@@ -78,6 +80,9 @@ class Crabalert(commands.Bot):
             "last_seen_block": block_number_ago,
             "last_block_crabada_transaction": max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
         }
+        server = self.get_guild(ID_SERVER)
+        tus_bot = server.fetch_member(ID_TUS_BOT)
+        self._set_variable("price_tus", (float(tus_bot.nick.split(" ")[0][1:])))
         self._launched = False
 
     def _get_variable(self, name: str, f_value_if_not_exists=lambda: None):
@@ -96,7 +101,7 @@ class Crabalert(commands.Bot):
             self._crabada_alert_loop.start()
             self._refresh_tus_loop.start()
             self._manage_alerted_roles.start()
-            self._refresh_prices_coin_except_tus_loop.start()
+            self._refresh_prices_coin_loop.start()
             self._launched = True
 
         
@@ -157,11 +162,12 @@ class Crabalert(commands.Bot):
                             await member.add_roles(role_alerted)
                     else:
                         reminded = reminded.lower() == "true"
-                        if payment_date == "0000-00-00 00:00:00":
-                            payment_timestamp = 0
+                        if payment_date == 0:
+                            payment_timestamp = int(round(current_timestamp, 0)) - 3600*24*365
                         else:
-                            payment_timestamp = int(round(datetime.strptime(payment_date, "%Y-%m-%d %H:%M:%S").astimezone(timezone.utc).timestamp(), 0))
+                            payment_timestamp = int(round(datetime.fromtimestamp(payment_date).astimezone(timezone.utc).timestamp(), 0))
                         payments = await self._fetch_payments_from(wallet_address, payment_timestamp)
+                        print(payments)
                         payments = sum(payments, [])
                         if current_timestamp - int(payment_timestamp) > duration:
                             if payments == [] and "Alerted" in roles_str:
@@ -192,14 +198,15 @@ class Crabalert(commands.Bot):
                             await member.send(f"Your payment has been checked and you have now access to alerts for a duration of {human_friendly_duration} starting from now.")
         close_database(connection)
 
-    def _fetch_payments_coin_from_aux(self, wallet_address, from_timestamp, contract_address, r):
+    async def _fetch_payments_coin_from_aux(self, wallet_address, from_timestamp, contract_address, r):
         decimals = coins.get(contract_address.lower(), 18)
         wallet_transactions = r
-        wallet_transactions = [w for w in wallet_transactions if int(w["timeStamp"]) > int(from_timestamp)]
+        wallet_transactions = [w for w in wallet_transactions if int(w["timeStamp"]) > int(from_timestamp) and w["from"].lower() == wallet_address.lower()]
         rate = 1 if contract_address.lower() in stablecoins else 1.3
         price_coins = self._get_variable("price_coins", dict())
         price_in_usd = price_coins.get(contract_address.lower(), -1)
-        return [(int(w["value"])*price_in_usd*10**-decimals)/rate for w in wallet_transactions if int(w["timeStamp"]) > int(from_timestamp) and w["from"].lower() == wallet_address.lower() and (int(w["value"])*10**-decimals*price_in_usd)/rate >= MINIMUM_PAYMENT]
+        lst = [(int(w["value"])*price_in_usd*10**-decimals)/rate for w in wallet_transactions if (int(w["value"])*10**-decimals*price_in_usd)/rate >= MINIMUM_PAYMENT]
+        return lst
 
     async def _fetch_payments_coin_from(self, wallet_address, from_timestamp, contract_address, previous_number):
         wallet_transactions_link = f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={previous_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}"
@@ -228,21 +235,22 @@ class Crabalert(commands.Bot):
             lambda r: self._fetch_payments_from_aux(wallet_address, from_timestamp, r),
             semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
         )
-        return lst
+        return await lst
 
     @tasks.loop(minutes=1)
     async def _refresh_tus_loop(self):
         server = self.get_guild(ID_SERVER)
         tus_bot = await server.fetch_member(ID_TUS_BOT)
         self._set_variable("price_tus", (float(tus_bot.nick.split(" ")[0][1:])))
+        
 
     @tasks.loop(minutes=1)
-    async def _refresh_prices_coin_except_tus_loop(self):
-        await self._refresh_prices_coin_except_tus()
+    async def _refresh_prices_coin_loop(self):
+        await self._refresh_prices_coin()
 
-    async def _refresh_prices_coin_except_tus(self):
+    async def _refresh_prices_coin(self):
         global coins
-        self._set_variable("price_coins", {c: get_token_price_from_dexs(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), "avalanche", c) for c in coins.keys() if c.lower() != TUS_CONTRACT_ADDRESS.lower()})
+        self._set_variable("price_coins", {**{TUS_CONTRACT_ADDRESS.lower(): self._get_variable("price_tus", lambda: -1)}, **{c: get_token_price_from_dexs(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), "avalanche", c) for c in coins.keys() if c.lower() != TUS_CONTRACT_ADDRESS.lower()}})
 
     @tasks.loop(seconds=1)
     async def _refresh_crabada_transactions_loop(self):
@@ -323,7 +331,7 @@ class Crabalert(commands.Bot):
                     family_infos_link,
                     lambda e: None,
                     TIMEOUT,
-                    lambda r: self.notify_egg_item(r, token_id, price, timestamp_transaction, channel),
+                    lambda r2: self.notify_egg_item(r2, r, token_id, price, timestamp_transaction),
                     semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=2)),
                 )
             )
@@ -384,117 +392,120 @@ class Crabalert(commands.Bot):
                 task = asyncio.create_task(channel.send(message))
                 task.add_done_callback(lambda t: self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel_id)})))
 
+    async def notify_egg_item_channel(self, infos_family_nft, token_id, price, timestamp_transaction, channel):
+        channel_id = channel.id
+        price_tus = self._get_variable(f"price_tus", f_value_if_not_exists=lambda:-1)
+        price_usd = round(price * price_tus, 2)
+        infos_family_nft = infos_family_nft["crabada_parents"]
+        crabada_parent_1 = infos_family_nft[0]
+        crabada_parent_2 = infos_family_nft[1]
+        class_parent_1 = crabada_parent_1["class_name"]
+        class_parent_2 = crabada_parent_2["class_name"]
+        dna_parent_1 = crabada_parent_1["dna"]
+        dna_parent_2 = crabada_parent_2["dna"]
+        egg_purity_probability = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 2)
+        tus_text = f"<tus> **{price}**"
+        tus_text_len_in_space_bars = sum([1 if c == "1" else 2 for c in str(price)]) + 6 + 1
+        usd_text = f":moneybag: **{price_usd}**"
+        marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
+        
+        if class_parent_1 == class_parent_2:
+            egg_class = class_parent_1
+            egg_class_display = egg_class if egg_class not in cool_classes else f"**{egg_class}**"
+            
+            emoji_pure = ":gem:" if egg_purity_probability >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
+            probability_display = f"**{int(egg_purity_probability*100)}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability*100)}%"
+            if egg_purity_probability == 1:
+                probability_display = "**PURE**"
+            egg_class_text = f":crab: {egg_class_display}"
+            egg_class_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
+            purity_probability_text = f"{emoji_pure} {probability_display}"
+            
+            max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_text_len_in_space_bars])
+            first_column = tus_text + " "*((max_len_space_text_first_column*2 - tus_text_len_in_space_bars)) + usd_text
+            second_column = f"{egg_class_text}" + " "*((max_len_space_text_first_column*2 - egg_class_text_len_in_space_bars)) + purity_probability_text
+            message = (
+                f"{first_column}\n" +
+                f"{second_column}\n"
+            )
+            infos_egg = {
+                "class_name_1": egg_class,
+                "class_name_2": egg_class,
+                "probability_pure": egg_purity_probability
+            }
+        
+        else:
+            egg_purity_probability_1 = egg_purity_probability
+            egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 2)
+            egg_class_1 = class_parent_1
+            egg_class_2 = class_parent_2
+            egg_class_display_1 = egg_class_1 if egg_class_1 not in cool_classes else f"**{egg_class_1}**"
+            egg_class_display_2 = egg_class_2 if egg_class_2 not in cool_classes else f"**{egg_class_2}**"
+            egg_class_display = f"({egg_class_display_1}|{egg_class_display_2})"
+            egg_class_text_1 = f"<crab1> {egg_class_display_1}"
+            egg_class_text_2 = f"<crab2> {egg_class_display_2}"
+            egg_class_1_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
+            emoji_pure_1 = ":gem:" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
+            emoji_pure_2 = ":gem:" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
+            probability_display_1 = f"**{int(egg_purity_probability_1*100)}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability_1*100)}%"
+            probability_display_2 = f"**{int(egg_purity_probability_2*100)}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability_2*100)}%"
+            purity_probability_text_1 = f"{emoji_pure_1} {probability_display_1}"
+            purity_probability_text_1_len_in_space_bars = 4 + 1 + sum([1 if c == "1" or c == "." else 2 for c in str(int(egg_purity_probability_1*100))])
+            purity_probability_text_2 = f"{emoji_pure_2} {probability_display_2}"
+
+            max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_1_text_len_in_space_bars, purity_probability_text_1_len_in_space_bars])
+            first_column = tus_text + " "*((max_len_space_text_first_column*2 - tus_text_len_in_space_bars)) + usd_text
+            second_column = f"{egg_class_text_1}" + " "*((max_len_space_text_first_column*2 - egg_class_1_text_len_in_space_bars)) + f"{egg_class_text_2}"
+            third_column = purity_probability_text_1 + " "*((max_len_space_text_first_column*2 - purity_probability_text_1_len_in_space_bars)) + purity_probability_text_2
+            message = (
+                f"{first_column}\n" +
+                f"{second_column}\n" +
+                f"{third_column}\n"
+            )
+            infos_egg = {
+                "class_name_1": egg_class_1,
+                "class_name_2": egg_class_2,
+                "probability_pure": round(0.5*egg_purity_probability_1 + 0.5*egg_purity_probability_2, 2)
+            }
+        header_message = f"<crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1.0 else ''}{egg_class_display} \n"
+        footer_message = (
+            f"https://i.ibb.co/hXcP49w/egg.png \n" +
+            "<marketplace_link>"
+        )
+        crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
+        crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
+        tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
+        crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", ":crabadegg:")
+        if channel_id in channels_to_display_cashlinks:
+            sem = self._get_variable(f"sem_{ADFLY_SEM_ID}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=2))
+            await sem.acquire()
+            shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+            marketplace_link = f"{shorten_link_dict['data'][0]['short_url']}"
+            message_egg = (
+                f"{first_column}\n"
+            )
+            footer_message_egg = (
+                "<marketplace_link>"
+            )
+            header_message_egg = (
+                f"<crabadegg> {egg_class_display} \n"
+            )
+            sem.release()
+        else:
+            header_message_egg = header_message
+            footer_message_egg = footer_message
+            message_egg = message
+        message_egg = header_message_egg + message_egg + footer_message_egg
+        message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji).replace("<marketplace_link>", marketplace_link)
+        already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
+        if (token_id, timestamp_transaction, channel.id) not in already_seen:
+            task = asyncio.create_task(channel.send(message_egg))
+            task.add_done_callback(lambda t: self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel_id)})))
+
     async def notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction):
         for channel_id, filter_function in channel_to_post_with_filters.items():
             channel = self._get_variable(f"channel_{channel_id}", f_value_if_not_exists=lambda:self.get_channel(channel_id))
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             # print"egg from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)
             if (token_id, timestamp_transaction, channel.id) not in already_seen and filter_function((infos_nft, infos_family_nft)):
-                # print"egg from timestamp", timestamp_transaction,"will be posted", token_id, "at channel", channel.id)
-                channel_id = channel.id
-                price_tus = self._get_variable(f"price_tus", f_value_if_not_exists=lambda:-1)
-                price_usd = round(price * price_tus, 2)
-                infos_family_nft = infos_family_nft["crabada_parents"]
-                crabada_parent_1 = infos_family_nft[0]
-                crabada_parent_2 = infos_family_nft[1]
-                class_parent_1 = crabada_parent_1["class_name"]
-                class_parent_2 = crabada_parent_2["class_name"]
-                dna_parent_1 = crabada_parent_1["dna"]
-                dna_parent_2 = crabada_parent_2["dna"]
-                egg_purity_probability = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 2)
-                tus_text = f"<tus> **{price}**"
-                tus_text_len_in_space_bars = sum([1 if c == "1" else 2 for c in str(price)]) + 6 + 1
-                usd_text = f":moneybag: **{price_usd}**"
-                marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
-                
-                if class_parent_1 == class_parent_2:
-                    egg_class = class_parent_1
-                    egg_class_display = egg_class if egg_class not in cool_classes else f"**{egg_class}**"
-                    
-                    emoji_pure = ":gem:" if egg_purity_probability >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                    probability_display = f"**{int(egg_purity_probability*100)}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability*100)}%"
-                    if egg_purity_probability == 1:
-                        probability_display = "**PURE**"
-                    egg_class_text = f":crab: {egg_class_display}"
-                    egg_class_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
-                    purity_probability_text = f"{emoji_pure} {probability_display}"
-                    
-                    max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_text_len_in_space_bars])
-                    first_column = tus_text + " "*((max_len_space_text_first_column*2 - tus_text_len_in_space_bars)) + usd_text
-                    second_column = f"{egg_class_text}" + " "*((max_len_space_text_first_column*2 - egg_class_text_len_in_space_bars)) + purity_probability_text
-                    message = (
-                        f"{first_column}\n" +
-                        f"{second_column}\n"
-                    )
-                    infos_egg = {
-                        "class_name_1": egg_class,
-                        "class_name_2": egg_class,
-                        "probability_pure": egg_purity_probability
-                    }
-                
-                else:
-                    egg_purity_probability_1 = egg_purity_probability
-                    egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 2)
-                    egg_class_1 = class_parent_1
-                    egg_class_2 = class_parent_2
-                    egg_class_display_1 = egg_class_1 if egg_class_1 not in cool_classes else f"**{egg_class_1}**"
-                    egg_class_display_2 = egg_class_2 if egg_class_2 not in cool_classes else f"**{egg_class_2}**"
-                    egg_class_display = f"({egg_class_display_1}|{egg_class_display_2})"
-                    egg_class_text_1 = f"<crab1> {egg_class_display_1}"
-                    egg_class_text_2 = f"<crab2> {egg_class_display_2}"
-                    egg_class_1_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
-                    emoji_pure_1 = ":gem:" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                    emoji_pure_2 = ":gem:" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                    probability_display_1 = f"**{int(egg_purity_probability_1*100)}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability_1*100)}%"
-                    probability_display_2 = f"**{int(egg_purity_probability_2*100)}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability_2*100)}%"
-                    purity_probability_text_1 = f"{emoji_pure_1} {probability_display_1}"
-                    purity_probability_text_1_len_in_space_bars = 4 + 1 + sum([1 if c == "1" or c == "." else 2 for c in str(int(egg_purity_probability_1*100))])
-                    purity_probability_text_2 = f"{emoji_pure_2} {probability_display_2}"
-
-                    max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_1_text_len_in_space_bars, purity_probability_text_1_len_in_space_bars])
-                    first_column = tus_text + " "*((max_len_space_text_first_column*2 - tus_text_len_in_space_bars)) + usd_text
-                    second_column = f"{egg_class_text_1}" + " "*((max_len_space_text_first_column*2 - egg_class_1_text_len_in_space_bars)) + f"{egg_class_text_2}"
-                    third_column = purity_probability_text_1 + " "*((max_len_space_text_first_column*2 - purity_probability_text_1_len_in_space_bars)) + purity_probability_text_2
-                    message = (
-                        f"{first_column}\n" +
-                        f"{second_column}\n" +
-                        f"{third_column}\n"
-                    )
-                    infos_egg = {
-                        "class_name_1": egg_class_1,
-                        "class_name_2": egg_class_2,
-                        "probability_pure": round(0.5*egg_purity_probability_1 + 0.5*egg_purity_probability_2, 2)
-                    }
-                header_message = f"<crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1.0 else ''}{egg_class_display} \n"
-                footer_message = (
-                    f"https://i.ibb.co/hXcP49w/egg.png \n" +
-                    "<marketplace_link>"
-                )
-                crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
-                crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
-                tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
-                crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", ":crabadegg:")
-                if channel_id in channels_to_display_cashlinks:
-                    sem = self._get_variable(f"sem_{ADFLY_SEM_ID}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=2))
-                    await sem.acquire()
-                    shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
-                    marketplace_link = f"{shorten_link_dict['data'][0]['short_url']}"
-                    message_egg = (
-                        f"{first_column}\n"
-                    )
-                    footer_message_egg = (
-                        "<marketplace_link>"
-                    )
-                    header_message_egg = (
-                        f"<crabadegg> {egg_class_display} \n"
-                    )
-                    sem.release()
-                else:
-                    header_message_egg = header_message
-                    footer_message_egg = footer_message
-                    message_egg = message
-                message_egg = header_message_egg + message_egg + footer_message_egg
-                message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji).replace("<marketplace_link>", marketplace_link)
-                if (token_id, timestamp_transaction, channel.id) not in already_seen:
-                    task = asyncio.create_task(channel.send(message_egg))
-                    task.add_done_callback(lambda t: self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel_id)})))
+                asyncio.create_task(self.notify_egg_item_channel(infos_family_nft, token_id, price, timestamp_transaction, channel))

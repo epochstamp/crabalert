@@ -375,7 +375,13 @@ async def notify_crab_item(infos_nft, token_id, price, timestamp_transaction, ch
         if cashlink:
             sem = get_semaphore(ADFLY_SEM_ID)
             await sem.acquire()
-            shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+            shorten_link_dict = None
+            while shorten_link_dict is None:
+                try:
+                    shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+                except:
+                    shorten_link_dict = None
+                    asyncio.sleep(5)
             marketplace_link = f"{shorten_link_dict['data'][0]['short_url']}"
             message = (
                 f":crab: {class_display}({subclass_display})\n" +
@@ -495,7 +501,13 @@ async def notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestam
         if cashlink:
             sem = get_semaphore(ADFLY_SEM_ID)
             await sem.acquire()
-            shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+            shorten_link_dict = None
+            while shorten_link_dict is None:
+                try:
+                    shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+                except:
+                    shorten_link_dict = None
+                    asyncio.sleep(5)
             marketplace_link = f"{shorten_link_dict['data'][0]['short_url']}"
             message_egg = (
                 f"{first_column}\n"

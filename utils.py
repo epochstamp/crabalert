@@ -157,7 +157,7 @@ qitoken_mapping = {
     "0x35bd6aeda81a7e5fc7a7832490e71f757b0cd9ce": "0x8729438eb15e2c8b576fcc6aecda6a148776c0f5"
 }
 
-def open_database():
+def open_database(file_db = 'crabalert.db'):
     try:
         connection = sl.connect('crabalert.db')
         return connection

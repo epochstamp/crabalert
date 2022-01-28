@@ -12,7 +12,7 @@ class Register(discord.ext.commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.ext.commands.command(name="register")
+    @discord.ext.commands.command(name="rw")
     async def register(self, ctx, wallet: str = ""):
         guild = self.bot.get_guild(ID_SERVER)
         member = await guild.fetch_member(ctx.author.id)
