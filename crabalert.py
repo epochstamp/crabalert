@@ -5,8 +5,6 @@ from pprint import pprint
 import time
 import discord
 from discord.ext import tasks
-
-from main import ADFLY_SEM_ID
 from config import (
     CRABALERT_SEM_ID,
     ID_COMMAND_CENTER,
@@ -30,6 +28,7 @@ from config import (
     MINIMUM_PAYMENT,
     HEADERS,
     SPAN_TIMESTAMP,
+    ADFLY_SEM_ID,
     subclass_map)
 from utils import (
     async_http_request_with_callback_on_result,
