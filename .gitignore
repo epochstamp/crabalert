@@ -127,3 +127,33 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+./venv
+*.py[co]
+__pycache__
+.vscode
+*.code-workspace
+.coverage*
+.pytest_cache
+.hypothesis
+.mutmut-cache
+settings.json
+*.egg-info
+*.py.bak
+pytest.ini
+*.log
+*.pdf
+*.tex
+*.bbl
+*.blg
+*.dump
+.eggs
+*.json
+*.pyc
+*.data
+run_and_store.py
+*.xlsx
+*.xlsx#
+*.pickle
+*.yaml
+*.yml
