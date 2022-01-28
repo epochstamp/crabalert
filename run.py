@@ -1,5 +1,4 @@
 import discord
-from numpy import block
 from crabalert import Crabalert
 from datetime import datetime
 from datetime import timezone
