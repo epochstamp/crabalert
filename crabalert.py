@@ -176,10 +176,8 @@ class Crabalert(commands.Bot):
                         if payment_date == 0:
                             payment_timestamp = int(round(current_timestamp, 0)) - 3600*24*2
                         else:
-                            payment_timestamp = int(round(datetime.fromtimestamp(payment_date).astimezone(timezone.utc).timestamp(), 0))
-                        print(datetime.fromtimestamp(payment_timestamp, timezone.utc))
+                            payment_timestamp = int(round(datetime.fromtimestamp(int(payment_date)).astimezone(timezone.utc).timestamp(), 0))
                         payments = await self._fetch_payments_from(wallet_address, payment_timestamp)
-                        print(payments)
                         payments = sum(payments, [])
                         if current_timestamp - int(payment_timestamp) > duration:
                             if payments == [] and "Alerted" in roles_str:
@@ -200,7 +198,7 @@ class Crabalert(commands.Bot):
                                 await member.add_roles(role_alerted)
                         if payments != []:
                             new_duration = (sum(payments)/10) * 3600 * 24 * 30 + max((int(payment_timestamp) + int(duration)) - current_timestamp, 0)
-                            new_received_timestamp = datetime.fromtimestamp(current_timestamp, timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+                            new_received_timestamp = datetime.fromtimestamp(current_timestamp, timezone.utc)
                             update_query = f"UPDATE last_received_payment SET duration={int(round(new_duration, 0))}, received_timestamp='{new_received_timestamp}', reminded='FALSE' WHERE discord_id='{member.id}'"
                             execute_query(connection, update_query)
                             if "Alerted" not in roles_str:
@@ -235,7 +233,7 @@ class Crabalert(commands.Bot):
             return lst
 
     async def _fetch_payments_coin_from_web3(self, web3, wallet_address, from_timestamp, contract_address, previous_block_number):
-        print("here and there")
+        """
         transactions = await get_transactions_between_blocks(
             web3,
             previous_block_number,
@@ -244,8 +242,8 @@ class Crabalert(commands.Bot):
                 t["to"].lower() == "0xbda6ffd736848267afc2bec469c8ee46f20bc342".lower()
             )
         )
-        print("transac", transactions)
         return []
+        """
 
     async def _fetch_payments_from_aux(self, wallet_address, from_timestamp, r):
         price_coins = self._get_variable("price_coins", dict())
