@@ -420,7 +420,7 @@ def is_valid_marketplace_transaction(transaction):
         transaction["to"].lower() == "0x1b7966315ef0259de890f38f1bdb95acc03cacdd".lower()
     )
 
-async def extract_transaction(web3, i):
+async def extract_transaction(web3, i, filter_t):
     block = web3.eth.get_block(i, full_transactions=True, filter_t=lambda t: True)
     return [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
 
