@@ -420,6 +420,9 @@ def is_valid_marketplace_transaction(transaction):
         transaction["to"].lower() == "0x1b7966315ef0259de890f38f1bdb95acc03cacdd".lower()
     )
 
+async def extract_transaction(web3, i):
+    block = web3.eth.get_block(i, full_transactions=True, filter_t=lambda t: True)
+    return [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
 
 async def get_transactions_between_blocks(web3, start_block, end_block=None, filter_t=lambda t: True):
     transactions = []
@@ -429,10 +432,14 @@ async def get_transactions_between_blocks(web3, start_block, end_block=None, fil
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
     except:
         pass
+    tasks = []
     for i in range(start_block, end_block):
-        block = web3.eth.get_block(i, full_transactions=True)
-        transactions += [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
-    return transactions
+        tasks.append(extract_transaction(web3, i, filter_t))
+    lst = await asyncio.gather(*tuple(tasks))
+    try:
+        return await lst
+    except:
+        return lst
 
 T = lambda web3, i_block: datetime.fromtimestamp(web3.eth.get_block(i_block).timestamp).astimezone(timezone.utc).timestamp()
 def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=None):
@@ -460,7 +467,6 @@ def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=None):
     # if block-times were evenly-spaced, get expected block number
     k = (tunix_s - t0) / (t1-t0)
     iexpected = int(ipre + k * (ipost - ipre))
-    print(tunix_s, ipre, ipost, k, iexpected, tunix_s - t0, t0, t1)
     # get the ACTUAL time for that block
     texpected = T(web3, iexpected)
 
