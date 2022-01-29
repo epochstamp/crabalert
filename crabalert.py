@@ -5,6 +5,7 @@ from pprint import pprint
 import time
 import discord
 from discord.ext import tasks
+import inspect
 from config import (
     CRABALERT_SEM_ID,
     ID_COMMAND_CENTER,
@@ -109,9 +110,9 @@ class Crabalert(commands.Bot):
             
             self._refresh_crabada_transactions_loop.start()
             self._crabada_alert_loop.start()
-            self._refresh_tus_loop.start()
-            self._refresh_prices_coin_loop.start()
-            self._manage_alerted_roles.start()
+            #self._refresh_tus_loop.start()
+            #self._refresh_prices_coin_loop.start()
+            #self._manage_alerted_roles.start()
             self._launched = True
 
         
@@ -241,12 +242,12 @@ class Crabalert(commands.Bot):
             lambda e: self._fetch_payments_coin_from_web3(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), wallet_address, from_timestamp, contract_address, previous_block_number),
             TIMEOUT,
             lambda r: self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, r),
-            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
+            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2)),
         )
         return lst
 
     async def _fetch_payments_coin_from_web3(self, web3, wallet_address, from_timestamp, contract_address, previous_block_number):
-        transactions = await get_transactions_between_blocks(
+        transactions = get_transactions_between_blocks(
             web3,
             previous_block_number,
             filter_t = lambda t: (
@@ -266,12 +267,12 @@ class Crabalert(commands.Bot):
         price_coins = self._get_variable("price_coins", lambda: dict())
         tasks = [asyncio.create_task(self._fetch_payments_coin_from(wallet_address, from_timestamp, coin, int(r))) for coin in coins.keys() if price_coins.get(coin.lower(), -1) != -1]
         tasks = tuple(tasks)
-        lst = await asyncio.gather(*tasks)
-        return lst
+        lst = asyncio.gather(*tasks)
+        return await lst
 
     async def _fetch_payments_from_web3(self, wallet_address, from_timestamp):
-        block = await iblock_near(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), from_timestamp)
-        return await self._fetch_payments_from_aux(self, wallet_address, from_timestamp, block)
+        block = iblock_near(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), from_timestamp)
+        return await self._fetch_payments_from_aux(wallet_address, from_timestamp, block)
 
     async def _fetch_payments_from(self, wallet_address, from_timestamp):
         global headers
@@ -279,8 +280,10 @@ class Crabalert(commands.Bot):
             f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={from_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
             lambda e: self._fetch_payments_from_web3(wallet_address, from_timestamp),
             TIMEOUT,
-            lambda r: self._fetch_payments_from_aux(wallet_address, from_timestamp, r),
-            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
+            lambda r: self._fetch_payments_from_aux(wallet_address, from_timestamp, r.result()),
+            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2)),
+            await_if_success=True,
+            await_if_failure=True
         )
         return lst
 
@@ -314,7 +317,7 @@ class Crabalert(commands.Bot):
             link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
             asyncio.create_task(async_http_request_with_callback_on_result(
                     link_transactions,
-                    lambda e: asyncio.create_task(self._refresh_crabada_transactions_web3(web3, current_block, last_block_crabada_transaction)),
+                    lambda e: self._refresh_crabada_transactions_web3(web3, current_block, last_block_crabada_transaction),
                     TIMEOUT,
                     lambda r: self._refresh_crabada_transactions(r, current_block),
                     semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))

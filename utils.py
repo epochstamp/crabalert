@@ -11,6 +11,7 @@ import asyncio, aiohttp
 from config import HEADERS
 import sqlite3 as sl
 from datetime import datetime, timezone
+import inspect
 
 EXPLORER_API_KEY = {
     "avalanche": "KEV93B2FGT1RKAX96UVIWDYP7Z9K6HEQ4C",
@@ -381,6 +382,8 @@ async def async_http_request_with_callback_on_result(
     timeout,
     f,
     semaphore=None,
+    await_if_success = False,
+    await_if_failure = False,
     wait_time=2,
     wait_time_if_timeout=6):
     if semaphore is not None:
@@ -390,20 +393,33 @@ async def async_http_request_with_callback_on_result(
             async with session.get(url, headers=HEADERS) as r:
                 if r.status == 200:
                     js = await r.json()
-                    task = asyncio.create_task(f(js["result"]))
-                    if wait_time > 0:
-                        await asyncio.sleep(wait_time)
-                    if semaphore is not None:
-                        semaphore.release()
-                    return task
+                    if inspect.iscoroutinefunction(f):
+                        task = asyncio.create_task(f(js["result"]))
+                        if wait_time > 0:
+                            await asyncio.sleep(wait_time)
+                        if semaphore is not None:
+                            semaphore.release()
+                        if await_if_success:
+                            return await task
+                        else:
+                            return task
+                    else:
+                        return f(js["result"])
     except Exception as e:
         # print"timeout", url)
-        print(e)
+        print(type(e), e)
         if wait_time_if_timeout > 0:
             await asyncio.sleep(wait_time_if_timeout)
         if semaphore is not None:
             semaphore.release()
-        return callback_failure(e)
+        if inspect.iscoroutinefunction(callback_failure):
+            task = asyncio.create_task(callback_failure(e))
+            if await_if_failure:
+                return await task
+            else:
+                return task
+        else:
+            return callback_failure(e)
 
 def close_database(conn):
     conn.close()
