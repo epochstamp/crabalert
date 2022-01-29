@@ -29,7 +29,8 @@ from config import (
     HEADERS,
     SPAN_TIMESTAMP,
     ADFLY_SEM_ID,
-    subclass_map)
+    subclass_map,
+    MONTHLY_RATE)
 from utils import (
     async_http_request_with_callback_on_result,
     blockchain_urls,
@@ -113,7 +114,7 @@ class Crabalert(commands.Bot):
             self._launched = True
 
         
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=5)
     async def _manage_alerted_roles(self):
         guild = self.get_guild(ID_SERVER)
         role_alerted = get(guild.roles, name="Alerted")
@@ -194,7 +195,7 @@ class Crabalert(commands.Bot):
                             if "Alerted" not in roles_str:
                                 await member.add_roles(role_alerted)
                         if payments != []:
-                            new_duration = (sum(payments)/10) * 3600 * 24 * 30 + max((int(payment_timestamp) + int(duration)) - current_timestamp, 0)
+                            new_duration = (sum(payments)/MONTHLY_RATE) * 3600 * 24 * 30 + max((int(payment_timestamp) + int(duration)) - current_timestamp, 0)
                             new_received_timestamp = datetime.fromtimestamp(current_timestamp, timezone.utc)
                             update_query = f"UPDATE last_received_payment SET duration={int(round(new_duration, 0))}, received_timestamp='{new_received_timestamp}', reminded='FALSE' WHERE discord_id='{member.id}'"
                             execute_query(connection, update_query)
