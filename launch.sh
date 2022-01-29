@@ -1,1 +1,1 @@
-git pull && while true; do python run.py && break; done
+while true; do git pull && python run.py && break; done
