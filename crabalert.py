@@ -109,12 +109,12 @@ class Crabalert(commands.Bot):
             self._refresh_crabada_transactions_loop.start()
             self._crabada_alert_loop.start()
             self._refresh_tus_loop.start()
-            self._manage_alerted_roles.start()
             self._refresh_prices_coin_loop.start()
+            self._manage_alerted_roles.start()
             self._launched = True
 
         
-    @tasks.loop(minutes=5)
+    @tasks.loop(seconds=1)
     async def _manage_alerted_roles(self):
         guild = self.get_guild(ID_SERVER)
         role_alerted = get(guild.roles, name="Alerted")
@@ -176,7 +176,10 @@ class Crabalert(commands.Bot):
                         else:
                             payment_timestamp = int(round(datetime.fromtimestamp(int(payment_date)).astimezone(timezone.utc).timestamp(), 0))
                         payments = await self._fetch_payments_from(wallet_address, payment_timestamp)
-                        payments = sum(payments, []) if payments is not None else []
+                        try:
+                            payments = sum(payments, []) if payments is not None else []
+                        except:
+                            payments = []
                         if current_timestamp - int(payment_timestamp) > duration:
                             if payments == [] and "Alerted" in roles_str:
                                 await member.remove_roles(role_alerted)
@@ -211,7 +214,7 @@ class Crabalert(commands.Bot):
         wallet_transactions = transactions
         wallet_transactions = [w for w in wallet_transactions if int(w["timeStamp"]) > int(from_timestamp) and w["from"].lower() == wallet_address.lower()]
         rate = 1 if contract_address.lower() in stablecoins else 1.3
-        price_coins = self._get_variable("price_coins", dict())
+        price_coins = self._get_variable("price_coins", lambda: dict())
         price_in_usd = price_coins.get(contract_address.lower(), -1)
         lst = [(int(w["value"])*price_in_usd*10**-decimals)/rate for w in wallet_transactions if (int(w["value"])*10**-decimals*price_in_usd)/rate >= MINIMUM_PAYMENT]
         return lst
@@ -251,7 +254,7 @@ class Crabalert(commands.Bot):
         
 
     async def _fetch_payments_from_aux(self, wallet_address, from_timestamp, r):
-        price_coins = self._get_variable("price_coins", dict())
+        price_coins = self._get_variable("price_coins", lambda: dict())
         tasks = [asyncio.create_task(self._fetch_payments_coin_from(wallet_address, from_timestamp, coin, int(r))) for coin in coins.keys() if price_coins.get(coin.lower(), -1) != -1]
         tasks = tuple(tasks)
         lst = await asyncio.gather(*tasks)
