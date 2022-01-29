@@ -157,3 +157,4 @@ run_and_store.py
 *.pickle
 *.yaml
 *.yml
+*.db
