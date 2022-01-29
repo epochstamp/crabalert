@@ -23,6 +23,9 @@ class DurationTrial(discord.ext.commands.Cog):
             if "Verified" not in roles_str:
                 await ctx.channel.send(f'Please verify yourself to Crabalert before registering (go to https://discord.gg/PxyXk4TT).')
             return
+        if "Alerted" in roles_str:
+            await ctx.channel.send(f'You already suscribed to alerts.')
+            return
         discord_id = ctx.author.id
         connection = open_database()
         data = execute_query(
