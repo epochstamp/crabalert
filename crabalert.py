@@ -144,7 +144,7 @@ class Crabalert(commands.Bot):
                 current_timestamp = utc_time.timestamp()
                 current_timestamp_datetime = datetime.fromtimestamp(current_timestamp, timezone.utc)
                 data = list(execute_query(
-                    connection, f"SELECT * FROM trial_day WHERE discord_id = '{member.id}'",
+                    connection, f"SELECT * FROM trials WHERE discord_id = '{member.id}'",
                 ))
                 rowcount = len(data)
                 if rowcount > 0:
