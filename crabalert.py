@@ -81,7 +81,7 @@ class Crabalert(commands.Bot):
                 f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
                 headers=HEADERS
             )
-            max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
+            last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
         except:
             transactions = asyncio.run(get_transactions_between_blocks(web3, block_number_ago, filter_t=lambda t: is_valid_marketplace_transaction(t)))
             last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
