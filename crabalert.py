@@ -243,7 +243,10 @@ class Crabalert(commands.Bot):
         transactions = {
             {**transaction, **{"value": int(transaction["input"][74:], 16)}} for transaction in transactions
         }
-        return await self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
+        try:
+            return await self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
+        except:
+            return self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
         
 
     async def _fetch_payments_from_aux(self, wallet_address, from_timestamp, r):
