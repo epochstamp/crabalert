@@ -417,7 +417,13 @@ class Crabalert(commands.Bot):
             if cashlink:
                 sem = self._get_variable(f"sem_{ADFLY_SEM_ID}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=2))
                 await sem.acquire()
-                shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+                shorten_link_dict = None
+                while shorten_link_dict is None:
+                    try:
+                        shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+                    except:
+                        shorten_link_dict = None
+                        await asyncio.sleep(1)
                 marketplace_link = f"{shorten_link_dict['data'][0]['short_url']}"
                 message = (
                     f":crab: {class_display}({subclass_display})\n" +
@@ -525,7 +531,13 @@ class Crabalert(commands.Bot):
         if channel_id in channels_to_display_cashlinks:
             sem = self._get_variable(f"sem_{ADFLY_SEM_ID}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=2))
             await sem.acquire()
-            shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+            shorten_link_dict = None
+            while shorten_link_dict is None:
+                try:
+                    shorten_link_dict = api.shorten(marketplace_link, domain="adf.ly", advert_type=1)
+                except:
+                    shorten_link_dict = None
+                    await asyncio.sleep(1)
             marketplace_link = f"{shorten_link_dict['data'][0]['short_url']}"
             message_egg = (
                 f"{first_column}\n"
