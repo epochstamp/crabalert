@@ -421,7 +421,7 @@ def is_valid_marketplace_transaction(transaction):
     )
 
 async def extract_transaction(web3, i, filter_t):
-    block = web3.eth.get_block(i, full_transactions=True, filter_t=lambda t: True)
+    block = web3.eth.get_block(i, full_transactions=True)
     return [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
 
 async def get_transactions_between_blocks(web3, start_block, end_block=None, filter_t=lambda t: True):
