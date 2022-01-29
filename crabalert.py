@@ -175,7 +175,7 @@ class Crabalert(commands.Bot):
                         else:
                             payment_timestamp = int(round(datetime.fromtimestamp(int(payment_date)).astimezone(timezone.utc).timestamp(), 0))
                         payments = await self._fetch_payments_from(wallet_address, payment_timestamp)
-                        payments = sum(payments, [])
+                        payments = sum(payments, []) if payments is not None else []
                         if current_timestamp - int(payment_timestamp) > duration:
                             if payments == [] and "Alerted" in roles_str:
                                 await member.remove_roles(role_alerted)
@@ -205,9 +205,9 @@ class Crabalert(commands.Bot):
                             await member.send(f"Your payment has been checked and you have now access to alerts for a duration of {human_friendly_duration} starting from now.")
         close_database(connection)
 
-    async def _fetch_payments_coin_from_aux(self, wallet_address, from_timestamp, contract_address, r):
+    async def _fetch_payments_coin_from_aux(self, wallet_address, from_timestamp, contract_address, transactions):
         decimals = coins.get(contract_address.lower(), 18)
-        wallet_transactions = r
+        wallet_transactions = transactions
         wallet_transactions = [w for w in wallet_transactions if int(w["timeStamp"]) > int(from_timestamp) and w["from"].lower() == wallet_address.lower()]
         rate = 1 if contract_address.lower() in stablecoins else 1.3
         price_coins = self._get_variable("price_coins", dict())
@@ -230,17 +230,21 @@ class Crabalert(commands.Bot):
             return lst
 
     async def _fetch_payments_coin_from_web3(self, web3, wallet_address, from_timestamp, contract_address, previous_block_number):
-        """
         transactions = await get_transactions_between_blocks(
             web3,
             previous_block_number,
             filter_t = lambda t: (
                 t["from"].lower() == wallet_address.lower() and
-                t["to"].lower() == "0xbda6ffd736848267afc2bec469c8ee46f20bc342".lower()
+                t["to"].lower() == contract_address.lower() and
+                t["input"][34:74].lower() == "0xbda6ffd736848267afc2bec469c8ee46f20bc342".lower() and
+                int(t["timeStamp"]) > int(from_timestamp)
             )
         )
-        return []
-        """
+        transactions = {
+            {**transaction, **{"value": int(transaction["input"][74:], 16)}} for transaction in transactions
+        }
+        return await self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
+        
 
     async def _fetch_payments_from_aux(self, wallet_address, from_timestamp, r):
         price_coins = self._get_variable("price_coins", dict())
