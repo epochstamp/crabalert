@@ -440,7 +440,7 @@ async def get_transactions_between_blocks(web3, start_block, end_block=None, fil
         return lst
 
 T = lambda web3, i_block: datetime.fromtimestamp(web3.eth.get_block(i_block).timestamp).astimezone(timezone.utc).timestamp()
-def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=None):
+async def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=None):
     
     try:
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
