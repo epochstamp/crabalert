@@ -39,7 +39,7 @@ class DurationTrial(discord.ext.commands.Cog):
                 insert_wallet = f"INSERT INTO trials (discord_id, start_trial, duration_trial) VALUES('{discord_id}', '{current_timestamp}', '{DURATION_TRIAL}')"
                 status = execute_query(connection, insert_wallet)
                 if status == 1:
-                    await ctx.channel.send(f'Your trial has just started for a duration of {humanize.naturaldelta(DURATION_TRIAL)}')
+                    await ctx.channel.send(f'Your trial has just started for a duration of {humanize.naturaldelta(DURATION_TRIAL)} starting from now')
             except Exception as e:
                 await ctx.channel.send(f'Something went wrong. Please open a ticket and send the following error message : {str(e)}.')
         else:
