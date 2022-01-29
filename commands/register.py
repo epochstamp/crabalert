@@ -34,9 +34,7 @@ class Register(discord.ext.commands.Cog):
                     insert_wallet = f"INSERT INTO last_received_payment (discord_id, from_wallet, received_timestamp, txn_hash, reminded) VALUES('{discord_id}', '{wallet}', 0, '', 'FALSE')"
                     status = execute_query(connection, insert_wallet)
                     if status == 1:
-                        await ctx.channel.send(f'Your wallet {wallet} has been added in the database. Next step, send to 0xbda6ffd736848267afc2bec469c8ee46f20bc342 10 USDTs times the number of months(1 month = 30 days) you want to suscribe (for example 3 months = 30 USDT, minimum 1 month).')
-                        await ctx.channel.send(f'Once payment is received, you will get access to the alerts for the duration you have suscribed month based on your payment, since the payment reception datetime.')
-                        await ctx.channel.send(f'If you don\'t have access to the alerts after 1 hour (Transaction are checked every 10 minutes in explorer), please open a ticket and provide your wallet address')
+                        await ctx.channel.send(f'Your wallet {wallet} has been added in the database. Please follow #instructions to proceed to payment.')
                 except Exception as e:
                     await ctx.channel.send(f'Something went wrong. Please open a ticket and send the following error message : {str(e)}.')
             else:
