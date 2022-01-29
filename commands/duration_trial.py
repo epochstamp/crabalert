@@ -19,7 +19,6 @@ class DurationTrial(discord.ext.commands.Cog):
         guild = self.bot.get_guild(ID_SERVER)
         member = await guild.fetch_member(ctx.author.id)
         roles_str = [str(role) for role in member.roles]
-        print(humanize.naturaldelta(DURATION_TRIAL))
         if "Verified" not in roles_str or "Admin" in roles_str or "Moderator" in roles_str:
             if "Verified" not in roles_str:
                 await ctx.channel.send(f'Please verify yourself to Crabalert before registering (go to https://discord.gg/PxyXk4TT).')
