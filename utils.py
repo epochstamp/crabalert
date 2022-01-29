@@ -10,6 +10,7 @@ from pathlib import Path
 import asyncio, aiohttp
 from config import HEADERS
 import sqlite3 as sl
+from datetime import datetime, timezone
 
 EXPLORER_API_KEY = {
     "avalanche": "KEV93B2FGT1RKAX96UVIWDYP7Z9K6HEQ4C",
@@ -418,3 +419,55 @@ def is_valid_marketplace_transaction(transaction):
         "0x" + str(transaction.get("input", ""))[98:138].lower() == "0x7E8DEef5bb861cF158d8BdaAa1c31f7B49922F49".lower() and
         transaction["to"].lower() == "0x1b7966315ef0259de890f38f1bdb95acc03cacdd".lower()
     )
+
+
+async def get_transactions_between_blocks(web3, start_block, end_block=None, filter_t=lambda t: True):
+    transactions = []
+    if end_block is None:
+        end_block = web3.eth.block_number
+    try:
+        web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    except:
+        pass
+    for i in range(start_block, end_block):
+        block = web3.eth.get_block(i, full_transactions=True)
+        transactions += [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
+    return transactions
+
+T = lambda web3, i_block: datetime.fromtimestamp(web3.eth.get_block(i_block).timestamp).astimezone(timezone.utc).timestamp()
+def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=None):
+    
+    try:
+        web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    except:
+        pass
+    if current_block_number is None:
+        current_block_number = web3.eth.get_block('latest')['number']
+    if ipost is None:
+        ipost = current_block_number
+    ipost = min(current_block_number, ipost)
+    ipre = max(1, ipre)
+
+    
+    
+    if ipre == ipost:
+        return ipre
+
+    t0, t1 = T(web3, ipre), T(web3, ipost)
+
+    av_block_time = (t1 - t0) / (ipost-ipre)
+
+    # if block-times were evenly-spaced, get expected block number
+    k = (tunix_s - t0) / (t1-t0)
+    iexpected = int(ipre + k * (ipost - ipre))
+    print(tunix_s, ipre, ipost, k, iexpected, tunix_s - t0, t0, t1)
+    # get the ACTUAL time for that block
+    texpected = T(web3, iexpected)
+
+    # use the discrepancy to improve our guess
+    est_nblocks_from_expected_to_target = int((tunix_s - texpected) / av_block_time)
+    iexpected_adj = iexpected + est_nblocks_from_expected_to_target
+
+    r = abs(est_nblocks_from_expected_to_target)
+
+    return iblock_near(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number)
