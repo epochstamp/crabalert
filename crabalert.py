@@ -385,7 +385,8 @@ class Crabalert(commands.Bot):
         asyncio.create_task(self._set_variable("last_block_seen", current_block))
         crabada_transactions_lst = [transaction for transaction in crabada_transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)]
         crabada_transactions = self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[])
-        crabada_transactions += crabada_transactions_lst
+        dict_transaction_id = {transaction["hash"]:transaction for transaction in crabada_transactions}
+        crabada_transactions += list(dict_transaction_id.values())
         asyncio.create_task(self._set_variable("crabada_transactions", sorted(crabada_transactions, key=lambda x: int(x["blockNumber"]))))
         if crabada_transactions != []:
             asyncio.create_task(self._set_variable("last_block_crabada_transaction", int(crabada_transactions[-1]["blockNumber"]) + 1))
