@@ -20,6 +20,7 @@ from config import (
     api,
     NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS,
     SNOWTRACE_SEM_ID,
+    CRABREFRESH_SEM_ID,
     SNOWTRACE_API_KEY,
     ID_TUS_BOT,
     ID_SERVER,
@@ -344,17 +345,17 @@ class Crabalert(commands.Bot):
     @tasks.loop(seconds=1)
     async def _refresh_crabada_transactions_loop(self):
         #await refresh_crabada_transactions()
-        global SPAN
-        web3 = self._get_variable("web3", f_value_if_not_exists=lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])))
-        current_block = web3.eth.block_number
-        task = asyncio.create_task(
-            get_current_block(web3)
-        )
-        task.add_done_callback(
-            lambda t: asyncio.create_task(self._refresh_crabada_transactions_loop_aux(
-                t.result()
-            ))
-        )
+        async with self._get_variable(f"sem_{CRABREFRESH_SEM_ID}", asyncio.Semaphore(value=1)):
+            web3 = self._get_variable("web3", f_value_if_not_exists=lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])))
+            current_block = web3.eth.block_number
+            task = asyncio.create_task(
+                get_current_block(web3)
+            )
+            task.add_done_callback(
+                lambda t: asyncio.create_task(self._refresh_crabada_transactions_loop_aux(
+                    t.result()
+                ))
+            )
 
     async def _refresh_crabada_transactions_loop_aux(self, current_block):
         last_block_crabada_transaction = self._get_variable("last_block_crabada_transaction", lambda: 0)
