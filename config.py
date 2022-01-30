@@ -11,6 +11,7 @@ CRABALERT_SEM_ID = 3
 CRABREFRESH_SEM_ID = 4
 CRABMESSAGE_SEM_ID = 5
 EGGMESSAGE_SEM_ID = 6
+PAYMENT_SEM_ID = 7
 MEM_MAX = 15
 WALLET_PATTERN = "^0x[a-fA-F0-9]{40}$"
 RATE = 1.3
@@ -42,6 +43,11 @@ channels_to_display_cashlinks = {
 COINS = {
     "0xc7198437980c041c805a1edcba50c1ce5db95118".lower(): 6,
     TUS_CONTRACT_ADDRESS.lower(): 18
+}
+
+COINS_SYMBOL = {
+    "0xc7198437980c041c805a1edcba50c1ce5db95118".lower(): "USDT.e",
+    TUS_CONTRACT_ADDRESS.lower(): "TUS"
 }
 
 api = AdflyApi(

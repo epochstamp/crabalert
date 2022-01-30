@@ -30,7 +30,6 @@ class ListWallets(discord.ext.commands.Cog):
         for d in data:
             try:
                 member = await guild.fetch_member(d[0])
-                print(d)
                 x.append([member, d[1], d[2], d[3]])
             except:
                 pass
