@@ -36,7 +36,7 @@ channels_to_display_cashlinks = {
     934178951998357584
 }
 
-coins = {
+COINS = {
     "0xc7198437980c041c805a1edcba50c1ce5db95118".lower(): 6,
     TUS_CONTRACT_ADDRESS.lower(): 18
 }

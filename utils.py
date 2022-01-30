@@ -270,8 +270,10 @@ def calculate_lp_token_price(web3, blockchain, pool_address, opened_contract=Non
     component_lp_token1 = reserve_token1 / total_supply
     return component_lp_token0 * token_0_price + component_lp_token1 * token_1_price
 
+async def get_current_block(web3):
+    return web3.eth.block_number
 
-def get_token_price_from_dexs(web3, blockchain, token_address, exclude_others_blockchains = []):
+async def get_token_price_from_dexs(web3, blockchain, token_address, exclude_others_blockchains = []):
     global price_mapping
     if token_address.lower() in price_mapping:
         return price_mapping[token_address.lower()]
@@ -440,7 +442,6 @@ async def extract_transaction(web3, i, filter_t):
     return [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
 
 async def get_transactions_between_blocks(web3, start_block, end_block=None, filter_t=lambda t: True):
-    transactions = []
     if end_block is None:
         end_block = web3.eth.block_number
     try:
