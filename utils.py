@@ -404,7 +404,7 @@ async def async_http_request_with_callback_on_result(
                         return task
     except Exception as e:
         # print"timeout", url)
-        print(type(e), e)
+        # print(type(e), e)
         if wait_time_if_timeout > 0:
             await asyncio.sleep(wait_time_if_timeout)
         if semaphore is not None:
