@@ -573,7 +573,7 @@ class Crabalert(commands.Bot):
             task = asyncio.create_task(channel.send(message.replace("<marketplace_link>", marketplace_link)))
             task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id)}))))
 
-    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel):
+    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
         message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji).replace("<marketplace_link>", marketplace_link)
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
