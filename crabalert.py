@@ -111,9 +111,9 @@ class Crabalert(commands.Bot):
             self._refresh_crabada_transactions_loop.start()
             self._crabada_alert_loop.start()
             self._refresh_tus_loop.start()
-            self._refresh_prices_coin_loop.start()
+            #self._refresh_prices_coin_loop.start()
             #self._manage_alerted_roles.start()
-            self._refresh_list_members.start()
+            #self._refresh_list_members.start()
             self._launched = True
 
         
@@ -265,7 +265,7 @@ class Crabalert(commands.Bot):
         return lst
 
     async def _fetch_payments_coin_from_web3(self, web3, wallet_address, from_timestamp, contract_address, previous_block_number):
-        transactions = asyncio.create_task(get_transactions_between_blocks(
+        task = asyncio.create_task(get_transactions_between_blocks(
                 web3,
                 previous_block_number,
                 filter_t = lambda t: (
@@ -276,10 +276,11 @@ class Crabalert(commands.Bot):
                 )
             )
         )
+
         transactions = {
             {**transaction, **{"value": int(transaction["input"][74:], 16)}} for transaction in transactions
         }
-        return await self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
+        return self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
         
 
     async def _fetch_payments_from_aux(self, wallet_address, from_timestamp, r, callback, *c_args, **c_kwargs):
