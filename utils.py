@@ -393,18 +393,15 @@ async def async_http_request_with_callback_on_result(
             async with session.get(url, headers=HEADERS) as r:
                 if r.status == 200:
                     js = await r.json()
-                    if inspect.iscoroutinefunction(f):
-                        task = asyncio.create_task(f(js["result"]))
-                        if wait_time > 0:
-                            await asyncio.sleep(wait_time)
-                        if semaphore is not None:
-                            semaphore.release()
-                        if await_if_success:
-                            return await task
-                        else:
-                            return task
+                    task = asyncio.create_task(f(js["result"]))
+                    if wait_time > 0:
+                        await asyncio.sleep(wait_time)
+                    if semaphore is not None:
+                        semaphore.release()
+                    if await_if_success:
+                        return await task
                     else:
-                        return f(js["result"])
+                        return task
     except Exception as e:
         # print"timeout", url)
         print(type(e), e)
@@ -412,14 +409,11 @@ async def async_http_request_with_callback_on_result(
             await asyncio.sleep(wait_time_if_timeout)
         if semaphore is not None:
             semaphore.release()
-        if inspect.iscoroutinefunction(callback_failure):
-            task = asyncio.create_task(callback_failure(e))
-            if await_if_failure:
-                return await task
-            else:
-                return task
+        task = asyncio.create_task(callback_failure(e))
+        if await_if_failure:
+            return await task
         else:
-            return callback_failure(e)
+            return task
 
 def close_database(conn):
     conn.close()
