@@ -448,7 +448,7 @@ class Crabalert(commands.Bot):
             )
 
     async def notify_crab_item(self, infos_nft, token_id, price, timestamp_transaction, channel, cashlink=False):
-        async with self._get_variable(f"sem_{CRABMESSAGE_SEM_ID}", lambda: asyncio.Semaphore(value=1)):
+        async with self._get_variable(f"sem_{CRABMESSAGE_SEM_ID}_{token_id}_{timestamp_transaction}_{channel.id}", lambda: asyncio.Semaphore(value=1)):
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             # print"crab from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)
             if (token_id, timestamp_transaction, channel.id) not in already_seen:
@@ -509,7 +509,7 @@ class Crabalert(commands.Bot):
                     )
 
     async def notify_egg_item_channel(self, infos_family_nft, token_id, price, timestamp_transaction, channel):
-        async with self._get_variable(f"sem_{EGGMESSAGE_SEM_ID}", lambda: asyncio.Semaphore(value=1)):
+        async with self._get_variable(f"sem_{EGGMESSAGE_SEM_ID}_{token_id}_{timestamp_transaction}_{channel.id}", lambda: asyncio.Semaphore(value=1)):
             channel_id = channel.id
             price_tus = self._get_variable(f"price_tus", f_value_if_not_exists=lambda:-1)
             price_usd = round(price * price_tus, 2)
