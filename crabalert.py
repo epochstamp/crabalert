@@ -112,7 +112,8 @@ class Crabalert(commands.Bot):
             self._crabada_alert_loop.start()
             self._refresh_tus_loop.start()
             self._refresh_prices_coin_loop.start()
-            self._manage_alerted_roles.start()
+            #self._manage_alerted_roles.start()
+            self._refresh_list_members.start()
             self._launched = True
 
         
@@ -156,12 +157,28 @@ class Crabalert(commands.Bot):
         except:
             pass
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
+    async def _refresh_list_members(self):
+        task = asyncio.create_task(
+            self._get_members()
+        )
+        task.add_done_callback(
+            lambda t: asyncio.create_task(
+                self._set_variable(
+                    "members", list(t.result())
+                )
+            )
+        )
+
+    async def _get_members(self):
+        return self.get_guild(ID_SERVER).members
+
+    @tasks.loop(hours=1)
     async def _manage_alerted_roles(self):
         guild = self.get_guild(ID_SERVER)
         role_alerted = get(guild.roles, name="Alerted")
 
-        async for member in guild.fetch_members(limit=None):
+        for member in self._get_variable("members", lambda: []):
             roles_str = [str(role) for role in member.roles]
             if not "Admin" in roles_str and not "Moderator" in roles_str and ("Verified" in roles_str or "Alerted" in roles_str):
                 # Two cases :
@@ -206,6 +223,7 @@ class Crabalert(commands.Bot):
                 rowcount = len(data)
                 if "Alerted" in roles_str and rowcount == 0:
                     asyncio.create_task(member.remove_roles(role_alerted))
+                
                 if rowcount > 0:
                     wallet_address, payment_date, duration, txhash, reminded = data[0][1:]
                     if duration < 0:
@@ -242,50 +260,50 @@ class Crabalert(commands.Bot):
             lambda e: self._fetch_payments_coin_from_web3(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), wallet_address, from_timestamp, contract_address, previous_block_number),
             TIMEOUT,
             lambda r: self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, r),
-            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2)),
+            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
         )
         return lst
 
     async def _fetch_payments_coin_from_web3(self, web3, wallet_address, from_timestamp, contract_address, previous_block_number):
-        transactions = await get_transactions_between_blocks(
-            web3,
-            previous_block_number,
-            filter_t = lambda t: (
-                t["from"].lower() == wallet_address.lower() and
-                t["to"].lower() == contract_address.lower() and
-                t["input"][34:74].lower() == "0xbda6ffd736848267afc2bec469c8ee46f20bc342".lower() and
-                int(t["timeStamp"]) > int(from_timestamp)
+        transactions = asyncio.create_task(get_transactions_between_blocks(
+                web3,
+                previous_block_number,
+                filter_t = lambda t: (
+                    t["from"].lower() == wallet_address.lower() and
+                    t["to"].lower() == contract_address.lower() and
+                    t["input"][34:74].lower() == "0xbda6ffd736848267afc2bec469c8ee46f20bc342".lower() and
+                    int(t["timeStamp"]) > int(from_timestamp)
+                )
             )
         )
         transactions = {
             {**transaction, **{"value": int(transaction["input"][74:], 16)}} for transaction in transactions
         }
-        return self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
+        return await self._fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_address, transactions)
         
 
-    async def _fetch_payments_from_aux(self, wallet_address, from_timestamp, r):
+    async def _fetch_payments_from_aux(self, wallet_address, from_timestamp, r, callback, *c_args, **c_kwargs):
         price_coins = self._get_variable("price_coins", lambda: dict())
         tasks = [asyncio.create_task(self._fetch_payments_coin_from(wallet_address, from_timestamp, coin, int(r))) for coin in coins.keys() if price_coins.get(coin.lower(), -1) != -1]
         tasks = tuple(tasks)
-        lst = asyncio.gather(*tasks)
-        return await lst
+        task = asyncio.gather(*tasks)
+        task.add_done_callback(
+            lambda t: callback(t.result(), *c_args, **c_kwargs)
+        )
 
-    async def _fetch_payments_from_web3(self, wallet_address, from_timestamp):
-        block = await iblock_near(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), from_timestamp)
-        return self._fetch_payments_from_aux(wallet_address, from_timestamp, block)
+    async def _fetch_payments_from_web3(self, wallet_address, from_timestamp, callback):
+        block = asyncio.create_task(iblock_near(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), from_timestamp))
+        block.add_done_callback(lambda t: self._fetch_payments_from_aux(wallet_address, from_timestamp, t.result(), callback))
 
-    async def _fetch_payments_from(self, wallet_address, from_timestamp):
+    async def _fetch_payments_from(self, wallet_address, from_timestamp, callback, *c_args, **c_kwargs):
         global headers
         lst = await async_http_request_with_callback_on_result(
             f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={from_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
-            lambda e: self._fetch_payments_from_web3(wallet_address, from_timestamp),
+            lambda e: self._fetch_payments_from_web3(wallet_address, from_timestamp, callback, *c_args, **c_kwargs),
             TIMEOUT,
-            lambda r: self._fetch_payments_from_aux(wallet_address, from_timestamp, r),
-            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2)),
-            await_if_success=True,
-            await_if_failure=True
+            lambda r: self._fetch_payments_from_aux(wallet_address, from_timestamp, r, callback, *c_args, **c_kwargs),
+            semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
         )
-        return lst
 
     @tasks.loop(minutes=1)
     async def _refresh_tus_loop(self):

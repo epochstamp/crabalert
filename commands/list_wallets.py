@@ -23,14 +23,15 @@ class ListWallets(discord.ext.commands.Cog):
             return
         connection = open_database()
         data = execute_query(
-            connection, f"SELECT discord_id, from_wallet, received_timestamp FROM last_received_payment",
+            connection, f"SELECT discord_id, from_wallet, received_timestamp, duration FROM last_received_payment",
         )
-        field_names = ["Discord Tag", "Wallet address", "Last payment date"]
+        field_names = ["Discord Tag", "Wallet address", "Last payment date", "Duration"]
         x = []
         for d in data:
             try:
                 member = await guild.fetch_member(d[0])
-                x.append([member, d[1], d[2]])
+                print(d)
+                x.append([member, d[1], d[2], d[3]])
             except:
                 pass
         output = t2a(

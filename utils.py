@@ -159,13 +159,7 @@ qitoken_mapping = {
     "0x35bd6aeda81a7e5fc7a7832490e71f757b0cd9ce": "0x8729438eb15e2c8b576fcc6aecda6a148776c0f5"
 }
 
-def open_database(file_db = 'crabalert.db'):
-    try:
-        connection = sl.connect('crabalert.db')
-        return connection
-    except Exception as e:
-        #TODO : logging
-        return None
+
 
 def open_contract(web3, blockchain, address, providedABI = None):
     global already_opened_contract
@@ -418,6 +412,13 @@ async def async_http_request_with_callback_on_result(
 def close_database(conn):
     conn.close()
 
+def open_database(file_db = 'crabalert.db'):
+    try:
+        connection = sl.connect(file_db)
+        return connection
+    except Exception as e:
+        #TODO : logging
+        return None
 
 def execute_query(conn, query):
     with conn:
@@ -432,7 +433,10 @@ def is_valid_marketplace_transaction(transaction):
     )
 
 async def extract_transaction(web3, i, filter_t):
-    block = web3.eth.get_block(i, full_transactions=True)
+    try:
+        block = web3.eth.get_block(i, full_transactions=True)
+    except:
+        return []
     return [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
 
 async def get_transactions_between_blocks(web3, start_block, end_block=None, filter_t=lambda t: True):
@@ -485,4 +489,4 @@ async def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=No
 
     r = abs(est_nblocks_from_expected_to_target)
 
-    return iblock_near(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number)
+    return await iblock_near(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number)
