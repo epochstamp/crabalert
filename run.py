@@ -1,3 +1,4 @@
+import aiohttp
 import discord
 from crabalert import Crabalert
 from datetime import datetime
@@ -18,9 +19,11 @@ import logging
 import sys
 import asyncio
 from config import WAITING_BEFORE_RECONNECT
+from discord.http import HTTPClient
+from discord.http import Route, HTTPException, LoginFailure, DiscordClientWebSocketResponse
+from discord import user
 
 logger = None
-
 
 if len(sys.argv) > 1 and sys.argv[1] == "debug":
     logger = logging.getLogger('discord')
@@ -67,7 +70,7 @@ def run_client(bot: Crabalert, *args, **kwargs):
             exit(1)
         except Exception as e:
             if logger is not None:
-                logger.debug("This exception happened: ", e)
+                logger.debug("This exception happened: ", str(e))
             print("Error", e)  # or use proper logging
         asyncio.run(bot._close_all_tasks())
         print("Waiting until restart")

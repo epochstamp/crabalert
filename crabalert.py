@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+import aiohttp
 from web3.main import Web3
 from pprint import pprint
 from discord.ext import tasks
