@@ -237,7 +237,7 @@ class Crabalert(commands.Bot):
                     delta_duration = timedelta(seconds = new_duration + 3600*24*30)
                     current_timestamp_datetime = datetime.fromtimestamp(current_timestamp, timezone.utc)
                     human_friendly_duration = humanize.naturaldelta(current_timestamp_datetime - (current_timestamp_datetime+delta_duration), when=current_timestamp_datetime)
-                    asyncio.create_task(member.send(f"Your payment of {payment} {COINS_SYMBOL.get(contract_address.lower(), '???')} received at {trans_timestamp.strftime('%d, %b %Y')} has been checked and your subscription has just been extended for a duration of {human_friendly_duration}."))
+                    asyncio.create_task(member.send(f"Your payment of {payment} {COINS_SYMBOL.get(contract_address.lower(), '???')} received at {trans_timestamp_date.strftime('%d, %b %Y')} has been checked and your subscription has just been extended for a duration of {human_friendly_duration}."))
             try:
                 close_database(connection)
             except:
@@ -402,7 +402,6 @@ class Crabalert(commands.Bot):
         #await refresh_crabada_transactions()
         async with self._get_variable(f"sem_{CRABREFRESH_SEM_ID}", lambda: asyncio.Semaphore(value=1)):
             web3 = self._get_variable("web3", f_value_if_not_exists=lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])))
-            current_block = web3.eth.block_number
             task = asyncio.create_task(
                 get_current_block(web3)
             )
