@@ -56,11 +56,21 @@ if len(sys.argv) > 1 and sys.argv[1] == "debug":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
-def run_client(bot: Crabalert, *args, **kwargs):
+def run_client(*args, **kwargs):
     global logger
-    loop = bot.loop#asyncio.get_event_loop()
+    intents = discord.Intents().all()
+    intents.reactions = True
+    intents.members = True
+    intents.guilds = True
+
+    
+    
     while True:
         try:
+            bot = Crabalert(command_prefix="!", intents=intents)
+            loop = bot.loop#asyncio.get_event_loop(
+            for command in commands.values():
+                bot.add_cog(command(bot))
             loop.run_until_complete(bot.start(*args, **kwargs))
         except SystemExit as ex_exception:
             print("destroyed")
@@ -73,6 +83,10 @@ def run_client(bot: Crabalert, *args, **kwargs):
                 logger.debug("This exception happened: ", str(e))
             print("Error", e)  # or use proper logging
         asyncio.run(bot._close_all_tasks())
+        try:
+            asyncio.run(bot.close())
+        except:
+            pass
         print("Waiting until restart")
         time.sleep(WAITING_BEFORE_RECONNECT)
 
@@ -83,10 +97,11 @@ if __name__ == "__main__":
     intents.guilds = True
 
     
-    bot = Crabalert(command_prefix="!", intents=intents)
-    for command in commands.values():
-        bot.add_cog(command(bot))
-    time.sleep(2)
+    #bot = Crabalert(command_prefix="!", intents=intents)
+    #for command in commands.values():
+    #    bot.add_cog(command(bot))
+    #time.sleep(2)
     #client.run('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
-    logger.info("Bot is starting")
-    run_client(bot, 'OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ', reconnect=False)
+    if logger is not None:
+        logger.info("Bot is starting")
+    run_client('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ', reconnect=False)
