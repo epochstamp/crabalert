@@ -1,5 +1,5 @@
-discord
+pycord
 web3
-adfly
+adfly-api
 humanize
 table2ascii
