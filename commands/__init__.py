@@ -6,6 +6,7 @@ from .register import Register
 from .command_err_handler import CommandErrHandler
 from .duration_trial import DurationTrial
 from .alive import Alive
+from .whitelist import Whitelist
 
 commands = {
     "shutdown": Shutdown,
@@ -14,5 +15,6 @@ commands = {
     "command_err_handler": CommandErrHandler,
     "list_wallets": ListWallets,
     "duration_trial": DurationTrial,
+    "whitelist": Whitelist,
     "alive": Alive
 }

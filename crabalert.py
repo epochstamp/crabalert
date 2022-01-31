@@ -1,11 +1,7 @@
 from datetime import datetime, timezone, timedelta
-import traceback
 from web3.main import Web3
 from pprint import pprint
-import time
-import discord
 from discord.ext import tasks
-import inspect
 from config import (
     COINS_SYMBOL,
     CRABALERT_SEM_ID,
@@ -51,21 +47,13 @@ from utils import (
     get_current_block
 )
 from discord.utils import get
-import re
-import sqlite3 as sl
 import humanize
 from discord.ext import commands
-import aiohttp, asyncio
+import asyncio
 import urllib
 import json
 from eggs_utils import calc_pure_probability
 from classes import classes_to_spacebarsize_map
-from adfly import AdflyApi
-import math
-import concurrent
-from asyncio import Semaphore
-import uuid
-
 class Crabalert(commands.Bot):
     def __init__(self, command_prefix="!", intents=None):
         super().__init__(command_prefix=command_prefix, intents=intents)
@@ -118,34 +106,16 @@ class Crabalert(commands.Bot):
             channel = self._get_variable(f"channel_{ID_COMMAND_CENTER}", f_value_if_not_exists=lambda: self.get_channel(ID_COMMAND_CENTER))
             asyncio.create_task(channel.send("Hi ! I'm back."))
             server = self.get_guild(ID_SERVER)
-            task = asyncio.create_task(server.fetch_member(ID_TUS_BOT))
-            task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("price_tus", (float(t.result().nick.split(" ")[0][1:])))))
+            self._refresh_tus_price()
             
             self._refresh_crabada_transactions_loop.start()
             self._crabada_alert_loop.start()
             self._refresh_tus_loop.start()
             self._refresh_prices_coin_loop.start()
             self._manage_alerted_roles.start()
-            self._refresh_list_members.start()
             self._launched = True
 
-        
-    
-
-    @tasks.loop(minutes=10)
-    async def _refresh_list_members(self):
-        task = asyncio.create_task(
-            self._get_members()
-        )
-        task.add_done_callback(
-            lambda t: asyncio.create_task(
-                self._set_variable(
-                    "members", list(t.result())
-                )
-            )
-        )
-
-    async def _get_members(self):
+    def _get_members(self):
         return self.get_guild(ID_SERVER).members
 
     @tasks.loop(minutes=10)
@@ -153,7 +123,7 @@ class Crabalert(commands.Bot):
         guild = self.get_guild(ID_SERVER)
         role_alerted = get(guild.roles, name="Alerted")
 
-        for member in self._get_variable("members", lambda: []):
+        for member in self._get_members():
             roles_str = [str(role) for role in member.roles]
             if not "Admin" in roles_str and not "Moderator" in roles_str and ("Verified" in roles_str or "Alerted" in roles_str):
                 # Two cases :
@@ -208,7 +178,7 @@ class Crabalert(commands.Bot):
                     else:
                         reminded = reminded.lower() == "true"
                         if payment_date == 0:
-                            payment_timestamp = int(round(current_timestamp, 0)) - 3600*24*7
+                            payment_timestamp = int(round(current_timestamp, 0)) - 3600
                         else:
                             payment_timestamp = int(round(datetime.fromtimestamp(int(payment_date)).astimezone(timezone.utc).timestamp(), 0))
                         asyncio.create_task(self._manage_alert_roles_from_payments(member, wallet_address, payment_timestamp))
@@ -269,7 +239,6 @@ class Crabalert(commands.Bot):
                     delta_duration = timedelta(seconds = new_duration + 3600*24*30)
                     current_timestamp_datetime = datetime.fromtimestamp(current_timestamp, timezone.utc)
                     human_friendly_duration = humanize.naturaldelta(current_timestamp_datetime - (current_timestamp_datetime+delta_duration), when=current_timestamp_datetime)
-                    #print(f"Your payment of {payment} {COINS_SYMBOL.get(contract_address.lower(), '???')} received at {trans_timestamp_date.strftime('%d, %b %Y')} has been checked and your subscription has just been extended for a duration of {human_friendly_duration}.")
                     asyncio.create_task(member.send(f"Your payment has been checked and your subscription has just been extended for a duration of {human_friendly_duration}."))
             try:
                 close_database(connection)
@@ -396,15 +365,14 @@ class Crabalert(commands.Bot):
 
 
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(seconds=1)
     async def _refresh_tus_loop(self):
-        server = self.get_guild(ID_SERVER)
-        task = asyncio.create_task(server.fetch_member(ID_TUS_BOT))
-        task.add_done_callback(
-            lambda t: self._refresh_tus_price((float(t.result().nick.split(" ")[0][1:])))
-        )
+        self._refresh_tus_price()
         
-    def _refresh_tus_price(self, price):
+    def _refresh_tus_price(self):
+        server = self.get_guild(ID_SERVER)
+        tus_bot = server.get_member(ID_TUS_BOT)
+        price = float(tus_bot.nick.split(" ")[0][1:])
         self._set_sync_variable("price_tus", price)
         self._set_sync_variable(
             "price_coins",

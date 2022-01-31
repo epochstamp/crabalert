@@ -456,12 +456,7 @@ async def get_transactions_between_blocks(web3, start_block, end_block=None, fil
         return lst
 
 def T(web3, i_block):
-    i = 0
-    while True:
-        try:
-            return datetime.fromtimestamp(web3.eth.get_block(i_block - i).timestamp).astimezone(timezone.utc).timestamp()
-        except:
-            i = i - 1
+    return datetime.fromtimestamp(web3.eth.get_block(max(1, i_block - 1)).timestamp).astimezone(timezone.utc).timestamp()
 
 async def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=None):
     

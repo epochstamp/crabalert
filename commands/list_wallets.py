@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from config import ID_SERVER, WALLET_PATTERN
 import re
@@ -14,13 +15,9 @@ class ListWallets(discord.ext.commands.Cog):
         self.bot = bot
 
     @discord.ext.commands.command(name="lw")
+    @discord.ext.commands.has_any_role('Admin')
     async def list_wallets(self, ctx):
         guild = self.bot.get_guild(ID_SERVER)
-        member = await guild.fetch_member(ctx.author.id)
-        roles_str = [str(role) for role in member.roles]
-        if "Admin" not in roles_str and "Moderator" not in roles_str:
-            print("You cannot execute that command.")
-            return
         connection = open_database()
         data = execute_query(
             connection, f"SELECT discord_id, from_wallet, received_timestamp, duration FROM last_received_payment",
@@ -29,7 +26,7 @@ class ListWallets(discord.ext.commands.Cog):
         x = []
         for d in data:
             try:
-                member = await guild.fetch_member(d[0])
+                member = guild.get_member(d[0])
                 x.append([member, d[1], d[2], d[3]])
             except:
                 pass
@@ -39,5 +36,5 @@ class ListWallets(discord.ext.commands.Cog):
             style=PresetStyle.thin_compact
         )
         #embed = discord.Embed(title="Wallet addresses per member", description=f"```\n{output}\n```")
-        await ctx.send(f"```\n{output}\n```")
+        asyncio.create_task(ctx.send(f"```\n{output}\n```"))
         close_database(connection)

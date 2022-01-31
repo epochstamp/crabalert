@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from config import ID_SERVER
 
@@ -6,12 +7,7 @@ class Reboot(discord.ext.commands.Cog):
         self.bot = bot
 
     @discord.ext.commands.command(name="reboot")
+    @discord.ext.commands.has_any_role('Admin', 'Moderator')
     async def reboot(self, ctx):
-        guild = self.bot.get_guild(ID_SERVER)
-        member = await guild.fetch_member(ctx.author.id)
-        roles_str = [str(role) for role in member.roles]
-        if "Admin" not in roles_str and "Moderator" not in roles_str:
-            print("You cannot execute that command.")
-            return
-        await ctx.channel.send(f'Good bye.')
+        asyncio.create_task(ctx.channel.send(f'Good bye.'))
         exit(1)

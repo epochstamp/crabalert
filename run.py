@@ -14,6 +14,27 @@ from utils import (
 import json
 from commands import commands
 import time
+import logging
+import sys
+
+if len(sys.argv) > 1 and sys.argv[1] == "debug":
+    logger = logging.getLogger('discord')
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+    logger = logging.getLogger('web3')
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(filename='logs/web3.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+    logger = logging.getLogger('asyncio')
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(filename='logs/asyncio.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
 
 if __name__ == "__main__":
     intents = discord.Intents().all()
