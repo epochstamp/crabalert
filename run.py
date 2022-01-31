@@ -53,12 +53,12 @@ if len(sys.argv) > 1 and sys.argv[1] == "debug":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
-def run_client(client, *args, **kwargs):
+def run_client(bot, *args, **kwargs):
     global logger
-    loop = client.loop#asyncio.get_event_loop()
+    loop = bot.loop#asyncio.get_event_loop()
     while True:
         try:
-            loop.run_until_complete(client.start(*args, **kwargs))
+            loop.run_until_complete(bot.start(*args, **kwargs))
         except SystemExit as ex_exception:
             exit(ex_exception.code)
         except KeyboardInterrupt:
@@ -77,11 +77,11 @@ if __name__ == "__main__":
     intents.guilds = True
 
     
-    client = Crabalert(command_prefix="!", intents=intents)
+    bot = Crabalert(command_prefix="!", intents=intents)
     for command in commands.values():
-        client.add_cog(command(client))
+        bot.add_cog(command(bot))
     time.sleep(2)
     #client.run('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
     logger.info("Bot is starting")
-    run_client(client, 'OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
+    run_client(bot, 'OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ', reconnect=False)
     print("destroyed")
