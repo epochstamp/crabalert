@@ -1,4 +1,6 @@
 py-cord
+py-cord[speed]
+certifi
 web3
 adfly-api
 humanize
