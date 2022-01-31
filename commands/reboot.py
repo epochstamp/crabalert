@@ -9,5 +9,6 @@ class Reboot(discord.ext.commands.Cog):
     @discord.ext.commands.command(name="reboot")
     @discord.ext.commands.has_any_role('Admin', 'Moderator')
     async def reboot(self, ctx):
-        asyncio.create_task(ctx.channel.send(f'Good bye.'))
+        task = asyncio.create_task(ctx.channel.send(f'Good bye.'))
+        task.add_done_callback(lambda t: exit(1))
         exit(1)
