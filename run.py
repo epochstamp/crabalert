@@ -36,6 +36,12 @@ if len(sys.argv) > 1 and sys.argv[1] == "debug":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
+    logger = logging.getLogger('aiohttp')
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(filename='logs/aiohttp.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
+
 if __name__ == "__main__":
     intents = discord.Intents().all()
     intents.reactions = True
