@@ -60,7 +60,7 @@ def run_client(client, *args, **kwargs):
         try:
             loop.run_until_complete(client.start(*args, **kwargs))
         except SystemExit as ex_exception:
-            exit(ex_exception.code())
+            exit(ex_exception.code)
         except KeyboardInterrupt:
             exit(1)
         except Exception as e:
