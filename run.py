@@ -67,9 +67,8 @@ def run_client(client, *args, **kwargs):
             if logger is not None:
                 logger.debug("This exception happened: ", e)
             print("Error", e)  # or use proper logging
-        finally:
-            print("Waiting until restart")
-            time.sleep(WAITING_BEFORE_RECONNECT)
+        print("Waiting until restart")
+        time.sleep(WAITING_BEFORE_RECONNECT)
 
 if __name__ == "__main__":
     intents = discord.Intents().all()
