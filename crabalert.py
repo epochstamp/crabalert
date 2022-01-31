@@ -102,16 +102,16 @@ class Crabalert(commands.Bot):
         self._variables[name] = value
         
     async def on_ready(self):
-        channel = self._get_variable(f"channel_{ID_COMMAND_CENTER}", f_value_if_not_exists=lambda: self.get_channel(ID_COMMAND_CENTER))
-        asyncio.create_task(channel.send("Hi ! I'm back."))
-        server = self.get_guild(ID_SERVER)
-        self._refresh_tus_price()
-        
-        self._refresh_crabada_transactions_loop.start()
-        self._crabada_alert_loop.start()
-        self._refresh_tus_loop.start()
-        self._refresh_prices_coin_loop.start()
-        self._manage_alerted_roles.start()
+        if not self._launched:
+            channel = self._get_variable(f"channel_{ID_COMMAND_CENTER}", f_value_if_not_exists=lambda: self.get_channel(ID_COMMAND_CENTER))
+            asyncio.create_task(channel.send("Hi ! I'm back."))
+            self._refresh_tus_price()
+            self._refresh_crabada_transactions_loop.start()
+            self._crabada_alert_loop.start()
+            self._refresh_tus_loop.start()
+            self._refresh_prices_coin_loop.start()
+            self._manage_alerted_roles.start()
+            self._launched = True
 
     def _get_members(self):
         return self.get_guild(ID_SERVER).members
