@@ -26,8 +26,8 @@ class ListWallets(discord.ext.commands.Cog):
         x = []
         for d in data:
             try:
-                print(type(d[0]))
                 member = guild.get_member(int(d[0]))
+                x.append([member, d[1], d[2], d[3]])
             except:
                 pass
         output = t2a(
