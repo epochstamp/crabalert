@@ -409,16 +409,15 @@ class Crabalert(commands.Bot):
     @tasks.loop(seconds=1)
     async def _refresh_crabada_transactions_loop(self):
         #await refresh_crabada_transactions()
-        async with self._get_variable(f"sem_{CRABREFRESH_SEM_ID}", lambda: asyncio.Semaphore(value=1)):
-            web3 = self._get_variable("web3", f_value_if_not_exists=lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])))
-            task = asyncio.create_task(
-                get_current_block(web3)
-            )
-            task.add_done_callback(
-                lambda t: asyncio.create_task(self._refresh_crabada_transactions_loop_aux(
-                    t.result()
-                ))
-            )
+        web3 = self._get_variable("web3", f_value_if_not_exists=lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])))
+        task = asyncio.create_task(
+            get_current_block(web3)
+        )
+        task.add_done_callback(
+            lambda t: asyncio.create_task(self._refresh_crabada_transactions_loop_aux(
+                t.result()
+            ))
+        )
 
     async def _refresh_crabada_transactions_loop_aux(self, current_block):
         last_block_crabada_transaction = self._get_variable("last_block_crabada_transaction", lambda: 0)
@@ -456,14 +455,12 @@ class Crabalert(commands.Bot):
 
     @tasks.loop(seconds=1)
     async def _crabada_alert_loop(self):
-        sem = self._get_variable(f"sem_{CRABALERT_SEM_ID}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=1))
-        async with sem:
-            crabada_transactions = list(self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]))
-            set_transaction_id = {transaction["hash"] for transaction in crabada_transactions}
-            asyncio.create_task(self._set_variable("crabada_transactions", [transaction for transaction in crabada_transactions if transaction["hash"] not in set_transaction_id]))
-            for transaction in crabada_transactions:
-                set_transaction_id.add(transaction["hash"])
-                asyncio.create_task(self._handle_crabada_transaction(transaction))
+        crabada_transactions = list(self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]))
+        set_transaction_id = {transaction["hash"] for transaction in crabada_transactions}
+        asyncio.create_task(self._set_variable("crabada_transactions", [transaction for transaction in crabada_transactions if transaction["hash"] not in set_transaction_id]))
+        for transaction in crabada_transactions:
+            set_transaction_id.add(transaction["hash"])
+            asyncio.create_task(self._handle_crabada_transaction(transaction))
 
     async def _handle_crabada_transaction(self, crabada_transaction):
         input_data = crabada_transaction["input"]
