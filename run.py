@@ -60,8 +60,10 @@ def run_client(bot, *args, **kwargs):
         try:
             loop.run_until_complete(bot.start(*args, **kwargs))
         except SystemExit as ex_exception:
+            print("destroyed")
             exit(ex_exception.code)
         except KeyboardInterrupt:
+            print("destroyed")
             exit(1)
         except Exception as e:
             if logger is not None:
@@ -84,4 +86,3 @@ if __name__ == "__main__":
     #client.run('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
     logger.info("Bot is starting")
     run_client(bot, 'OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ', reconnect=False)
-    print("destroyed")
