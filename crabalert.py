@@ -586,7 +586,7 @@ class Crabalert(commands.Bot):
             
             if class_parent_1 == class_parent_2:
                 egg_class = class_parent_1
-                egg_class_display = egg_class if egg_class not in cool_classes else f"**{egg_class}**"
+                egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
                 
                 emoji_pure = ":gem:" if egg_purity_probability >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
                 probability_display = f"**{int(egg_purity_probability*100)}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability*100)}%"
@@ -614,8 +614,8 @@ class Crabalert(commands.Bot):
                 egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 2)
                 egg_class_1 = class_parent_1
                 egg_class_2 = class_parent_2
-                egg_class_display_1 = egg_class_1 if egg_class_1 not in cool_classes else f"**{egg_class_1}**"
-                egg_class_display_2 = egg_class_2 if egg_class_2 not in cool_classes else f"**{egg_class_2}**"
+                egg_class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else f"**{egg_class_1}**"
+                egg_class_display_2 = egg_class_2 if egg_class_2.lower() not in cool_classes else f"**{egg_class_2}**"
                 egg_class_display = f"({egg_class_display_1}|{egg_class_display_2})"
                 egg_class_text_1 = f"<crab1> {egg_class_display_1}"
                 egg_class_text_2 = f"<crab2> {egg_class_display_2}"
