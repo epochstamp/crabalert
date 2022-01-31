@@ -69,7 +69,7 @@ def run_client(client, *args, **kwargs):
             print("Error", e)  # or use proper logging
         finally:
             print("Waiting until restart")
-            time.sleep(2)
+            time.sleep(WAITING_BEFORE_RECONNECT)
 
 if __name__ == "__main__":
     intents = discord.Intents().all()
