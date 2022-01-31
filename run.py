@@ -53,7 +53,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "debug":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
-def run_client(bot, *args, **kwargs):
+def run_client(bot: Crabalert, *args, **kwargs):
     global logger
     loop = bot.loop#asyncio.get_event_loop()
     while True:
@@ -69,6 +69,7 @@ def run_client(bot, *args, **kwargs):
             if logger is not None:
                 logger.debug("This exception happened: ", e)
             print("Error", e)  # or use proper logging
+        asyncio.run(bot._close_all_tasks())
         print("Waiting until restart")
         time.sleep(WAITING_BEFORE_RECONNECT)
 

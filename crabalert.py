@@ -88,6 +88,7 @@ class Crabalert(commands.Bot):
             self._refresh_prices_coin()
         )
         self._launched = False
+        self._tasks = []
         
 
     def _get_variable(self, name: str, f_value_if_not_exists=lambda: None):
@@ -100,17 +101,24 @@ class Crabalert(commands.Bot):
 
     def _set_sync_variable(self, name: str, value):
         self._variables[name] = value
+
+    async def _close_all_tasks(self):
+        for task in self._tasks:
+            try:
+                await task.close()
+            except:
+                pass
         
     async def on_ready(self):
         if not self._launched:
             channel = self._get_variable(f"channel_{ID_COMMAND_CENTER}", f_value_if_not_exists=lambda: self.get_channel(ID_COMMAND_CENTER))
             asyncio.create_task(channel.send("Hi ! I'm back."))
             self._refresh_tus_price()
-            self._refresh_crabada_transactions_loop.start()
-            self._crabada_alert_loop.start()
-            self._refresh_tus_loop.start()
-            self._refresh_prices_coin_loop.start()
-            self._manage_alerted_roles.start()
+            self._tasks.append(self._refresh_crabada_transactions_loop.start())
+            self._tasks.append(self._crabada_alert_loop.start())
+            self._tasks.append(self._refresh_tus_loop.start())
+            self._tasks.append(self._refresh_prices_coin_loop.start())
+            self._tasks.append(self._manage_alerted_roles.start())
             self._launched = True
 
     def _get_members(self):
