@@ -1,6 +1,6 @@
 from adfly import AdflyApi
 
-
+WAITING_BEFORE_RECONNECT = 3
 SPAN = 100
 SPAN_PAYMENTS=10000
 SPAN_TIMESTAMP = 10
@@ -31,6 +31,7 @@ ADFLY_PRIVATE_KEY = "0b66ae48-4171-46c6-8c2a-2228358521bd"
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 MONTHLY_RATE = 9
 DURATION_TRIAL = 3600*24
+
 
 stablecoins = {
     "0xc7198437980c041c805a1edcba50c1ce5db95118".lower()

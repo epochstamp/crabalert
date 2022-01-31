@@ -16,6 +16,11 @@ from commands import commands
 import time
 import logging
 import sys
+import asyncio
+from config import WAITING_BEFORE_RECONNECT
+
+logger = None
+
 
 if len(sys.argv) > 1 and sys.argv[1] == "debug":
     logger = logging.getLogger('discord')
@@ -42,6 +47,30 @@ if len(sys.argv) > 1 and sys.argv[1] == "debug":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
+    logger = logging.getLogger('crabalert')
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(filename='logs/crabalert.log', encoding='utf-8', mode='w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    logger.addHandler(handler)
+
+def run_client(client, *args, **kwargs):
+    global logger
+    loop = client.loop#asyncio.get_event_loop()
+    while True:
+        try:
+            loop.run_until_complete(client.start(*args, **kwargs))
+        except SystemExit as ex_exception:
+            exit(ex_exception.code())
+        except KeyboardInterrupt:
+            exit(1)
+        except Exception as e:
+            if logger is not None:
+                logger.debug("This exception happened: ", e)
+            print("Error", e)  # or use proper logging
+        finally:
+            print("Waiting until restart")
+            time.sleep(2)
+
 if __name__ == "__main__":
     intents = discord.Intents().all()
     intents.reactions = True
@@ -52,6 +81,8 @@ if __name__ == "__main__":
     client = Crabalert(command_prefix="!", intents=intents)
     for command in commands.values():
         client.add_cog(command(client))
-    time.sleep(5)
-    client.run('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
+    time.sleep(2)
+    #client.run('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
+    logger.info("Bot is starting")
+    run_client(client, 'OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
     print("destroyed")
