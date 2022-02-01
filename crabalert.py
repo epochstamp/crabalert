@@ -580,7 +580,9 @@ class Crabalert(commands.Bot):
             class_parent_2 = crabada_parent_2["class_name"]
             dna_parent_1 = crabada_parent_1["dna"]
             dna_parent_2 = crabada_parent_2["dna"]
-            egg_purity_probability = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 2)
+            egg_purity_probability = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 4)
+            if egg_purity_probability.is_integer():
+                egg_purity_probability = int(egg_purity_probability)
             tus_text = f"<tus> **{price}**"
             tus_text_len_in_space_bars = sum([1 if c == "1" else 2 for c in str(price)]) + 6 + 1
             usd_text = f":moneybag: **{price_usd}**"
@@ -591,7 +593,7 @@ class Crabalert(commands.Bot):
                 egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
                 
                 emoji_pure = ":gem:" if egg_purity_probability >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                probability_display = f"**{int(egg_purity_probability*100)}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability*100)}%"
+                probability_display = f"**{egg_purity_probability*100}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{egg_purity_probability*100}%"
                 if egg_purity_probability == 1:
                     probability_display = "**PURE**"
                 egg_class_text = f":crab: {egg_class_display}"
@@ -613,7 +615,9 @@ class Crabalert(commands.Bot):
             
             else:
                 egg_purity_probability_1 = egg_purity_probability
-                egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 2)
+                egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 4)
+                if egg_purity_probability_2.is_integer():
+                    egg_purity_probability_2 = int(egg_purity_probability_2)
                 egg_class_1 = class_parent_1
                 egg_class_2 = class_parent_2
                 egg_class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else f"**{egg_class_1}**"
@@ -624,8 +628,8 @@ class Crabalert(commands.Bot):
                 egg_class_1_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
                 emoji_pure_1 = ":gem:" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
                 emoji_pure_2 = ":gem:" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                probability_display_1 = f"**{int(egg_purity_probability_1*100)}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability_1*100)}%"
-                probability_display_2 = f"**{int(egg_purity_probability_2*100)}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{int(egg_purity_probability_2*100)}%"
+                probability_display_1 = f"**{egg_purity_probability_1*100}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{egg_purity_probability_1*100})%"
+                probability_display_2 = f"**{egg_purity_probability_2*100}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{egg_purity_probability_2*100})%"
                 purity_probability_text_1 = f"{emoji_pure_1} {probability_display_1}"
                 purity_probability_text_1_len_in_space_bars = 4 + 1 + sum([1 if c == "1" or c == "." else 2 for c in str(int(egg_purity_probability_1*100))])
                 purity_probability_text_2 = f"{emoji_pure_2} {probability_display_2}"
@@ -639,12 +643,15 @@ class Crabalert(commands.Bot):
                     f"{second_column}\n" +
                     f"{third_column}\n"
                 )
+                probability_pure = round(0.5*egg_purity_probability_1 + 0.5*egg_purity_probability_2, 2)
+                if probability_pure.is_integer():
+                    probability_pure = int(probability_pure)
                 infos_egg = {
                     "class_name_1": egg_class_1,
                     "class_name_2": egg_class_2,
-                    "probability_pure": round(0.5*egg_purity_probability_1 + 0.5*egg_purity_probability_2, 2)
+                    "probability_pure": probability_pure
                 }
-            header_message = f"<crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1.0 else ''}{egg_class_display} \n"
+            header_message = f"<crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1 else ''}{egg_class_display} \n"
             footer_message = (
                 f"https://i.ibb.co/hXcP49w/egg.png \n" +
                 "<marketplace_link>"
