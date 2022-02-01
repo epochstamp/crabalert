@@ -393,17 +393,19 @@ async def async_http_get_request_with_callback_on_result(
             await semaphore.acquire()
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
             async with session.get(url, headers=HEADERS) as r:
+                if semaphore is not None:
+                    semaphore.release()
                 if r.status == 200:
                     js = await r.json()
                     task = asyncio.create_task(f(js["result"]))
                     if wait_time > 0:
                         await asyncio.sleep(wait_time)
-                    if semaphore is not None:
-                        semaphore.release()
                     if await_if_success:
                         return await task
                     else:
                         return task
+                else:
+                    raise BaseException()
     except RuntimeError as e:
         pass
     except Exception as e:
