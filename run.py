@@ -84,7 +84,7 @@ def run_client(*args, **kwargs):
             if logger is not None:
                 logger.debug("This exception happened: ", str(e))
             print("Error", e)  # or use proper logging
-        variables = bot.variables
+        variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}
         asyncio.run(bot._close_all_tasks())
         try:
             asyncio.run(bot.close())
