@@ -84,15 +84,18 @@ def run_client(*args, **kwargs):
             logger.debug("This exception happened during bot exec: ", str(e))
         print("Error", e)  # or use proper logging
     exit(1)
-        variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}
-        asyncio.run(bot._close_all_tasks())
-        try:
-            asyncio.run(bot.close())
-        except Exception as e:
-            if logger is not None:
-                logger.debug("This exception happened when closing bot: ", str(e))
-        print("Waiting until restart")
-        time.sleep(WAITING_BEFORE_RECONNECT)
+    """
+    variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}
+    asyncio.run(bot._close_all_tasks())
+    try:
+        asyncio.run(bot.close())
+    except Exception as e:
+        if logger is not None:
+            logger.debug("This exception happened when closing bot: ", str(e))
+    print("Waiting until restart")
+    time.sleep(WAITING_BEFORE_RECONNECT)
+    """
+
 
 if __name__ == "__main__":
     intents = discord.Intents().all()
