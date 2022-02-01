@@ -593,7 +593,7 @@ class Crabalert(commands.Bot):
                 egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
                 
                 emoji_pure = ":gem:" if egg_purity_probability >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                probability_display = f"**{egg_purity_probability*100}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{egg_purity_probability*100}%"
+                probability_display = f"**{round(egg_purity_probability*100, 2)}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability*100, 2)}%"
                 if egg_purity_probability == 1:
                     probability_display = "**PURE**"
                 egg_class_text = f":crab: {egg_class_display}"
@@ -628,10 +628,10 @@ class Crabalert(commands.Bot):
                 egg_class_1_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
                 emoji_pure_1 = ":gem:" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
                 emoji_pure_2 = ":gem:" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                probability_display_1 = f"**{egg_purity_probability_1*100}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{egg_purity_probability_1*100})%"
-                probability_display_2 = f"**{egg_purity_probability_2*100}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{egg_purity_probability_2*100})%"
+                probability_display_1 = f"**{round(egg_purity_probability_1*100, 2)}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability_1*100, 2)})%"
+                probability_display_2 = f"**{round(egg_purity_probability_2*100, 2)}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability_2*100, 2)})%"
                 purity_probability_text_1 = f"{emoji_pure_1} {probability_display_1}"
-                purity_probability_text_1_len_in_space_bars = 4 + 1 + sum([1 if c == "1" or c == "." else 2 for c in str(int(egg_purity_probability_1*100))])
+                purity_probability_text_1_len_in_space_bars = 4 + 1 + sum([1 if c == "1" or c == "." else 2 for c in str(int(round(egg_purity_probability_1*100, 2)))])
                 purity_probability_text_2 = f"{emoji_pure_2} {probability_display_2}"
 
                 max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_1_text_len_in_space_bars, purity_probability_text_1_len_in_space_bars])
