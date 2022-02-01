@@ -71,6 +71,8 @@ def run_client(*args, **kwargs):
             loop = bot.loop#asyncio.get_event_loop(
             for command in commands.values():
                 bot.add_cog(command(bot))
+            if logger is not None:
+                logger.info("Bot is about to start...")
             loop.run_until_complete(bot.start(*args, **kwargs))
         except SystemExit as ex_exception:
             print("destroyed")
@@ -102,6 +104,4 @@ if __name__ == "__main__":
     #    bot.add_cog(command(bot))
     #time.sleep(2)
     #client.run('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ')
-    if logger is not None:
-        logger.info("Bot is starting")
     run_client('OTMyNDc4NjQ1ODE2MTQzOTA5.YeTkaQ.AzMetNL0LwuPYh7NOFrZvhG4VzQ', reconnect=False)
