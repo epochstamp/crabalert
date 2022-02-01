@@ -65,25 +65,25 @@ def run_client(*args, **kwargs):
 
     variables = None
     
-    while True:
-        try:
-            bot = Crabalert(command_prefix="!", intents=intents, variables=variables)
-            loop = bot.loop#asyncio.get_event_loop(
-            for command in commands.values():
-                bot.add_cog(command(bot))
-            if logger is not None:
-                logger.info("Bot is about to start...")
-            loop.run_until_complete(bot.start(*args, **kwargs))
-        except SystemExit as ex_exception:
-            print("destroyed")
-            exit(ex_exception.code)
-        except KeyboardInterrupt:
-            print("destroyed")
-            exit(1)
-        except Exception as e:
-            if logger is not None:
-                logger.debug("This exception happened during bot exec: ", str(e))
-            print("Error", e)  # or use proper logging
+    try:
+        bot = Crabalert(command_prefix="!", intents=intents, variables=variables)
+        loop = bot.loop#asyncio.get_event_loop(
+        for command in commands.values():
+            bot.add_cog(command(bot))
+        if logger is not None:
+            logger.info("Bot is about to start...")
+        loop.run_until_complete(bot.start(*args, **kwargs))
+    except SystemExit as ex_exception:
+        print("destroyed")
+        exit(ex_exception.code)
+    except KeyboardInterrupt:
+        print("destroyed")
+        exit(1)
+    except Exception as e:
+        if logger is not None:
+            logger.debug("This exception happened during bot exec: ", str(e))
+        print("Error", e)  # or use proper logging
+        exit(1)
         variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}
         asyncio.run(bot._close_all_tasks())
         try:
