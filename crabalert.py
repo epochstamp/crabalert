@@ -10,12 +10,11 @@ from config import (
     channel_to_post_with_filters,
     APICRABADA_SEM_ID,
     TIMEOUT,
-    channels_to_display_cashlinks,
+    channels_to_display_shortdescrs,
     cool_classes,
     cool_subclasses,
     THRESOLD_PURE_PROBA,
     channels_emojis,
-    api,
     NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS,
     SNOWTRACE_SEM_ID,
     CRABREFRESH_SEM_ID,
@@ -35,7 +34,7 @@ from config import (
     subclass_map,
     MONTHLY_RATE)
 from utils import (
-    async_http_request_with_callback_on_result,
+    async_http_get_request_with_callback_on_result,
     blockchain_urls,
     get_token_price_from_dexs,
     is_crab,
@@ -82,7 +81,7 @@ class Crabalert(commands.Bot):
                 last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
             self._variables = {
                 "block_number_ago": block_number_ago,
-                "last_seen_block": block_number_ago,
+                "last_block_seen": block_number_ago,
                 "last_block_crabada_transaction": last_block_crabada_transaction,
                 "web3": web3
             }
@@ -269,7 +268,7 @@ class Crabalert(commands.Bot):
         return lst
 
     async def _manage_alert_roles_from_payments(self, member, wallet_address, payment_timestamp):
-        asyncio.create_task(async_http_request_with_callback_on_result(
+        asyncio.create_task(async_http_get_request_with_callback_on_result(
             f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={payment_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
             lambda e: self._manage_alert_roles_from_payments_web3(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), member, wallet_address, payment_timestamp),
             TIMEOUT,
@@ -303,7 +302,7 @@ class Crabalert(commands.Bot):
     async def _manage_alert_roles_from_payments_aux(self, member, wallet_address, payment_timestamp, block_number):
         for contract_address in COINS.keys():
             wallet_transactions_link = f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}"
-            lst = await async_http_request_with_callback_on_result(
+            lst = await async_http_get_request_with_callback_on_result(
                 wallet_transactions_link,
                 lambda e: self._manage_alerted_roles_aux_web3(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), member, wallet_address, payment_timestamp, contract_address, block_number),
                 TIMEOUT,
@@ -324,7 +323,7 @@ class Crabalert(commands.Bot):
 
     async def _fetch_payments_coin_from(self, wallet_address, from_timestamp, contract_address, previous_block_number):
         wallet_transactions_link = f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={previous_block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}"
-        lst = await async_http_request_with_callback_on_result(
+        lst = await async_http_get_request_with_callback_on_result(
             wallet_transactions_link,
             lambda e: self._fetch_payments_coin_from_web3(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), wallet_address, from_timestamp, contract_address, previous_block_number),
             TIMEOUT,
@@ -367,7 +366,7 @@ class Crabalert(commands.Bot):
 
     async def _fetch_payments_from(self, wallet_address, from_timestamp, callback, *c_args, **c_kwargs):
         global headers
-        lst = await async_http_request_with_callback_on_result(
+        lst = await async_http_get_request_with_callback_on_result(
             f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={from_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
             lambda e: self._fetch_payments_from_web3(wallet_address, from_timestamp, callback, *c_args, **c_kwargs),
             TIMEOUT,
@@ -432,7 +431,7 @@ class Crabalert(commands.Bot):
         if current_block - last_block_seen >= NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS:
             last_block_crabada_transaction = self._get_variable("last_block_crabada_transaction", lambda: 0)
             link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
-            asyncio.create_task(async_http_request_with_callback_on_result(
+            asyncio.create_task(async_http_get_request_with_callback_on_result(
                     link_transactions,
                     lambda e: self._refresh_crabada_transactions_web3(web3, current_block, last_block_crabada_transaction),
                     TIMEOUT,
@@ -475,7 +474,7 @@ class Crabalert(commands.Bot):
         link_nft_crabada = f"https://api.crabada.com/public/crabada/info/{token_id}"
         timestamp_transaction = int(crabada_transaction["timeStamp"])
         asyncio.create_task(
-            async_http_request_with_callback_on_result(
+            async_http_get_request_with_callback_on_result(
                 link_nft_crabada,
                 lambda e: self._set_variable("crabada_transactions", self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]) + [crabada_transaction]),
                 TIMEOUT,
@@ -496,13 +495,13 @@ class Crabalert(commands.Bot):
                             price,
                             timestamp_transaction,
                             channel,
-                            cashlink=channel_id in channels_to_display_cashlinks
+                            shortdescr=channel_id in channels_to_display_shortdescrs
                         )
                     )
         else:
             family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
             asyncio.create_task(
-                async_http_request_with_callback_on_result(
+                async_http_get_request_with_callback_on_result(
                     family_infos_link,
                     lambda e: self._set_variable("crabada_transactions", self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]) + [crabada_transaction]),
                     TIMEOUT,
@@ -511,7 +510,7 @@ class Crabalert(commands.Bot):
                 )
             )
 
-    async def notify_crab_item(self, infos_nft, token_id, price, timestamp_transaction, channel, cashlink=False):
+    async def notify_crab_item(self, infos_nft, token_id, price, timestamp_transaction, channel, shortdescr=False):
         async with self._get_variable(f"sem_{CRABMESSAGE_SEM_ID}_{token_id}_{timestamp_transaction}_{channel.id}", lambda: asyncio.Semaphore(value=1)):
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             # print"crab from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)
@@ -544,18 +543,15 @@ class Crabalert(commands.Bot):
                 class_display = infos_nft['class_name']
                 class_display = class_display if class_display.lower() not in cool_classes else f"**{class_display}**"
                 marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
-                if cashlink:
-                    async with self._get_variable(f"sem_{ADFLY_SEM_ID}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=1)) as sem:
+                if shortdescr:
+                    async with self._get_variable(f"sem_{ADFLY_SEM_ID}_{token_id}_{channel.id}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=1)) as sem:
                         message = (
                             f":crab: {class_display}({subclass_display})\n" +
                             f"{first_column}\n" +
                             "<marketplace_link>"
                         )
-                        task = asyncio.create_task(self._shorten_link(marketplace_link))
-                        task.add_done_callback(
-                            lambda t: asyncio.create_task(
-                                self._send_crab_item_message(token_id, timestamp_transaction, channel, already_seen, message, t.result())
-                            )
+                        asyncio.create_task(
+                            self._send_crab_item_message(token_id, timestamp_transaction, channel, already_seen, message, marketplace_link)
                         )
                         
                         
@@ -657,8 +653,8 @@ class Crabalert(commands.Bot):
             crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
             tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", ":crabadegg:")
-            if channel_id in channels_to_display_cashlinks:
-                async with self._get_variable(f"sem_{ADFLY_SEM_ID}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=1)) as sem:
+            if channel_id in channels_to_display_shortdescrs:
+                async with self._get_variable(f"sem_{ADFLY_SEM_ID}_{token_id}_{channel.id}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=1)) as sem:
                     message_egg = (
                         f"{first_column}\n"
                     )
@@ -668,11 +664,8 @@ class Crabalert(commands.Bot):
                     header_message_egg = (
                         f"<crabadegg> {egg_class_display} \n"
                     )
-                    task = asyncio.create_task(self._shorten_link(marketplace_link))
-                    task.add_done_callback(
-                        lambda t: asyncio.create_task(
-                            self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, t.result())
-                        )
+                    asyncio.create_task(
+                        self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link)
                     )
                     
             else:
@@ -705,9 +698,4 @@ class Crabalert(commands.Bot):
                 asyncio.create_task(self.notify_egg_item_channel(infos_family_nft, token_id, price, timestamp_transaction, channel))
 
     async def _shorten_link(self, url):
-        try:
-            shorten_link_dict = api.shorten(url, domain="adf.ly", advert_type=1)
-            shorten_link = shorten_link_dict['data'][0]['short_url']
-        except:
-            shorten_link = url
-        return shorten_link
+        return url

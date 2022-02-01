@@ -12,6 +12,12 @@ from config import HEADERS
 import sqlite3 as sl
 from datetime import datetime, timezone
 import inspect
+from adfly import AdflyApi
+from config import (
+    ADFLY_PRIVATE_KEY,
+    ADFLY_PUBLIC_KEY,
+    ADFLY_USER_ID
+)
 
 EXPLORER_API_KEY = {
     "avalanche": "KEV93B2FGT1RKAX96UVIWDYP7Z9K6HEQ4C",
@@ -372,7 +378,7 @@ def calculate_special_token_price(web3, blockchain, pool_address):
 def is_crab(infos):
     return infos["class_name"] is not None
 
-async def async_http_request_with_callback_on_result(
+async def async_http_get_request_with_callback_on_result(
     url,
     callback_failure,
     timeout,
@@ -493,3 +499,21 @@ async def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=No
     r = abs(est_nblocks_from_expected_to_target)
 
     return await iblock_near(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number)
+
+adfly_api = AdflyApi(
+    user_id=ADFLY_USER_ID,
+    public_key=ADFLY_PUBLIC_KEY,
+    secret_key=ADFLY_PRIVATE_KEY,
+)
+
+async def shorten_adfly(url):
+    global adfly_api
+    shorten_link_dict = adfly_api.shorten(url, domain="adf.ly", advert_type=1)
+    shorten_link = shorten_link_dict['data'][0]['short_url']
+    return shorten_link
+
+async def shorten_ouoio(url):
+    global adfly_api
+    shorten_link_dict = adfly_api.shorten(url, domain="adf.ly", advert_type=1)
+    shorten_link = shorten_link_dict['data'][0]['short_url']
+    return shorten_link

@@ -22,6 +22,8 @@ from config import WAITING_BEFORE_RECONNECT
 from discord.http import HTTPClient
 from discord.http import Route, HTTPException, LoginFailure, DiscordClientWebSocketResponse
 from discord import user
+import json
+import os
 
 logger = None
 
@@ -56,6 +58,17 @@ if len(sys.argv) > 1 and sys.argv[1] == "debug":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
+def safe_json(data): 
+    if data is None: 
+        return True 
+    elif isinstance(data, (bool, int, float)): 
+        return True 
+    elif isinstance(data, (tuple, list)): 
+        return all(safe_json(x) for x in data) 
+    elif isinstance(data, dict): 
+        return all(isinstance(k, str) and safe_json(v) for k, v in data.items()) 
+    return False 
+
 def run_client(*args, **kwargs):
     global logger
     intents = discord.Intents().all()
@@ -64,7 +77,8 @@ def run_client(*args, **kwargs):
     intents.guilds = True
 
     variables = None
-    
+    if os.path.isfile("variables.json"):
+        variables = json.load(open("variables.json"))
     try:
         bot = Crabalert(command_prefix="!", intents=intents, variables=variables)
         loop = bot.loop#asyncio.get_event_loop(
@@ -75,6 +89,11 @@ def run_client(*args, **kwargs):
         loop.run_until_complete(bot.start(*args, **kwargs))
     except SystemExit as ex_exception:
         print("destroyed")
+        if (ex_exception.code == 1):
+            variables = {k:v for k,v in bot.variables.items() if "sem_" not in k and safe_json(v)}
+            f_variables = open("variables.json", "w+")
+            json.dump(variables, f_variables)
+            f_variables.close()
         exit(ex_exception.code)
     except KeyboardInterrupt:
         print("destroyed")
@@ -83,6 +102,10 @@ def run_client(*args, **kwargs):
         if logger is not None:
             logger.debug("This exception happened during bot exec: ", str(e))
         print("Error", e)  # or use proper logging
+    variables = {k:v for k,v in bot.variables.items() if "sem_" not in k and safe_json(v)}
+    f_variables = open("variables.json", "w+")
+    json.dump(variables, f_variables)
+    f_variables.close()
     exit(1)
     """
     variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}

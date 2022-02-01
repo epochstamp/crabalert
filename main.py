@@ -125,7 +125,7 @@ def fetch_payments_coin_from_aux(wallet_address, from_timestamp, contract_addres
 
 async def fetch_payments_coin_from(wallet_address, from_timestamp, contract_address, previous_number):
     wallet_transactions_link = f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={previous_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}"
-    lst = await async_http_request_with_callback_on_result(
+    lst = await async_http_get_request_with_callback_on_result(
         wallet_transactions_link,
         SNOWTRACE_SEM_ID,
         lambda: [],
@@ -143,7 +143,7 @@ async def fetch_payments_from_aux(wallet_address, from_timestamp, r):
 
 async def fetch_payments_from(wallet_address, from_timestamp):
     global headers
-    lst = await async_http_request_with_callback_on_result(
+    lst = await async_http_get_request_with_callback_on_result(
         f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={from_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
         SNOWTRACE_SEM_ID,
         lambda: [],
@@ -283,7 +283,7 @@ def get_semaphore(id_semaphore, value=2):
 
 headers={'User-Agent': 'Mozilla/5.0'}
 
-channels_to_display_cashlinks = {
+channels_to_display_shortdescrs = {
     934178951998357584
 }
 
@@ -322,7 +322,7 @@ def is_crab(infos):
     return infos["class_name"] is not None
 
 
-async def async_http_request_with_callback_on_result(url, url_id, callback_failure, timeout, f, *args, **kwargs):
+async def async_http_get_request_with_callback_on_result(url, url_id, callback_failure, timeout, f, *args, **kwargs):
     sem = get_semaphore(url_id)
     await sem.acquire()
     try:
@@ -340,7 +340,7 @@ async def async_http_request_with_callback_on_result(url, url_id, callback_failu
         sem.release()
         return callback_failure()
 
-async def notify_crab_item(infos_nft, token_id, price, timestamp_transaction, channel, cashlink=False):
+async def notify_crab_item(infos_nft, token_id, price, timestamp_transaction, channel, shortdescr=False):
     already_seen = get_already_seen()
     # print"crab from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)
     if (token_id, timestamp_transaction, channel.id) not in already_seen:
@@ -372,7 +372,7 @@ async def notify_crab_item(infos_nft, token_id, price, timestamp_transaction, ch
         class_display = infos_nft['class_name']
         class_display = class_display if class_display.lower() not in cool_classes else f"**{class_display}**"
         marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
-        if cashlink:
+        if shortdescr:
             sem = get_semaphore(ADFLY_SEM_ID)
             await sem.acquire()
             shorten_link_dict = None
@@ -409,7 +409,7 @@ def create_already_seen_callback(token_id, t, channel_id):
         set_already_seen(already_seen)
     return callback
 
-async def notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestamp_transaction, channel, cashlink=False):
+async def notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestamp_transaction, channel, shortdescr=False):
     filter_function = channel_to_post_with_filters[channel.id]
     already_seen = get_already_seen()
     # print"egg from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)
@@ -498,7 +498,7 @@ async def notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestam
         crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
         tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
         crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", ":crabadegg:")
-        if cashlink:
+        if shortdescr:
             sem = get_semaphore(ADFLY_SEM_ID)
             await sem.acquire()
             shorten_link_dict = None
@@ -542,18 +542,18 @@ async def handle_crabada_transaction(crabada_transaction):
     for channel_id in channel_to_post_with_filters.keys():
         channel = get_channel(client, channel_id)
         if channel is not None and (token_id, timestamp_transaction, channel_id) not in already_seen:
-            asyncio.create_task(async_http_request_with_callback_on_result(link_nft_crabada, APICRABADA_SEM_ID, lambda: print("failure crabada transaction details"), TIMEOUT, notify_marketplace_item, token_id, price, channel_id, timestamp_transaction))
+            asyncio.create_task(async_http_get_request_with_callback_on_result(link_nft_crabada, APICRABADA_SEM_ID, lambda: print("failure crabada transaction details"), TIMEOUT, notify_marketplace_item, token_id, price, channel_id, timestamp_transaction))
 
 async def notify_marketplace_item(r, token_id, price, channel_id, timestamp_transaction):
     channel = get_channel(client, channel_id)
     filter_function = channel_to_post_with_filters[channel_id]
     if is_crab(r):
         if filter_function((r, None)):
-            asyncio.create_task(notify_crab_item(r, token_id, price, timestamp_transaction, channel, cashlink=channel_id in channels_to_display_cashlinks))
+            asyncio.create_task(notify_crab_item(r, token_id, price, timestamp_transaction, channel, shortdescr=channel_id in channels_to_display_shortdescrs))
     else:
         family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
-        asyncio.create_task(async_http_request_with_callback_on_result(
-            family_infos_link, APICRABADA_SEM_ID, lambda: print("failure crabada egg transaction details"), TIMEOUT, notify_egg_item, r, token_id, price, timestamp_transaction, channel, cashlink=channel_id in channels_to_display_cashlinks
+        asyncio.create_task(async_http_get_request_with_callback_on_result(
+            family_infos_link, APICRABADA_SEM_ID, lambda: print("failure crabada egg transaction details"), TIMEOUT, notify_egg_item, r, token_id, price, timestamp_transaction, channel, shortdescr=channel_id in channels_to_display_shortdescrs
         ))
 if __name__ == "__main__":
     
@@ -819,7 +819,7 @@ if __name__ == "__main__":
             set_last_seen_block(current_block)
             last_block_crabada_transaction = get_last_block_crabada_transaction()
             link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
-            asyncio.create_task(async_http_request_with_callback_on_result(link_transactions, SNOWTRACE_SEM_ID, lambda: set_last_seen_block(last_block_seen), TIMEOUT, refresh_crabada_transactions))
+            asyncio.create_task(async_http_get_request_with_callback_on_result(link_transactions, SNOWTRACE_SEM_ID, lambda: set_last_seen_block(last_block_seen), TIMEOUT, refresh_crabada_transactions))
         
 
     @tasks.loop(seconds=1)

@@ -37,7 +37,7 @@ stablecoins = {
     "0xc7198437980c041c805a1edcba50c1ce5db95118".lower()
 }
 
-channels_to_display_cashlinks = {
+channels_to_display_shortdescrs = {
     934178951998357584
 }
 
@@ -50,12 +50,6 @@ COINS_SYMBOL = {
     "0xc7198437980c041c805a1edcba50c1ce5db95118".lower(): "USDT.e",
     TUS_CONTRACT_ADDRESS.lower(): "TUS"
 }
-
-api = AdflyApi(
-    user_id=ADFLY_USER_ID,
-    public_key=ADFLY_PUBLIC_KEY,
-    secret_key=ADFLY_PRIVATE_KEY,
-)
 
 channels_emojis = {
     932591668597776414: {
