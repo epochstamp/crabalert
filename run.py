@@ -82,14 +82,15 @@ def run_client(*args, **kwargs):
             exit(1)
         except Exception as e:
             if logger is not None:
-                logger.debug("This exception happened: ", str(e))
+                logger.debug("This exception happened during bot exec: ", str(e))
             print("Error", e)  # or use proper logging
         variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}
         asyncio.run(bot._close_all_tasks())
         try:
-            asyncio.run(bot.destroy())
+            asyncio.run(bot.close())
         except Exception as e:
-            print(e)
+            if logger is not None:
+                logger.debug("This exception happened when closing bot: ", str(e))
         print("Waiting until restart")
         time.sleep(WAITING_BEFORE_RECONNECT)
 
