@@ -87,7 +87,7 @@ def run_client(*args, **kwargs):
         variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}
         asyncio.run(bot._close_all_tasks())
         try:
-            asyncio.run(bot.close())
+            asyncio.run(bot.destroy())
         except:
             pass
         print("Waiting until restart")
