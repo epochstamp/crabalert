@@ -56,41 +56,47 @@ import json
 from eggs_utils import calc_pure_probability
 from classes import classes_to_spacebarsize_map
 class Crabalert(commands.Bot):
-    def __init__(self, command_prefix="!", intents=None):
+    def __init__(self, command_prefix="!", intents=None, variables=None):
         super().__init__(command_prefix=command_prefix, intents=intents)
-        dt = datetime.now(timezone.utc)
-        utc_time = dt.replace(tzinfo=timezone.utc)
-        current_timestamp_ago = int(round(utc_time.timestamp(), 0)) - SPAN_TIMESTAMP
+        if variables is None:
+            dt = datetime.now(timezone.utc)
+            utc_time = dt.replace(tzinfo=timezone.utc)
+            current_timestamp_ago = int(round(utc_time.timestamp(), 0)) - SPAN_TIMESTAMP
 
-        #Look for last block up to one day ago
-        web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
-        try:
-            req = urllib.request.Request(f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={current_timestamp_ago}&closest=before&apikey={SNOWTRACE_API_KEY}", headers=HEADERS)
-            block_number_ago = int(json.loads(urllib.request.urlopen(req).read())["result"])
-        except:
-            block_number_ago = asyncio.run(iblock_near(web3, current_timestamp_ago))
-        # Get last block for crabada transaction        
-        try:
-            req = urllib.request.Request(
-                f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
-                headers=HEADERS
+            #Look for last block up to one day ago
+            web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
+            try:
+                req = urllib.request.Request(f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={current_timestamp_ago}&closest=before&apikey={SNOWTRACE_API_KEY}", headers=HEADERS)
+                block_number_ago = int(json.loads(urllib.request.urlopen(req).read())["result"])
+            except:
+                block_number_ago = asyncio.run(iblock_near(web3, current_timestamp_ago))
+            # Get last block for crabada transaction        
+            try:
+                req = urllib.request.Request(
+                    f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
+                    headers=HEADERS
+                )
+                last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
+            except:
+                transactions = asyncio.run(get_transactions_between_blocks(web3, block_number_ago, filter_t=lambda t: is_valid_marketplace_transaction(t)))
+                last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
+            self._variables = {
+                "block_number_ago": block_number_ago,
+                "last_seen_block": block_number_ago,
+                "last_block_crabada_transaction": last_block_crabada_transaction,
+                "web3": web3
+            }
+            asyncio.run(
+                self._refresh_prices_coin()
             )
-            last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
-        except:
-            transactions = asyncio.run(get_transactions_between_blocks(web3, block_number_ago, filter_t=lambda t: is_valid_marketplace_transaction(t)))
-            last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
-        self._variables = {
-            "block_number_ago": block_number_ago,
-            "last_seen_block": block_number_ago,
-            "last_block_crabada_transaction": last_block_crabada_transaction,
-            "web3": web3
-        }
-        asyncio.run(
-            self._refresh_prices_coin()
-        )
+        else:
+            self._variables = variables
         self._launched = False
         self._tasks = []
         
+    @property
+    def variables(self):
+        return self._variables
 
     def _get_variable(self, name: str, f_value_if_not_exists=lambda: None):
         if name not in self._variables:

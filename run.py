@@ -63,11 +63,11 @@ def run_client(*args, **kwargs):
     intents.members = True
     intents.guilds = True
 
-    
+    variables = None
     
     while True:
         try:
-            bot = Crabalert(command_prefix="!", intents=intents)
+            bot = Crabalert(command_prefix="!", intents=intents, variables=variables)
             loop = bot.loop#asyncio.get_event_loop(
             for command in commands.values():
                 bot.add_cog(command(bot))
@@ -84,6 +84,7 @@ def run_client(*args, **kwargs):
             if logger is not None:
                 logger.debug("This exception happened: ", str(e))
             print("Error", e)  # or use proper logging
+        variables = bot.variables
         asyncio.run(bot._close_all_tasks())
         try:
             asyncio.run(bot.close())
