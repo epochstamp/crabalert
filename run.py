@@ -102,7 +102,7 @@ def run_client(*args, **kwargs):
         if logger is not None:
             logger.debug("This exception happened during bot exec: ", str(e))
         print("Error", e)  # or use proper logging
-    variables = {k:v for k,v in bot.variables.items() if "sem_" not in k and safe_json(v)}
+    variables = {k:v for k,v in bot.variables.items() if "sem_" not in k and safe_json(v) and k != "already_seen"}
     f_variables = open("variables.json", "w+")
     json.dump(variables, f_variables)
     f_variables.close()
