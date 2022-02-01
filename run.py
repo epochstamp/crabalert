@@ -88,8 +88,8 @@ def run_client(*args, **kwargs):
         asyncio.run(bot._close_all_tasks())
         try:
             asyncio.run(bot.destroy())
-        except:
-            pass
+        except Exception as e:
+            print(e)
         print("Waiting until restart")
         time.sleep(WAITING_BEFORE_RECONNECT)
 
