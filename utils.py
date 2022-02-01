@@ -388,9 +388,9 @@ async def async_http_get_request_with_callback_on_result(
     await_if_failure = False,
     wait_time=2,
     wait_time_if_timeout=6):
-    if semaphore is not None:
-        await semaphore.acquire()
     try:
+        if semaphore is not None:
+            await semaphore.acquire()
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
             async with session.get(url, headers=HEADERS) as r:
                 if r.status == 200:
@@ -404,6 +404,8 @@ async def async_http_get_request_with_callback_on_result(
                         return await task
                     else:
                         return task
+    except RuntimeError as e:
+        pass
     except Exception as e:
         # print"timeout", url)
         # print(type(e), e)
