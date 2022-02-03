@@ -145,7 +145,6 @@ channel_to_post_with_filters = {
     934178951998357584: lambda x: True,
     933456755395006495: lambda x: True,
     935237809697095723: lambda x: True,
-    938865115665690644: lambda x: True,
     933473949445144676: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6,
