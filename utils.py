@@ -427,6 +427,9 @@ async def async_http_get_request_with_callback_on_result(
         else:
             return task
 
+async def nothing():
+    pass
+
 def close_database(conn):
     conn.close()
 
