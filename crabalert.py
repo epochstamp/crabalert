@@ -526,7 +526,7 @@ class Crabalert(commands.Bot):
                 usd_text = f":moneybag: **{price_usd}**"
                 purity_text = (':gem: **PURE**' if infos_nft['pure_number'] == 6 else ':diamond_shape_with_a_dot_inside: ' + str(infos_nft['pure_number']))
                 purity_text_len_in_space_bars = 3 + 1 + (12 if infos_nft['pure_number'] == 6 else (1 if infos_nft['pure_number'] == 1 else 2))
-                breed_text = f"{crabadegg_emoji} {infos_nft['breed_count'] if infos_nft['breed_count'] > 0 else '**BREED-FREE**'}"
+                breed_text = f"{crabadegg_emoji} {infos_nft['breed_count'] if infos_nft['breed_count'] > 0 else '**NO-BREED**'}"
                 mining_text = f":pick: {infos_nft['speed'] + infos_nft['critical']}"
                 mining_text_len_in_space_bars = 4 + 1 + sum([1 if c == "1" else 2 for c in str(infos_nft['speed'] + infos_nft['critical'])])
 
@@ -557,7 +557,7 @@ class Crabalert(commands.Bot):
                         
                 else:
                     message = (
-                        f":crab: {'**PURE**' if infos_nft['pure_number'] == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **BREED-FREE**' if infos_nft['breed_count'] == 0 else ''} {class_display}({subclass_display})\n" +
+                        f":crab: {'**PURE**' if infos_nft['pure_number'] == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **NO-BREED**' if infos_nft['breed_count'] == 0 else ''} {class_display}({subclass_display})\n" +
                         f"{first_column}\n" +
                         f"{second_column}\n" +
                         f"{third_column}\n" +
