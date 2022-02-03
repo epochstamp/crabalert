@@ -23,7 +23,7 @@ class CommandErrHandler(commands.Cog):
         if isinstance(error, discord.ext.commands.CommandNotFound):
             create_task(ctx.send('I do not know that command?!'))
         elif isinstance(error, discord.ext.commands.CheckFailure):
-            create_task( ctx.send('You cannot use that command, either because it is an Admin/Moderator command, or you are not yet Verified.'))
+            pass
         else:
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
