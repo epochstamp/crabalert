@@ -38,7 +38,7 @@ stablecoins = {
 }
 
 channels_to_display_shortdescrs = {
-    934178951998357584
+    934178951998357584, 933473949445144676, 933470546824396830
 }
 
 COINS = {
