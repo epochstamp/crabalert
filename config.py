@@ -161,7 +161,8 @@ channel_to_post_with_filters = {
     933860819920355359: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Avalanche",
     933860865831223318: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Ethereum",
     933860950942044180: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Near",
-    933861077312217129: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Fantom",
+    933861077312217129: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Bitcoin",
+    938919076447813672: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Fantom",
     933862594278740048: lambda x: x[1] is None and x[0].get("is_origin", -1) == 1,
     #Eggs
     933470546824396830: lambda x: x[1] is not None,
@@ -176,6 +177,6 @@ channel_to_post_with_filters = {
 
 
 
-cool_subclasses = {"near", "avalanche", "ethereum", "fantom"}
+cool_subclasses = {"near", "avalanche", "ethereum", "fantom", "bitcoin"}
 
 cool_classes = {"prime", "craboid"}
