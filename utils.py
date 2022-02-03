@@ -18,6 +18,7 @@ from config import (
     ADFLY_PUBLIC_KEY,
     ADFLY_USER_ID
 )
+from discord.ext import commands
 
 EXPLORER_API_KEY = {
     "avalanche": "KEV93B2FGT1RKAX96UVIWDYP7Z9K6HEQ4C",
@@ -377,6 +378,11 @@ def calculate_special_token_price(web3, blockchain, pool_address):
 
 def is_crab(infos):
     return infos["class_name"] is not None
+
+def in_channel(*channels):
+    def predicate(ctx):
+        return ctx.channel.id in channels
+    return commands.check(predicate)
 
 async def async_http_get_request_with_callback_on_result(
     url,

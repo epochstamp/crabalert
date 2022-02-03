@@ -1,12 +1,13 @@
 import asyncio
 import discord
-from config import ID_SERVER, WALLET_PATTERN
+from config import ID_SERVER, ID_COMMAND_CENTER
 import re
 import sqlite3 as sl
 from utils import (
     open_database,
     execute_query,
-    close_database
+    close_database,
+    in_channel
 )
 from table2ascii import table2ascii as t2a, PresetStyle
 
@@ -16,6 +17,7 @@ class ListWallets(discord.ext.commands.Cog):
 
     @discord.ext.commands.command(name="lw")
     @discord.ext.commands.has_any_role('Admin')
+    @in_channel(ID_COMMAND_CENTER)
     async def list_wallets(self, ctx):
         guild = self.bot.get_guild(ID_SERVER)
         connection = open_database()
