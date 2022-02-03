@@ -145,7 +145,9 @@ channel_to_post_with_filters = {
     934178951998357584: lambda x: True,
     933456755395006495: lambda x: True,
     935237809697095723: lambda x: True,
+    938865115665690644: lambda x: True,
     933473949445144676: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
+    938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6,
     933457087369978016: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "prime",
     933399063330701414: lambda x: x[1] is None and x[0].get("breed_count", -1) is not None and x[0].get("breed_count", -1) == 0,
@@ -164,11 +166,13 @@ channel_to_post_with_filters = {
     933862594278740048: lambda x: x[1] is None and x[0].get("is_origin", -1) == 1,
     #Eggs
     933470546824396830: lambda x: x[1] is not None,
+    938865346125889646: lambda x: x[1] is not None,
     933861312809799691: lambda x: x[1] is not None and x[1].get("probability_pure", 0) >= THRESOLD_PURE_PROBA,
     933861463414669422: lambda x: x[1] is not None and x[1].get("class_name_1", "") == "PRIME" and x[1].get("class_name_2", "") == "PRIME",
     934101749013291068: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "PRIME" or x[1].get("class_name_2", "") == "PRIME" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
     933861589738737664: lambda x: x[1] is not None and x[1].get("class_name_1", "") == "CRABOID" and x[1].get("class_name_2", "") == "CRABOID",
     934101847420055552: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "CRABOID" or x[1].get("class_name_2", "") == "CRABOID" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
+    938864199394820177: lambda x: x[1] is not None and x[1].get("probability_pure", 0) >= 1,
 }
 
 
