@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from .crabalert_observer import CrabalertObserver
 import tweepy
 from requests_oauthlib import OAuth1Session
-from ..utils import bold
-from ..config import cool_classes, subclass_map, cool_subclasses
+from utils import bold
+from config import cool_classes, subclass_map, cool_subclasses
 
 class CrabalertTwitterPoster(CrabalertObserver):
 
