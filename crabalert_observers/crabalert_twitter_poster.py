@@ -68,3 +68,4 @@ class CrabalertTwitterPoster(CrabalertObserver):
 
 if __name__ == "__main__":
     crabalert_twitter_poster = CrabalertTwitterPoster()
+    crabalert_twitter_poster._client.create_tweet(text="machin")
