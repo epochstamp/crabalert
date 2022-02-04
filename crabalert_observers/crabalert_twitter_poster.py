@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from crabalert_observer import CrabalertObserver
+from .crabalert_observer import CrabalertObserver
 import tweepy
 from requests_oauthlib import OAuth1Session
 from ..utils import bold
