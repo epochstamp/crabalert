@@ -8,13 +8,13 @@ from config import cool_classes, subclass_map, cool_subclasses
 class CrabalertTwitterPoster(CrabalertObserver):
 
     def __init__(self):
-        CONSUMER_KEY = '1w0WlPuwcENEBtLgqd7kSp5GD'
-        CONSUMER_SECRET = 'pZIjzF9y8hAjggB29XavkgDjQVq1CvMz7MFnoEH9mDIY2C9B5V'
+        CONSUMER_KEY = 'IsNKAf3aZsVpg0v2QUOLNKTiG'
+        CONSUMER_SECRET = 'w0K3Ox2YOSac1sTlULOXB0RIPUdz4ssYqhjKjfehpQo6MeTjig'
 
         # Create a new Access Token
-        ACCESS_TOKEN = '1489533611447570433-7aCX71oDh4Ma79IWoUOA1ZoMXgAjQM' 
-        ACCESS_SECRET = '1nxqBN3UL3VXG8H2YJ1Sm3Ue05zYIqFFe2KIQ0iGqsdh0'
-        BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAAOlvYwEAAAAAJWxrfKg6kCZRqnsC5OX83v%2F1hPI%3Dt1wu6Vs5Q9YB4U9nVR3ujBqukdyPwMK3EocmfDHqoto1QWoFGJ'
+        ACCESS_TOKEN = '1489533611447570433-EhTr0pWH150N9Ize2WfkkiwJviUsvV'
+        ACCESS_SECRET = 'xIrPxiJhgGyoTNHNJDqp2UVL8ukplMIlp0aI6k5gHdNSY'
+        BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAABJ3YwEAAAAAwEMqYQISXJRoOtoFqje63i8bRt8%3D74CsvhXWWhguBk5C7TygLff21XvAN5yOSrklKI03u6Wf49gD9Z'
         self._client = tweepy.Client(
             bearer_token=BEARER_TOKEN,
             consumer_key=CONSUMER_KEY,

@@ -502,7 +502,10 @@ class Crabalert(commands.Bot):
                         )
                     )
             for observer in self._crabalert_observers:
-                asyncio.create_task(observer.notify_crab_item(r, token_id, price, timestamp_transaction))
+                already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
+                if (token_id, timestamp_transaction, observer.id) not in already_seen:
+                   task = asyncio.create_task(observer.notify_crab_item(r, token_id, price, timestamp_transaction))
+                   task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
         else:
             family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
             asyncio.create_task(
@@ -709,7 +712,8 @@ class Crabalert(commands.Bot):
             if (token_id, timestamp_transaction, channel.id) not in already_seen and filter_function((infos_nft, infos_family_nft)):
                 asyncio.create_task(self.notify_egg_item_channel(infos_family_nft, token_id, price, timestamp_transaction, channel))
         for observer in self._crabalert_observers:
-            if (observer.id, token_id, timestamp_transaction) not in already_seen:
+            already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
+            if (token_id, timestamp_transaction, observer.id) not in already_seen:
                 task = asyncio.create_task(observer.notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestamp_transaction))
                 task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
 
