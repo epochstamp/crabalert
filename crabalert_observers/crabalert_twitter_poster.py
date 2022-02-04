@@ -7,18 +7,18 @@ from utils import bold
 from config import cool_classes, subclass_map, cool_subclasses
 from asyncio import Semaphore
 
-SLEEP_TIME = 5
+SLEEP_TIME = 10
 
 class CrabalertTwitterPoster(CrabalertObserver):
 
     def __init__(self):
-        CONSUMER_KEY = 'IsNKAf3aZsVpg0v2QUOLNKTiG'
-        CONSUMER_SECRET = 'w0K3Ox2YOSac1sTlULOXB0RIPUdz4ssYqhjKjfehpQo6MeTjig'
+        CONSUMER_KEY = 'jnUYZMLw1mylES1QdbDHYFlJn'
+        CONSUMER_SECRET = 'YAbJGAfeXlQxAOoUleKTGkj446hm6NyABg2nx3lxTBxXhUzQeW'
 
         # Create a new Access Token
-        ACCESS_TOKEN = '1489533611447570433-EhTr0pWH150N9Ize2WfkkiwJviUsvV'
-        ACCESS_SECRET = 'xIrPxiJhgGyoTNHNJDqp2UVL8ukplMIlp0aI6k5gHdNSY'
-        BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAABJ3YwEAAAAAwEMqYQISXJRoOtoFqje63i8bRt8%3D74CsvhXWWhguBk5C7TygLff21XvAN5yOSrklKI03u6Wf49gD9Z'
+        ACCESS_TOKEN = '1489533611447570433-w00bPp9e7lgDUeiT0CsZLJGWAQ6PxK'
+        ACCESS_SECRET = 'lT3qHcGpe1XUAYAHRNHUzPbMZ0lCkEr4U4tDwojPvT5d8'
+        BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAAPSBYwEAAAAAeg9uky5PLdsSwJW9FWyxIChhYGQ%3Dy9Slr9skgP7Q95d7NfTki3nmgqnvUXss5VvkjjodFM1hZFHCPc'
         self._client = tweepy.Client(
             bearer_token=BEARER_TOKEN,
             consumer_key=CONSUMER_KEY,
