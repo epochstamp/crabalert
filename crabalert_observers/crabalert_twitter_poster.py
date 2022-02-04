@@ -31,7 +31,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
         class_display = infos_nft['class_name']
         class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
         message = (
-            f"🦀 {class_display}({subclass_display})\n" +
+            f"🦀 {class_display}({subclass_display}) on @PlayCrabada Marketplace\n" +
             f"{first_column}\n" +
             f"https://marketplace.crabada.com/crabada/{token_id}"
         )
@@ -56,7 +56,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
             class_display = f"{class_display_1}┃{class_display_2}"
             emoji = "🥚"
         message = (
-            f"{emoji} {class_display}\n" +
+            f"{emoji} {class_display} on @PlayCrabada Marketplace\n" +
             f"{first_column}\n" +
             f"https://marketplace.crabada.com/crabada/{token_id}"
         )
