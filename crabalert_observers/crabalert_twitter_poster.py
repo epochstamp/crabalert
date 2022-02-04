@@ -7,7 +7,7 @@ from utils import bold
 from config import cool_classes, subclass_map, cool_subclasses
 from asyncio import Semaphore
 
-SLEEP_TIME = 10
+SLEEP_TIME = 5
 
 class CrabalertTwitterPoster(CrabalertObserver):
 
