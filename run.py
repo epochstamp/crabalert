@@ -8,6 +8,7 @@ from config import (
     SNOWTRACE_API_KEY
 )
 import urllib
+from crabalert_observers import crabalert_observer
 from utils import (
     HEADERS,
     is_valid_marketplace_transaction
@@ -24,6 +25,7 @@ from discord.http import Route, HTTPException, LoginFailure, DiscordClientWebSoc
 from discord import user
 import json
 import os
+from crabalert_observers import observers
 
 logger = None
 
@@ -80,7 +82,8 @@ def run_client(*args, **kwargs):
     if os.path.isfile("variables.json"):
         variables = json.load(open("variables.json"))
     try:
-        bot = Crabalert(command_prefix="!", intents=intents, variables=variables)
+        lst_observers = [observer() for observer in observers.values()]
+        bot = Crabalert(command_prefix="!", intents=intents, variables=variables, crabalert_observers=lst_observers)
         loop = bot.loop#asyncio.get_event_loop(
         for command in commands.values():
             bot.add_cog(command(bot))

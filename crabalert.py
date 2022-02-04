@@ -55,8 +55,9 @@ import json
 from eggs_utils import calc_pure_probability
 from classes import classes_to_spacebarsize_map
 class Crabalert(commands.Bot):
-    def __init__(self, command_prefix="!", intents=None, variables=None):
+    def __init__(self, command_prefix="!", intents=None, variables=None, crabada_observers=[]):
         super().__init__(command_prefix=command_prefix, intents=intents)
+        self._crabada_observers = crabada_observers
         if variables is None:
             dt = datetime.now(timezone.utc)
             utc_time = dt.replace(tzinfo=timezone.utc)
@@ -498,6 +499,8 @@ class Crabalert(commands.Bot):
                             shortdescr=channel_id in channels_to_display_shortdescrs
                         )
                     )
+            for observer in self._crabada_observers:
+                asyncio.create_task(observer.notify_crab_item(r, token_id, price, timestamp_transaction))
         else:
             family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
             asyncio.create_task(
@@ -622,7 +625,7 @@ class Crabalert(commands.Bot):
                 egg_class_2 = class_parent_2
                 egg_class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else f"**{egg_class_1}**"
                 egg_class_display_2 = egg_class_2 if egg_class_2.lower() not in cool_classes else f"**{egg_class_2}**"
-                egg_class_display = f"({egg_class_display_1}|{egg_class_display_2})"
+                egg_class_display = f"({egg_class_display_1}┃{egg_class_display_2})"
                 egg_class_text_1 = f"<crab1> {egg_class_display_1}"
                 egg_class_text_2 = f"<crab2> {egg_class_display_2}"
                 egg_class_1_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
@@ -703,6 +706,10 @@ class Crabalert(commands.Bot):
             # print"egg from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)
             if (token_id, timestamp_transaction, channel.id) not in already_seen and filter_function((infos_nft, infos_family_nft)):
                 asyncio.create_task(self.notify_egg_item_channel(infos_family_nft, token_id, price, timestamp_transaction, channel))
+        for observer in self._crabada_observers:
+            if (observer.id, token_id, timestamp_transaction) not in already_seen:
+                task = asyncio.create_task(observer.notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestamp_transaction))
+                task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
 
     async def _shorten_link(self, url):
         return url
