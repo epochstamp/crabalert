@@ -27,9 +27,9 @@ class CrabalertTwitterPoster(CrabalertObserver):
         tus_text = f"$TUS {price}"
         first_column = tus_text
         subclass_display = subclass_map.get(infos_nft['crabada_subclass'], 'unknown')
-        subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else f"**{subclass_display}**"
+        subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
         class_display = infos_nft['class_name']
-        class_display = class_display if class_display.lower() not in cool_classes else f"**{class_display}**"
+        class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
         message = (
             f"🦀 {class_display}({subclass_display})\n" +
             f"{first_column}\n" +
