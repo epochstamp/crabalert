@@ -54,10 +54,12 @@ import urllib
 import json
 from eggs_utils import calc_pure_probability
 from classes import classes_to_spacebarsize_map
+
+
 class Crabalert(commands.Bot):
-    def __init__(self, command_prefix="!", intents=None, variables=None, crabada_observers=[]):
+    def __init__(self, command_prefix="!", intents=None, variables=None, crabalert_observers=[]):
         super().__init__(command_prefix=command_prefix, intents=intents)
-        self._crabada_observers = crabada_observers
+        self._crabalert_observers = crabalert_observers
         if variables is None:
             dt = datetime.now(timezone.utc)
             utc_time = dt.replace(tzinfo=timezone.utc)
@@ -499,7 +501,7 @@ class Crabalert(commands.Bot):
                             shortdescr=channel_id in channels_to_display_shortdescrs
                         )
                     )
-            for observer in self._crabada_observers:
+            for observer in self._crabalert_observers:
                 asyncio.create_task(observer.notify_crab_item(r, token_id, price, timestamp_transaction))
         else:
             family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
@@ -706,7 +708,7 @@ class Crabalert(commands.Bot):
             # print"egg from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)
             if (token_id, timestamp_transaction, channel.id) not in already_seen and filter_function((infos_nft, infos_family_nft)):
                 asyncio.create_task(self.notify_egg_item_channel(infos_family_nft, token_id, price, timestamp_transaction, channel))
-        for observer in self._crabada_observers:
+        for observer in self._crabalert_observers:
             if (observer.id, token_id, timestamp_transaction) not in already_seen:
                 task = asyncio.create_task(observer.notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestamp_transaction))
                 task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
