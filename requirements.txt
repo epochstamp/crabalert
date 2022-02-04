@@ -7,4 +7,5 @@ humanize
 table2ascii
 aiohttp==3.7.4.post0
 asyncio
-tweepy
+pytweet
+wget

@@ -83,7 +83,7 @@ def run_client(*args, **kwargs):
     if os.path.isfile("variables.json"):
         variables = json.load(open("variables.json"))
     try:
-        lst_observers = [] #[observer() for observer in observers.values()]
+        lst_observers = [observer() for observer in observers.values()]
         bot = Crabalert(command_prefix="!", intents=intents, variables=variables, crabalert_observers=lst_observers)
         loop = bot.loop#asyncio.get_event_loop(
         for command in commands.values():

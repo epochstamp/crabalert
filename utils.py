@@ -18,7 +18,9 @@ from config import (
     ADFLY_PUBLIC_KEY,
     ADFLY_USER_ID
 )
+import wget
 from discord.ext import commands
+from pathlib import Path
 
 EXPLORER_API_KEY = {
     "avalanche": "KEV93B2FGT1RKAX96UVIWDYP7Z9K6HEQ4C",
@@ -430,6 +432,9 @@ async def async_http_get_request_with_callback_on_result(
 async def nothing():
     pass
 
+def sync_nothing():
+    pass
+
 def close_database(conn):
     conn.close()
 
@@ -545,3 +550,6 @@ def bold(input_text):
             output += character 
 
     return output
+
+async def download_image(url, out, bar=sync_nothing):
+    wget.download(url, out=out, bar=nothing)
