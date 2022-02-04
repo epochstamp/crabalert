@@ -39,7 +39,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
             message = (
                 f"🦀 {class_display}({subclass_display}) (No.{token_id}) for sale at {first_column} on @PlayCrabada Marketplace\n" +
                 f"Join Discord server https://discord.gg/NvkNAax2\n" +
-                f"Listing: https://marketplace.crabada.com/crabada/{token_id}"
+                f"https://marketplace.crabada.com/crabada/{token_id}"
             )
             self._client.create_tweet(text=message)
             await asyncio.sleep(SLEEP_TIME)
@@ -66,7 +66,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
             message = (
                 f"{emoji} {class_display} (No.{token_id}) for sale at {first_column} on @PlayCrabada Marketplace\n" +
                 f"Join Discord server https://discord.gg/NvkNAax2\n" +
-                f"Listing: https://marketplace.crabada.com/crabada/{token_id}"
+                f"https://marketplace.crabada.com/crabada/{token_id}"
             )
             self._client.create_tweet(text=message)
             await asyncio.sleep(SLEEP_TIME)
