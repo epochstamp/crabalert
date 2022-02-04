@@ -33,6 +33,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
         message = (
             f"🦀 {class_display}({subclass_display}) on @PlayCrabada Marketplace\n" +
             f"{first_column}\n" +
+            f"https://photos.crabada.com/{token_id}.png\n" +
             f"https://marketplace.crabada.com/crabada/{token_id}"
         )
         self._client.create_tweet(text=message)
@@ -58,6 +59,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
         message = (
             f"{emoji} {class_display} on @PlayCrabada Marketplace\n" +
             f"{first_column}\n" +
+            f"https://i.ibb.co/hXcP49w/egg.png\n" +
             f"https://marketplace.crabada.com/crabada/{token_id}"
         )
         self._client.create_tweet(text=message)
