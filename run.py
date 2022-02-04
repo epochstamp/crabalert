@@ -79,6 +79,7 @@ def run_client(*args, **kwargs):
     intents.guilds = True
 
     variables = None
+    bot = None
     if os.path.isfile("variables.json"):
         variables = json.load(open("variables.json"))
     try:
@@ -105,7 +106,7 @@ def run_client(*args, **kwargs):
         if logger is not None:
             logger.debug("This exception happened during bot exec: ", str(e))
         print("Error", e)  # or use proper logging
-    if variables is not None:
+    if bot is not None:
         variables = {k:v for k,v in bot.variables.items() if "sem_" not in k and safe_json(v) and k != "already_seen"}
         f_variables = open("variables.json", "w+")
         json.dump(variables, f_variables)
