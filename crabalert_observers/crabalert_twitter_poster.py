@@ -12,13 +12,13 @@ SLEEP_TIME = 5
 class CrabalertTwitterPoster(CrabalertObserver):
 
     def __init__(self):
-        CONSUMER_KEY = 'jnUYZMLw1mylES1QdbDHYFlJn'
-        CONSUMER_SECRET = 'YAbJGAfeXlQxAOoUleKTGkj446hm6NyABg2nx3lxTBxXhUzQeW'
+        CONSUMER_KEY = 'sDxWdqxssQv7EQk58ghw4EfG2'
+        CONSUMER_SECRET = 'onUbdkkKy9jY9vGLEc8MTxRLoNCAboBhn3spj1wllPOX6unhs3'
 
         # Create a new Access Token
-        ACCESS_TOKEN = '1489533611447570433-w00bPp9e7lgDUeiT0CsZLJGWAQ6PxK'
-        ACCESS_SECRET = 'lT3qHcGpe1XUAYAHRNHUzPbMZ0lCkEr4U4tDwojPvT5d8'
-        BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAAPSBYwEAAAAAeg9uky5PLdsSwJW9FWyxIChhYGQ%3Dy9Slr9skgP7Q95d7NfTki3nmgqnvUXss5VvkjjodFM1hZFHCPc'
+        ACCESS_TOKEN = '1489533611447570433-Z8VCasHTgan54jFnYLqe2FJj8cx1JJ'
+        ACCESS_SECRET = 'rRNxJXWpLueeGlipRDkFG38uK44K3osS5vquIsSwA9t3B'
+        BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAANGcYwEAAAAA4eJJ%2FxWu0xOK6LB%2BlkmjQCb4FEw%3DSuutektmUcveUaRUpepWrXfypoIZxyJpskNQ5GkXcHmpf8Gfwu'
         self._client = tweepy.Client(
             bearer_token=BEARER_TOKEN,
             consumer_key=CONSUMER_KEY,
