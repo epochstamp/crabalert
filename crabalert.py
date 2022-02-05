@@ -105,7 +105,7 @@ class Crabalert(commands.Bot):
             self._variables[name] = f_value_if_not_exists()
         return self._variables[name]
 
-    async def _set_variable(self, name: str, value):
+    async def _set_sync_variable(self, name: str, value):
         self._variables[name] = value
 
     def _set_sync_variable(self, name: str, value):
@@ -452,20 +452,20 @@ class Crabalert(commands.Bot):
         )
 
     async def _refresh_crabada_transactions(self, crabada_transactions, current_block):
-        asyncio.create_task(self._set_variable("last_block_seen", current_block))
+        asyncio.create_task(self._set_sync_variable("last_block_seen", current_block))
         crabada_transactions_lst = [transaction for transaction in crabada_transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)]
         crabada_transactions = self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[])
         dict_transaction_id = {transaction["hash"]:transaction for transaction in crabada_transactions_lst}
         crabada_transactions += list(dict_transaction_id.values())
-        asyncio.create_task(self._set_variable("crabada_transactions", sorted(crabada_transactions, key=lambda x: int(x["blockNumber"]))))
+        asyncio.create_task(self._set_sync_variable("crabada_transactions", sorted(crabada_transactions, key=lambda x: int(x["blockNumber"]))))
         if crabada_transactions != []:
-            asyncio.create_task(self._set_variable("last_block_crabada_transaction", int(crabada_transactions[-1]["blockNumber"]) + 1))
+            asyncio.create_task(self._set_sync_variable("last_block_crabada_transaction", int(crabada_transactions[-1]["blockNumber"]) + 1))
 
     @tasks.loop(seconds=1)
     async def _crabada_alert_loop(self):
         crabada_transactions = list(self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]))
         set_transaction_id = {transaction["hash"] for transaction in crabada_transactions}
-        asyncio.create_task(self._set_variable("crabada_transactions", [transaction for transaction in crabada_transactions if transaction["hash"] not in set_transaction_id]))
+        asyncio.create_task(self._set_sync_variable("crabada_transactions", [transaction for transaction in crabada_transactions if transaction["hash"] not in set_transaction_id]))
         for transaction in crabada_transactions:
             set_transaction_id.add(transaction["hash"])
             asyncio.create_task(self._handle_crabada_transaction(transaction))
@@ -479,7 +479,7 @@ class Crabalert(commands.Bot):
         asyncio.create_task(
             async_http_get_request_with_callback_on_result(
                 link_nft_crabada,
-                lambda e: self._set_variable("crabada_transactions", self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]) + [crabada_transaction]),
+                lambda e: self._set_sync_variable("crabada_transactions", self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]) + [crabada_transaction]),
                 TIMEOUT,
                 lambda r: self._notify_marketplace_item(r, token_id, price, timestamp_transaction, crabada_transaction),
                 semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=2))
@@ -505,13 +505,13 @@ class Crabalert(commands.Bot):
                 already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                 if (token_id, timestamp_transaction, observer.id) not in already_seen:
                    task = asyncio.create_task(observer.notify_crab_item(r, token_id, price, timestamp_transaction))
-                   task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
+                   task.add_done_callback(lambda t: asyncio.create_task(self._set_sync_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
         else:
             family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
             asyncio.create_task(
                 async_http_get_request_with_callback_on_result(
                     family_infos_link,
-                    lambda e: self._set_variable("crabada_transactions", self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]) + [crabada_transaction]),
+                    lambda e: self._set_sync_variable("crabada_transactions", self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[]) + [crabada_transaction]),
                     TIMEOUT,
                     lambda r2: self.notify_egg_item(r2, r, token_id, price, timestamp_transaction),
                     semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=2)),
@@ -694,7 +694,7 @@ class Crabalert(commands.Bot):
     async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, already_seen, message, marketplace_link):
         if (token_id, timestamp_transaction, channel.id) not in already_seen:
             task = asyncio.create_task(channel.send(message.replace("<marketplace_link>", marketplace_link)))
-            task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id)}))))
+            task.add_done_callback(lambda t: asyncio.create_task(self._set_sync_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id)}))))
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
@@ -702,7 +702,7 @@ class Crabalert(commands.Bot):
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         if (token_id, timestamp_transaction, channel.id) not in already_seen:
             task = asyncio.create_task(channel.send(message_egg))
-            task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id)}))))
+            task.add_done_callback(lambda t: asyncio.create_task(self._set_sync_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id)}))))
 
     async def notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction):
         for channel_id, filter_function in channel_to_post_with_filters.items():
@@ -715,7 +715,7 @@ class Crabalert(commands.Bot):
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             if (token_id, timestamp_transaction, observer.id) not in already_seen:
                 task = asyncio.create_task(observer.notify_egg_item(infos_family_nft, infos_nft, token_id, price, timestamp_transaction))
-                task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
+                task.add_done_callback(lambda t: asyncio.create_task(self._set_sync_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, observer.id)}))))
 
     async def _shorten_link(self, url):
         return url
