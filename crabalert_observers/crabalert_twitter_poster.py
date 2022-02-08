@@ -30,14 +30,14 @@ class CrabalertTwitterPoster(CrabalertObserver):
 
     async def notify_crab_item(self, infos_nft, token_id, price, timestamp_transaction):
         async with self._semaphore:
-            tus_text = f"{price} #TUS"
+            tus_text = f"{price} $TUS"
             first_column = tus_text
             subclass_display = subclass_map.get(infos_nft['crabada_subclass'], 'unknown')
             subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
             class_display = infos_nft['class_name']
             class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
             message = (
-                f"🦀 {class_display}({subclass_display}) (No.{token_id}) for sale at {first_column} on #PlayCrabada Marketplace\n" +
+                f"🦀 {class_display}({subclass_display}) (No.{token_id}) for sale at {first_column} on #Crabada Marketplace\n" +
                 f"More features in Discord server https://discord.gg/KYwprbzpFd\n" +
                 f"#snibsnib\n" +
                 f"https://marketplace.crabada.com/crabada/{token_id}"
@@ -47,7 +47,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
 
     async def notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction):
         async with self._semaphore:
-            tus_text = f"{price} #TUS"
+            tus_text = f"{price} $TUS"
             first_column = tus_text
             crabada_parent_1 = infos_family_nft[0]
             crabada_parent_2 = infos_family_nft[1]
@@ -65,7 +65,7 @@ class CrabalertTwitterPoster(CrabalertObserver):
                 class_display = f"{class_display_1}┃{class_display_2}"
                 emoji = "🥚"
             message = (
-                f"{emoji} {class_display} (No.{token_id}) for sale at {first_column} on #PlayCrabada Marketplace\n" +
+                f"{emoji} {class_display} (No.{token_id}) for sale at {first_column} on #Crabada Marketplace\n" +
                 f"More features in my Discord server https://discord.gg/KYwprbzpFd\n"
                 f"https://marketplace.crabada.com/crabada/{token_id}"
             )
