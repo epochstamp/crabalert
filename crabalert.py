@@ -273,7 +273,7 @@ class Crabalert(commands.Bot):
     async def _manage_alert_roles_from_payments(self, member, wallet_address, payment_timestamp):
         asyncio.create_task(async_http_get_request_with_callback_on_result(
             f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={payment_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
-            lambda e: self._manage_alert_roles_from_payments_web3(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), member, wallet_address, payment_timestamp),
+            lambda e: self._manage_alert_roles_from_payments_web3(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), member, wallet_address, payment_timestamp),
             TIMEOUT,
             lambda r: self._manage_alert_roles_from_payments_aux(member, wallet_address, payment_timestamp, r.result()),
             semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
@@ -307,7 +307,7 @@ class Crabalert(commands.Bot):
             wallet_transactions_link = f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}"
             lst = await async_http_get_request_with_callback_on_result(
                 wallet_transactions_link,
-                lambda e: self._manage_alerted_roles_aux_web3(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), member, wallet_address, payment_timestamp, contract_address, block_number),
+                lambda e: self._manage_alerted_roles_aux_web3(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), member, wallet_address, payment_timestamp, contract_address, block_number),
                 TIMEOUT,
                 lambda r: self._manage_alerted_roles_aux(r, wallet_address, payment_timestamp, contract_address, member),
                 semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
@@ -402,7 +402,7 @@ class Crabalert(commands.Bot):
 
     async def _refresh_prices_coin(self):
         coins_keys = [k for k in COINS.keys() if k.lower() != TUS_CONTRACT_ADDRESS.lower()]
-        tasks = tuple([get_token_price_from_dexs(self._get_variable("web3", lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))), "avalanche", c) for c in coins_keys])
+        tasks = tuple([get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", c) for c in coins_keys])
 
         task = asyncio.gather(*tasks)
         task.add_done_callback(
@@ -417,7 +417,7 @@ class Crabalert(commands.Bot):
     @tasks.loop(seconds=1)
     async def _refresh_crabada_transactions_loop(self):
         #await refresh_crabada_transactions()
-        web3 = self._get_variable("web3", f_value_if_not_exists=lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])))
+        web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
         task = asyncio.create_task(
             get_current_block(web3)
         )
@@ -430,7 +430,7 @@ class Crabalert(commands.Bot):
     async def _refresh_crabada_transactions_loop_aux(self, current_block):
         last_block_crabada_transaction = self._get_variable("last_block_crabada_transaction", lambda: 0)
         last_block_seen = self._get_variable("last_block_seen", lambda: 0)
-        web3 = self._get_variable("web3", f_value_if_not_exists=lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])))
+        web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
         if current_block - last_block_seen >= NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS:
             last_block_crabada_transaction = self._get_variable("last_block_crabada_transaction", lambda: 0)
             link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
