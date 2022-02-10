@@ -472,7 +472,7 @@ async def get_transactions_between_blocks(web3, start_block, end_block=None, fil
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
     except:
         pass
-    tasks = [extract_transaction(web3, i, filter_t) for i in range(start_block, end_block)]
+    tasks = [extract_transaction(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), i, filter_t) for i in range(start_block, end_block)]
     lst = await asyncio.gather(*tuple(tasks))
     try:
         return await lst
