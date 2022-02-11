@@ -452,10 +452,16 @@ def execute_query(conn, query):
         conn.commit()
     return list(data)
 
-def is_valid_marketplace_transaction(transaction):
+def is_valid_marketplace_listing_transaction(transaction):
     return (
         "0x" + str(transaction.get("input", ""))[98:138].lower() == "0x7E8DEef5bb861cF158d8BdaAa1c31f7B49922F49".lower() and
         transaction["to"].lower() == "0x1b7966315ef0259de890f38f1bdb95acc03cacdd".lower()
+    )
+
+def is_valid_marketplace_selling_transaction(transaction):
+    return (
+        str(transaction.get("input", ""))[:10].lower() == "0xc70f5eaa".lower() and
+        transaction["to"].lower() == "0x7e8deef5bb861cf158d8bdaaa1c31f7b49922f49".lower()
     )
 
 async def extract_transaction(web3, i, filter_t):

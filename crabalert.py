@@ -38,7 +38,7 @@ from utils import (
     blockchain_urls,
     get_token_price_from_dexs,
     is_crab,
-    is_valid_marketplace_transaction,
+    is_valid_marketplace_listing_transaction,
     open_database,
     close_database,
     execute_query,
@@ -78,14 +78,14 @@ class Crabalert(commands.Bot):
                     f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
                     headers=HEADERS
                 )
-                last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
+                last_block_crabada_listing_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_listing_transaction(transaction)])
             except:
-                transactions = asyncio.run(get_transactions_between_blocks(web3, block_number_ago, filter_t=lambda t: is_valid_marketplace_transaction(t)))
-                last_block_crabada_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)])
+                transactions = asyncio.run(get_transactions_between_blocks(web3, block_number_ago, filter_t=lambda t: is_valid_marketplace_listing_transaction(t)))
+                last_block_crabada_listing_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in transactions if isinstance(transaction, dict) and is_valid_marketplace_listing_transaction(transaction)])
             self._variables = {
                 "block_number_ago": block_number_ago,
                 "last_block_seen": block_number_ago,
-                "last_block_crabada_transaction": last_block_crabada_transaction,
+                "last_block_crabada_listing_transaction": last_block_crabada_listing_transaction,
                 "web3": web3
             }
             asyncio.run(
@@ -305,13 +305,13 @@ class Crabalert(commands.Bot):
     async def _manage_alert_roles_from_payments_aux(self, member, wallet_address, payment_timestamp, block_number):
         for contract_address in COINS.keys():
             wallet_transactions_link = f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}"
-            lst = await async_http_get_request_with_callback_on_result(
+            asyncio.create_task(async_http_get_request_with_callback_on_result(
                 wallet_transactions_link,
                 lambda e: self._manage_alerted_roles_aux_web3(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), member, wallet_address, payment_timestamp, contract_address, block_number),
                 TIMEOUT,
                 lambda r: self._manage_alerted_roles_aux(r, wallet_address, payment_timestamp, contract_address, member),
                 semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
-            )
+            ))
 
     """
     async def _fetch_payments_coin_from_aux(self, wallet_address, from_timestamp, contract_address, transactions):
@@ -428,24 +428,24 @@ class Crabalert(commands.Bot):
         )
 
     async def _refresh_crabada_transactions_loop_aux(self, current_block):
-        last_block_crabada_transaction = self._get_variable("last_block_crabada_transaction", lambda: 0)
+        last_block_crabada_listing_transaction = self._get_variable("last_block_crabada_listing_transaction", lambda: 0)
         last_block_seen = self._get_variable("last_block_seen", lambda: 0)
         web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
         if current_block - last_block_seen >= NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS:
-            last_block_crabada_transaction = self._get_variable("last_block_crabada_transaction", lambda: 0)
-            link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
+            last_block_crabada_listing_transaction = self._get_variable("last_block_crabada_listing_transaction", lambda: 0)
+            link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_listing_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
             asyncio.create_task(async_http_get_request_with_callback_on_result(
                     link_transactions,
-                    lambda e: self._refresh_crabada_transactions_web3(web3, current_block, last_block_crabada_transaction),
+                    lambda e: self._refresh_crabada_transactions_web3(web3, current_block, last_block_crabada_listing_transaction),
                     TIMEOUT,
                     lambda r: self._refresh_crabada_transactions(r, current_block),
                     semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
                 )
             )
 
-    async def _refresh_crabada_transactions_web3(self, web3, current_block, last_block_crabada_transaction):
+    async def _refresh_crabada_transactions_web3(self, web3, current_block, last_block_crabada_listing_transaction):
         task = asyncio.create_task(
-            get_transactions_between_blocks(web3, last_block_crabada_transaction, end_block=current_block, filter_t=lambda t: is_valid_marketplace_transaction(t))
+            get_transactions_between_blocks(web3, last_block_crabada_listing_transaction, end_block=current_block, filter_t=lambda t: is_valid_marketplace_listing_transaction(t))
         )
         task.add_done_callback(
             lambda t: asyncio.create_task(self._refresh_crabada_transactions(t.result(), current_block))
@@ -453,13 +453,13 @@ class Crabalert(commands.Bot):
 
     async def _refresh_crabada_transactions(self, crabada_transactions, current_block):
         self._set_sync_variable("last_block_seen", current_block)
-        crabada_transactions_lst = [transaction for transaction in crabada_transactions if isinstance(transaction, dict) and is_valid_marketplace_transaction(transaction)]
+        crabada_transactions_lst = [transaction for transaction in crabada_transactions if isinstance(transaction, dict) and is_valid_marketplace_listing_transaction(transaction)]
         crabada_transactions = self._get_variable(f"crabada_transactions", f_value_if_not_exists=lambda:[])
         dict_transaction_id = {transaction["hash"]:transaction for transaction in crabada_transactions_lst}
         crabada_transactions += list(dict_transaction_id.values())
         self._set_sync_variable("crabada_transactions", sorted(crabada_transactions, key=lambda x: int(x["blockNumber"])))
         if crabada_transactions != []:
-            self._set_sync_variable("last_block_crabada_transaction", int(crabada_transactions[-1]["blockNumber"]) + 1)
+            self._set_sync_variable("last_block_crabada_listing_transaction", int(crabada_transactions[-1]["blockNumber"]) + 1)
 
     @tasks.loop(seconds=1)
     async def _crabada_alert_loop(self):

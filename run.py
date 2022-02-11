@@ -112,7 +112,6 @@ def run_client(*args, **kwargs):
         json.dump(variables, f_variables)
         f_variables.close()
         exit(1)
-    """
     variables = {k:v for k,v in bot.variables.items() if "sem_" not in k}
     asyncio.run(bot._close_all_tasks())
     try:
@@ -122,7 +121,6 @@ def run_client(*args, **kwargs):
             logger.debug("This exception happened when closing bot: ", str(e))
     print("Waiting until restart")
     time.sleep(WAITING_BEFORE_RECONNECT)
-    """
 
 
 if __name__ == "__main__":
