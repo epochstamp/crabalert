@@ -10,8 +10,7 @@ from config import (
 import urllib
 from crabalert_observers import crabalert_observer
 from utils import (
-    HEADERS,
-    is_valid_marketplace_transaction
+    HEADERS
 )
 import json
 from commands import commands
