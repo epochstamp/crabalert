@@ -7,10 +7,10 @@ from config import (
     COINS_SYMBOL,
     CRABALERT_SEM_ID,
     ID_COMMAND_CENTER,
-    channel_to_post_with_filters,
+    channel_to_post_listings_with_filters,
     APICRABADA_SEM_ID,
     TIMEOUT,
-    channels_to_display_shortdescrs,
+    listing_channels_to_display_shortdescrs,
     cool_classes,
     cool_subclasses,
     THRESOLD_PURE_PROBA,
@@ -170,11 +170,12 @@ class Crabalert(commands.Bot):
                     start_trial, duration_trial = data[0][1:]
                     if current_timestamp - datetime.strptime(start_trial, "%Y-%m-%d %H:%M:%S").astimezone(timezone.utc).timestamp() <= duration_trial:
                         if "Alerted" not in roles_str:
-                            asyncio.create_task(member.add_roles(role_alerted))
+                            task = asyncio.create_task(member.add_roles(role_alerted))
+                            asyncio.gather(task)
                         continue
                     else:
                         if "Alerted" in roles_str:
-                            asyncio.create_task(member.remove_roles(role_alerted))
+                            asyncio.gather(asyncio.create_task(member.remove_roles(role_alerted)))
 
 
                 data = list(execute_query(
@@ -183,7 +184,7 @@ class Crabalert(commands.Bot):
                 rowcount = len(data)
                 close_database(connection)
                 if "Alerted" in roles_str and rowcount == 0:
-                    asyncio.create_task(member.remove_roles(role_alerted))
+                    asyncio.gather(asyncio.create_task(member.remove_roles(role_alerted)))
                 
                 if rowcount > 0:
                     wallet_address, payment_date, duration, txhash, reminded = data[0][1:]
@@ -196,7 +197,7 @@ class Crabalert(commands.Bot):
                             payment_timestamp = int(round(current_timestamp, 0)) - 3600
                         else:
                             payment_timestamp = int(round(datetime.fromtimestamp(int(payment_date)).astimezone(timezone.utc).timestamp(), 0))
-                        asyncio.create_task(self._manage_alert_roles_from_payments(member, wallet_address, payment_timestamp))
+                        asyncio.gather(asyncio.create_task(self._manage_alert_roles_from_payments(member, wallet_address, payment_timestamp)))
                         """
                         task.add_done_callback(
                             lambda t: asyncio.create_task(self._manage_alerted_roles_aux(t, current_timestamp, payment_timestamp, guild, member, duration, roles_str, reminded, connection))
@@ -227,21 +228,21 @@ class Crabalert(commands.Bot):
             
             if current_timestamp - int(payment_timestamp) > duration:
                 if payments == [] and "Alerted" in roles_str:
-                    asyncio.create_task(member.remove_roles(role_alerted))
-                    asyncio.create_task(member.send("Your subscription to Crabalert has expired and your access to the alerts removed."))
-                    asyncio.create_task(member.send("If you want to renew it, please send payments again (see #instructions for a soft reminder)"))
+                    asyncio.gather(asyncio.create_task(member.remove_roles(role_alerted)))
+                    asyncio.gather(asyncio.create_task(member.send("Your subscription to Crabalert has expired and your access to the alerts removed.")))
+                    asyncio.gather(asyncio.create_task(member.send("If you want to renew it, please send payments again (see #instructions for a soft reminder)")))
             else:
                 #Send reminders if subscription is close (< 1h)
                 remaining_time = (int(payment_timestamp) + int(duration)) - current_timestamp
                 if remaining_time <= 3600*24 and not reminded:
                     remaining_deltatime = humanize.naturaltime(current_timestamp + timedelta(seconds = remaining_time))
-                    asyncio.create_task(member.send(
+                    asyncio.gather(asyncio.create_task(member.send(
                         f"Your subscription to Crabalert is going to expire in less than one day (remaining:{remaining_deltatime}). If you want to keep it, please send payment again (see #instructions for a soft reminder)"
-                    ))
+                    )))
                     update_query = f"UPDATE last_received_payment SET reminded='TRUE' WHERE discord_id={member.id}"
                     execute_query(connection, update_query)
                 if "Alerted" not in roles_str:
-                    asyncio.create_task(member.add_roles(role_alerted))
+                    asyncio.gather(asyncio.create_task(member.add_roles(role_alerted)))
             if payments != []:
                 for payment, trans_timestamp in payments:
                     new_duration = payment/MONTHLY_RATE * 3600 * 24 * 30 + max((int(payment_timestamp) + int(duration)) - current_timestamp, 0)
@@ -250,11 +251,11 @@ class Crabalert(commands.Bot):
                     execute_query(connection, update_query)
                     connection.commit()
                     if "Alerted" not in roles_str:
-                        asyncio.create_task(member.add_roles(role_alerted))
+                        asyncio.gather(asyncio.create_task(member.add_roles(role_alerted)))
                     delta_duration = timedelta(seconds = new_duration + 3600*24*30)
                     current_timestamp_datetime = datetime.fromtimestamp(current_timestamp, timezone.utc)
                     human_friendly_duration = humanize.naturaldelta(current_timestamp_datetime - (current_timestamp_datetime+delta_duration), when=current_timestamp_datetime)
-                    asyncio.create_task(member.send(f"Your payment of {payment} {COINS_SYMBOL.get(contract_address.lower(), '???')} received at {trans_timestamp_date.strftime('%d, %b %Y')} has been checked and your subscription has just been extended for a duration of {human_friendly_duration}."))
+                    asyncio.gather(asyncio.create_task(member.send(f"Your payment of {payment} {COINS_SYMBOL.get(contract_address.lower(), '???')} received at {trans_timestamp_date.strftime('%d, %b %Y')} has been checked and your subscription has just been extended for a duration of {human_friendly_duration}.")))
             try:
                 close_database(connection)
             except:
@@ -271,17 +272,18 @@ class Crabalert(commands.Bot):
         return lst
 
     async def _manage_alert_roles_from_payments(self, member, wallet_address, payment_timestamp):
-        asyncio.create_task(async_http_get_request_with_callback_on_result(
+        asyncio.gather(asyncio.create_task(async_http_get_request_with_callback_on_result(
             f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={payment_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
             lambda e: self._manage_alert_roles_from_payments_web3(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), member, wallet_address, payment_timestamp),
             TIMEOUT,
             lambda r: self._manage_alert_roles_from_payments_aux(member, wallet_address, payment_timestamp, r.result()),
             semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=2))
-        ))
+        )))
 
     async def _manage_alert_roles_from_payments_web3(self, web3, member, wallet_address, payment_timestamp):
         block = asyncio.create_task(iblock_near(web3, payment_timestamp))
         block.add_done_callback(lambda t: asyncio.create_task(self._manage_alert_roles_from_payments_aux(member, wallet_address, payment_timestamp, t.result())))
+        asyncio.gather(block)
 
     async def _manage_alerted_roles_aux_web3(self, web3, member, wallet_address, payment_timestamp, contract_address, block_number):
         task = asyncio.create_task(get_transactions_between_blocks(
@@ -300,6 +302,7 @@ class Crabalert(commands.Bot):
                 {**transaction, **{"value": int(transaction["input"][74:], 16)}} for transaction in t.result()
             }, wallet_address, payment_timestamp, contract_address, member))
         )
+        asyncio.gather(task)
         
 
     async def _manage_alert_roles_from_payments_aux(self, member, wallet_address, payment_timestamp, block_number):
@@ -488,7 +491,7 @@ class Crabalert(commands.Bot):
 
     async def _notify_marketplace_item(self, r, token_id, price, timestamp_transaction, crabada_transaction):
         if is_crab(r):
-            for channel_id, filter_function in channel_to_post_with_filters.items():
+            for channel_id, filter_function in channel_to_post_listings_with_filters.items():
                 channel = self._get_variable(f"channel_{channel_id}", f_value_if_not_exists=lambda:self.get_channel(channel_id))
                 if filter_function((r, None)):
                     asyncio.create_task(
@@ -498,7 +501,7 @@ class Crabalert(commands.Bot):
                             price,
                             timestamp_transaction,
                             channel,
-                            shortdescr=channel_id in channels_to_display_shortdescrs
+                            shortdescr=channel_id in listing_channels_to_display_shortdescrs
                         )
                     )
             for observer in self._crabalert_observers:
@@ -668,7 +671,7 @@ class Crabalert(commands.Bot):
             crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
             tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", ":crabadegg:")
-            if channel_id in channels_to_display_shortdescrs:
+            if channel_id in listing_channels_to_display_shortdescrs:
                 async with self._get_variable(f"sem_{ADFLY_SEM_ID}_{token_id}_{channel.id}", f_value_if_not_exists=lambda:asyncio.Semaphore(value=1)) as sem:
                     message_egg = (
                         f"{first_column}\n"
@@ -705,7 +708,7 @@ class Crabalert(commands.Bot):
             task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id)}))))
 
     async def notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction):
-        for channel_id, filter_function in channel_to_post_with_filters.items():
+        for channel_id, filter_function in channel_to_post_listings_with_filters.items():
             channel = self._get_variable(f"channel_{channel_id}", f_value_if_not_exists=lambda:self.get_channel(channel_id))
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             # print"egg from timestamp", timestamp_transaction,"will maybe be posted", token_id, "at channel", channel.id)

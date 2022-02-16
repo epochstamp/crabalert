@@ -396,29 +396,33 @@ async def async_http_get_request_with_callback_on_result(
     await_if_failure = False,
     wait_time=2,
     wait_time_if_timeout=6):
+
+    if semaphore is not None:
+        await semaphore.acquire()
     try:
-        if semaphore is not None:
-            await semaphore.acquire()
+        
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
             async with session.get(url, headers=HEADERS) as r:
-                if semaphore is not None:
-                    semaphore.release()
                 if r.status == 200:
                     js = await r.json()
                     task = asyncio.create_task(f(js["result"]))
                     if wait_time > 0:
                         await asyncio.sleep(wait_time)
+                    if semaphore is not None:
+                        semaphore.release()
                     if await_if_success:
                         return await task
                     else:
-                        return task
+                        return asyncio.gather(task)
                 else:
+                    if semaphore is not None:
+                        semaphore.release()
                     raise BaseException()
+                
     except RuntimeError as e:
         pass
     except Exception as e:
         # print"timeout", url)
-        # print(type(e), e)
         if wait_time_if_timeout > 0:
             await asyncio.sleep(wait_time_if_timeout)
         if semaphore is not None:
@@ -427,9 +431,92 @@ async def async_http_get_request_with_callback_on_result(
         if await_if_failure:
             return await task
         else:
+            asyncio.gather(task)
+
+async def async_http_get_request_with_callback_on_result_v2(
+    url,
+    callback_failure,
+    timeout,
+    f,
+    callback_failure_args = tuple(),
+    callback_failure_kwargs = dict(),
+    f_args = tuple(),
+    f_kwargs = dict(),
+    semaphore=None,
+    await_if_success = False,
+    await_if_failure = False,
+    wait_time=2,
+    wait_time_if_timeout=6):
+
+    if semaphore is not None:
+        await semaphore.acquire()
+    try:
+        
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
+            async with session.get(url, headers=HEADERS) as r:
+                if r.status == 200:
+                    js = await r.json()
+                    task = asyncio.create_task(f(js["result"], *f_args, **f_kwargs))
+                    if wait_time > 0:
+                        await asyncio.sleep(wait_time)
+                    if semaphore is not None:
+                        semaphore.release()
+                    if await_if_success:
+                        return await task
+                    else:
+                        return task
+                else:
+                    if semaphore is not None:
+                        semaphore.release()
+                    print("error on url", url)
+                    raise BaseException()
+                
+    except RuntimeError as e:
+        pass
+    except Exception as e:
+        # print"timeout", url)
+        print("error on url", url, type(e), e)
+        if wait_time_if_timeout > 0:
+            await asyncio.sleep(wait_time_if_timeout)
+        if semaphore is not None:
+            semaphore.release()
+        task = asyncio.create_task(callback_failure(e, *callback_failure_args, **callback_failure_kwargs))
+        if await_if_failure:
+            return await task
+        else:
             return task
 
-async def nothing():
+def seconds_to_pretty_print(seconds):
+    result = seconds
+    if seconds >= 3600*24*30:
+        unit = "month(s)"
+        result = int(round(seconds/(3600.0*24*30), 0))
+    elif seconds >= 3600*24:
+        unit = "day(s)"
+        result = int(round(seconds/(3600.0*24), 0))
+    elif seconds >= 3600:
+        unit = "hour(s)"
+        result = int(round(seconds/3600.0, 0))
+    elif seconds >= 60:
+        unit = "minute(s)"
+        result = int(round(seconds/60.0, 0))
+    else:
+        unit = "second(s)"
+        result = seconds
+    return str(result) + " " + unit 
+
+def safe_json(data): 
+    if data is None: 
+        return True 
+    elif isinstance(data, (bool, int, float)): 
+        return True 
+    elif isinstance(data, (tuple, list)): 
+        return all(safe_json(x) for x in data) 
+    elif isinstance(data, dict): 
+        return all(isinstance(k, str) and safe_json(v) for k, v in data.items()) 
+    return False 
+
+async def nothing(e = None):
     pass
 
 def sync_nothing():
@@ -464,22 +551,74 @@ def is_valid_marketplace_selling_transaction(transaction):
         transaction["to"].lower() == "0x7e8deef5bb861cf158d8bdaaa1c31f7b49922f49".lower()
     )
 
-async def extract_transaction(web3, i, filter_t):
-    try:
-        block = web3.eth.get_block(i, full_transactions=True)
-    except:
-        return []
-    return [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
-
-async def get_transactions_between_blocks(web3, start_block, end_block=None, filter_t=lambda t: True):
-    if end_block is None:
-        end_block = web3.eth.block_number
+async def extract_transaction(web3, i, filter_t, convert_to_log=False):
     try:
         web3.middleware_onion.inject(geth_poa_middleware, layer=0)
     except:
         pass
-    tasks = [extract_transaction(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), i, filter_t) for i in range(start_block, end_block)]
+    try:
+        block = web3.eth.get_block(i, full_transactions=True)
+    except Exception as e:
+        return None
+    lst = [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
+    if convert_to_log:
+        return [{**{"timeStamp": block.timestamp},**dict(get_log(web3, transaction["hash"]))} for transaction in lst]
+    return lst
+    
+async def extract_transaction_async(web3_creator, i, filter_t, convert_to_log=False, callback=lambda _: None):
+    web3 = web3_creator()
+    try:
+        web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    except:
+        pass
+    try:
+        block = web3.eth.get_block(i, full_transactions=True)
+    except Exception as e:
+        return None
+    lst = [{**{"timeStamp": block.timestamp},**dict(transaction)} for transaction in block.transactions if filter_t(transaction)]
+    tasks = []
+    for transaction in lst:
+        if convert_to_log:
+            task = asyncio.create_task(get_log_async(web3_creator, transaction, callback=callback))
+        else:
+            task = asyncio.create_task(callback(transaction))
+        tasks.append(task)
+    asyncio.gather(*tasks)
+
+
+async def get_log_async(web3_creator, transaction, callback = lambda _: None):
+    try:
+        logs = [{**{"timeStamp": transaction["timeStamp"]},**dict(log)} for log in web3_creator().eth.get_transaction_receipt(transaction["hash"]).logs]
+    except Exception as e:
+        logs = []
+    task = asyncio.create_task(callback(logs))
+    asyncio.gather(task)
+
+async def get_log(web3, transaction_hash):
+    try:
+        logs = web3.eth.get_transaction_receipt(transaction_hash).logs
+    except Exception as e:
+        return None
+    return logs
+
+async def get_transactions_between_blocks_async(web3_creator, start_block, end_block=None, filter_t=lambda t: True, convert_to_logs=False, callback=lambda _: None):
+    web3 = web3_creator()
+    if end_block is None:
+        end_block = web3.eth.block_number
+    tasks = []
+    for i in range(start_block, end_block):
+        tasks.append(asyncio.create_task(extract_transaction_async(web3_creator, i, filter_t, convert_to_log=convert_to_logs, callback=callback)))
+    asyncio.gather(*tasks)
+
+
+async def get_transactions_between_blocks(web3, start_block, end_block=None, filter_t=lambda t: True, convert_to_logs=False):
+    
+    if end_block is None:
+        end_block = web3.eth.block_number
+    
+    tasks = [extract_transaction(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), i, filter_t, convert_to_log=convert_to_logs) for i in range(start_block, end_block)]
     lst = await asyncio.gather(*tuple(tasks))
+    lst = [l for l in lst if l is not None]
     try:
         return await lst
     except:

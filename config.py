@@ -21,9 +21,9 @@ THRESOLD_PURE_PROBA = 0.8
 ID_TUS_BOT = 910250184271867924
 ID_SERVER = 932475138434277377
 ID_COMMAND_CENTER = 933453311967887370
-TIMEOUT = 3
+TIMEOUT = 12
 SNOWTRACE_API_KEY = "KNDGDGKUAJ3UT1F8BHZDT61P2X453KGVAA"
-NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS = 5
+NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS = 1
 MINIMUM_PAYMENT = 0.5
 ADFLY_USER_ID = 26237719
 ADFLY_PUBLIC_KEY = "3584d4107dc520de199b2a023b8c9a2b"
@@ -31,15 +31,15 @@ ADFLY_PRIVATE_KEY = "0b66ae48-4171-46c6-8c2a-2228358521bd"
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 MONTHLY_RATE = 9
 DURATION_TRIAL = 3600*24*7
+LISTING_ITEM_EXPIRATION = 90
+SELLING_ITEM_EXPIRATION = 90
 
 
 stablecoins = {
     "0xc7198437980c041c805a1edcba50c1ce5db95118".lower()
 }
 
-channels_to_display_shortdescrs = {
-    934178951998357584, 933473949445144676, 933470546824396830
-}
+
 
 COINS = {
     "0xc7198437980c041c805a1edcba50c1ce5db95118".lower(): 6,
@@ -139,7 +139,7 @@ subclass_map = {
             113: "Crawberry"
         }
 
-channel_to_post_with_filters = {
+channel_to_post_listings_with_filters = {
     #Crabs and all
     932591668597776414: lambda x: True,
     934178951998357584: lambda x: True,
@@ -175,6 +175,20 @@ channel_to_post_with_filters = {
     938864199394820177: lambda x: x[1] is not None and x[1].get("probability_pure", 0) >= 1,
 }
 
+listing_channels_to_display_shortdescrs = {
+    934178951998357584, 933473949445144676, 933470546824396830
+}
+
+channel_to_post_sellings_with_filters = {
+    #special
+    932591668597776414: lambda x: True,
+    #Crabs and all
+    943230174466547712: lambda x: True
+}
+
+selling_channels_to_display_shortdescrs = {
+    943230174466547712
+}
 
 
 cool_subclasses = {"near", "avalanche", "ethereum", "fantom", "bitcoin"}
