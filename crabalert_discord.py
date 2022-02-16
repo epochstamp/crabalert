@@ -556,5 +556,5 @@ class CrabalertDiscord(commands.Bot):
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 task = asyncio.create_task(channel.send(message_egg))
-                task.add_done_callback(lambda t: asyncio.gather(asyncio.create_task(self._set_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)})))))
+                task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))))
                 asyncio.gather(task)
