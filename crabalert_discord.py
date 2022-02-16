@@ -320,9 +320,10 @@ class CrabalertDiscord(commands.Bot):
                         ))
                     else:
                         tasks.append(asyncio.create_task(
+                            
                             self.notify_egg_item(
-                                infos_family,
                                 infos_nft,
+                                infos_family,
                                 token_id,
                                 selling_price,
                                 timestamp,
