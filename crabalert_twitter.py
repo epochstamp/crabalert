@@ -134,7 +134,7 @@ class CrabalertTwitter:
                                         wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
                                     self._client.update_status_with_media(status=message, filename=f"{token_id}.png")
                                     self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                    print("posted crab")
+                                    print(f"posted crab {token_id} {is_selling}")
                                     if os.path.isfile(f"{token_id}.png"):
                                         os.remove(f"{token_id}.png")
                                     break
@@ -198,7 +198,7 @@ class CrabalertTwitter:
                                         wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
                                     self._client.update_status_with_media(status=message, filename=f"egg.png")
                                     self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                    print("posted egg")
+                                    print(f"posted egg {token_id} {is_selling}")
                                     if os.path.isfile("egg.png"):
                                         os.remove(f"egg.png")
                                     break
