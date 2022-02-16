@@ -44,7 +44,7 @@ import re
 import tweepy
 from asyncio import Semaphore
 
-SLEEP_TIME = 5
+SLEEP_TIME = 6
 
 class CrabalertTwitter:
 
