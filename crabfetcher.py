@@ -243,7 +243,7 @@ class Crabfetcher:
                         """
                     )
                     timestamp_max = max(timestamp_max, timestamp)
-            self._set_sync_variable("payment_timestamp", timestamp_max)
+                self._set_sync_variable("payment_timestamp", timestamp_max)
             close_database(db)
             
     """
