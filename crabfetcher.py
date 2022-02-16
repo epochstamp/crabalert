@@ -167,8 +167,7 @@ class Crabfetcher:
         dt = datetime.now(timezone.utc)
         utc_time = int(round(dt.replace(tzinfo=timezone.utc).timestamp(), 0))
         payment_timestamp = self._get_variable("payment_timestamp", lambda: int(round(utc_time, 0)) - 3600*24*365)
-        task =  asyncio.create_task(
-            async_http_get_request_with_callback_on_result_v2(
+        task = async_http_get_request_with_callback_on_result_v2(
                 f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={payment_timestamp}&closest=before&apikey={SNOWTRACE_API_KEY}",
                 self._fetch_and_store_payments_web3,
                 TIMEOUT,
@@ -177,7 +176,7 @@ class Crabfetcher:
                 callback_failure_args=(payment_timestamp,),
                 semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
             )
-        )
+        
         asyncio.gather(task)
 
     async def _fetch_and_store_payments_web3(self, e, payment_timestamp):
@@ -192,15 +191,6 @@ class Crabfetcher:
             #wallet_transactions_link = f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}"
             tasks_parameters.append((payment_timestamp, contract_address, block_number))
             
-            """
-            tasks.append(asyncio.create_task(async_http_get_request_with_callback_on_result(
-                wallet_transactions_link,
-                lambda e: self._fetch_and_store_payments_web3_2(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), discord_id, from_wallet, payment_timestamp, contract_address, block_number),
-                TIMEOUT,
-                lambda r: self._store_payment_aux(r, from_wallet, payment_timestamp, contract_address, discord_id),
-                semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
-            )))
-            """
         if tasks_parameters != []:
             asyncio.gather(*(
                 async_http_get_request_with_callback_on_result_v2(
@@ -298,7 +288,7 @@ class Crabfetcher:
     async def _fetch_and_store_crabada_listing_transactions_aux(self, current_block):
         last_block_crabada_listing_transaction = max(self._get_variable("blocks_crabada_listing_transaction", lambda: {0}))
         link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_listing_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
-        task = asyncio.create_task(async_http_get_request_with_callback_on_result_v2(
+        task = async_http_get_request_with_callback_on_result_v2(
                 link_transactions,
                 self._fetch_and_store_crabada_listing_transactions_web3,
                 TIMEOUT,
@@ -306,7 +296,7 @@ class Crabfetcher:
                 callback_failure_args = (current_block, last_block_crabada_listing_transaction),
                 semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
             )
-        )
+        
         asyncio.gather(task)
 
     async def _fetch_and_store_crabada_listing_transactions_web3(self, e, current_block, last_block_crabada_transaction):
@@ -320,8 +310,7 @@ class Crabfetcher:
         link_nft_crabada = f"https://api.crabada.com/public/crabada/info/{token_id}"
         already_seen = self._get_variable("already_seen", lambda: set())
         if (token_id, timestamp_transaction, selling_price, is_selling) not in already_seen:
-            task =asyncio.create_task(
-                        async_http_get_request_with_callback_on_result_v2(
+            task = async_http_get_request_with_callback_on_result_v2(
                             link_nft_crabada,
                             self._recall_crabada_api_after_sleep,
                             TIMEOUT,
@@ -332,7 +321,7 @@ class Crabfetcher:
                             f_kwargs={"is_selling": False},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
                         )
-            )
+            
             asyncio.gather(task)
 
     async def _fetch_and_store_crabada_listing_entry(self, transactions):
@@ -349,8 +338,7 @@ class Crabfetcher:
                 already_seen = self._get_variable("already_seen", lambda: set())
                 if (token_id, timestamp_transaction, selling_price, False) not in already_seen:
                     print(f"spotted listing item {token_id}")
-                    tasks.append(asyncio.create_task(
-                        async_http_get_request_with_callback_on_result_v2(
+                    tasks.append(async_http_get_request_with_callback_on_result_v2(
                             link_nft_crabada,
                             self._recall_crabada_api_after_sleep,
                             TIMEOUT,
@@ -361,7 +349,7 @@ class Crabfetcher:
                             f_kwargs={"is_selling": False},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
                         )
-                    ))
+                    )
         if tasks != []:
             asyncio.gather(*tasks)
 
@@ -406,7 +394,7 @@ class Crabfetcher:
     async def _fetch_and_store_crabada_selling_transactions_aux(self, current_block):
         last_block_crabada_selling_transaction = max(self._get_variable("blocks_crabada_selling_transaction", lambda: {0}))
         link_transactions = f"https://api.snowtrace.io/api?module=logs&action=getLogs&fromBlock={last_block_crabada_selling_transaction}&toBlock=99999999999&address=0x7e8deef5bb861cf158d8bdaaa1c31f7b49922f49&apikey={SNOWTRACE_API_KEY}&topic0=0x4d3b1cf93e7676f80b7df86edb68fdf7be63c9964cc44c6b43b51c434b8ab771"
-        task = asyncio.create_task(async_http_get_request_with_callback_on_result_v2(
+        task = async_http_get_request_with_callback_on_result_v2(
                 link_transactions,
                 self._fetch_and_store_crabada_selling_transactions_web3,
                 TIMEOUT,
@@ -414,7 +402,7 @@ class Crabfetcher:
                 callback_failure_args = (current_block, last_block_crabada_selling_transaction,),
                 semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
             )
-        )
+        
         asyncio.gather(task)
 
     async def _fetch_and_store_crabada_selling_transactions_web3(self, e, current_block, last_block_crabada_transaction):
@@ -444,8 +432,7 @@ class Crabfetcher:
         already_seen = self._get_variable("already_seen", lambda: set())
         if (token_id, timestamp, selling_price, True) not in already_seen:
             print(f"spotted selling item {token_id}")
-            task = asyncio.create_task(
-                        async_http_get_request_with_callback_on_result_v2(
+            task = async_http_get_request_with_callback_on_result_v2(
                             link_nft_crabada,
                             self._recall_crabada_api_after_sleep,
                             TIMEOUT,
@@ -456,7 +443,6 @@ class Crabfetcher:
                             f_kwargs={"is_selling": True},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
                         )
-                    )
             asyncio.gather(task)
 
     """
@@ -476,8 +462,7 @@ class Crabfetcher:
                     task = asyncio.create_task(self._store_crabada_entry_crab_aux(infos_nft, token_id, selling_price, timestamp, is_selling=is_selling))
                 else:
                     family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
-                    task = asyncio.create_task(
-                        async_http_get_request_with_callback_on_result_v2(
+                    task = async_http_get_request_with_callback_on_result_v2(
                             family_infos_link,
                             lambda e: self._set_variable("already_seen", already_seen.difference({(token_id, timestamp, selling_price, is_selling)})),
                             TIMEOUT,
@@ -486,7 +471,7 @@ class Crabfetcher:
                             f_kwargs={"is_selling": is_selling},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1)),
                         )
-                    )
+                    
                 asyncio.gather(task)
 
     async def _store_crabada_entry_crab_aux(self, infos_nft, token_id, selling_price, timestamp, is_selling=True):
