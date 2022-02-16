@@ -145,7 +145,7 @@ class CrabalertTwitter:
                                 print("crab", e)
                                 await asyncio.sleep(3)
 
-    async def _notify_egg_item(self, infos_nft, infos_family_nft, token_id, price, timestamp_transaction, is_selling=False):
+    async def _notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
         already_seen = self._get_variable("already_seen", lambda: set())
         if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
             async with self._semaphore:
