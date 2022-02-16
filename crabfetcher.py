@@ -332,7 +332,7 @@ class Crabfetcher:
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
                         )
             )
-        asyncio.gather(task)
+            asyncio.gather(task)
 
     async def _fetch_and_store_crabada_listing_entry(self, transactions):
         tasks = []
@@ -361,7 +361,8 @@ class Crabfetcher:
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
                         )
                     ))
-        asyncio.gather(*tasks)
+        if tasks != []:
+            asyncio.gather(*tasks)
 
     """
     SELLING PART
