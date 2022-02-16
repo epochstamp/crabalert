@@ -50,7 +50,7 @@ class Crabfetcher:
         # Get last block for crabada transaction        
         try:
             req = urllib.request.Request(
-                f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
+                f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&apikey={SNOWTRACE_API_KEY}",
                 headers=HEADERS
             )
             last_block_crabada_listing_transaction = max([block_number_ago]+[int(transaction["blockNumber"]) for transaction in json.loads(urllib.request.urlopen(req).read())["result"] if isinstance(transaction, dict) and is_valid_marketplace_listing_transaction(transaction)])
@@ -196,7 +196,7 @@ class Crabfetcher:
         if tasks_parameters != []:
             asyncio.gather(*(
                 async_http_get_request_with_callback_on_result_v2(
-                    f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
+                    f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&apikey={SNOWTRACE_API_KEY}",
                     self._fetch_and_store_payments_web3_2,
                     TIMEOUT,
                     self._store_payment_aux,
