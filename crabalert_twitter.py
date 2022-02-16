@@ -120,9 +120,7 @@ class CrabalertTwitter:
 
                     close_database(db)
                 buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
-                buyer_seller = f"""
-                    https://snowtrace.io/address/{infos_nft['owner']}
-                """
+                buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 message = (
                     f"[{type_entry}] 🦀 {class_display}({subclass_display}) (No.{token_id}) at {first_column} on Crabada Marketplace\n" +
                     f"Per-category and speed-enhanced alerts in Discord https://discord.gg/KYwprbzpFd\n" +
@@ -189,9 +187,7 @@ class CrabalertTwitter:
 
                     close_database(db)
                 buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
-                buyer_seller = f"""
-                    https://snowtrace.io/address/{infos_nft['owner']}
-                """
+                buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 message = (
                     f"[{type_entry}] 🥚 {class_display} (No.{token_id}) {first_column} on Crabada Marketplace\n" +
                     f"Per-category and speed-enhanced alerts in Discord https://discord.gg/KYwprbzpFd\n" +

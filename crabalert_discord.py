@@ -320,7 +320,6 @@ class CrabalertDiscord(commands.Bot):
                         ))
                     else:
                         tasks.append(asyncio.create_task(
-                            
                             self.notify_egg_item(
                                 infos_nft,
                                 infos_family,
@@ -391,9 +390,7 @@ class CrabalertDiscord(commands.Bot):
                 selling_channels_to_display_shortdescrs
             )
             buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
-            buyer_seller = f"""
-                https://snowtrace.io/address/{infos_nft['owner']}
-            """
+            buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
             if channel.id in channels_to_display_shortdescrs:
                 message = (
                     f"{type_entry} :crab: {class_display}({subclass_display})\n" +
@@ -454,9 +451,7 @@ class CrabalertDiscord(commands.Bot):
             usd_text = f":moneybag: **{price_usd}**"
             marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
             buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
-            buyer_seller = f"""
-                https://snowtrace.io/address/{infos_nft['owner']}
-            """
+            buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
             if class_parent_1 == class_parent_2:
                 egg_class = class_parent_1
                 egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
