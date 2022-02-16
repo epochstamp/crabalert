@@ -542,18 +542,20 @@ class CrabalertDiscord(commands.Bot):
             ))
 
     async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, is_selling=False):
+
+        already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
-            already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 task = asyncio.create_task(channel.send(message))
                 asyncio.gather(task)
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, is_selling=False):
+        message_egg = header_message_egg + message_egg_in + footer_message_egg
+        message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji).replace("<marketplace_link>", marketplace_link)
+        already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
+        
         async with self._get_variable(f"semaphore_egg_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
-            message_egg = header_message_egg + message_egg_in + footer_message_egg
-            message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji).replace("<marketplace_link>", marketplace_link)
-            already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 task = asyncio.create_task(channel.send(message_egg))
