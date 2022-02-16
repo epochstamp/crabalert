@@ -201,17 +201,18 @@ class Crabfetcher:
                 semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
             )))
             """
-        asyncio.gather(*(
-            async_http_get_request_with_callback_on_result_v2(
-                f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
-                self._fetch_and_store_payments_web3_2,
-                TIMEOUT,
-                self._store_payment_aux,
-                f_args = (payment_timestamp, contract_address),
-                callback_failure_args=(block_number, payment_timestamp, contract_address),
-                semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
-            ) for payment_timestamp, contract_address, block_number in tasks_parameters
-        ))
+        if tasks_parameters != []:
+            asyncio.gather(*(
+                async_http_get_request_with_callback_on_result_v2(
+                    f"https://api.snowtrace.io/api?module=account&action=tokentx&contractaddress={contract_address}&address=0xbda6ffd736848267afc2bec469c8ee46f20bc342&startblock={block_number}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
+                    self._fetch_and_store_payments_web3_2,
+                    TIMEOUT,
+                    self._store_payment_aux,
+                    f_args = (payment_timestamp, contract_address),
+                    callback_failure_args=(block_number, payment_timestamp, contract_address),
+                    semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
+                ) for payment_timestamp, contract_address, block_number in tasks_parameters
+            ))
 
     async def _fetch_and_store_payments_web3_2(self, e, block_number, payment_timestamp, contract_address):
         task = asyncio.create_task(get_transactions_between_blocks_async(
