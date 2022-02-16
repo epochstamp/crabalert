@@ -188,7 +188,7 @@ class Crabfetcher:
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
             print("Too many consecutive timeouts on snowtrace, exit...")
-            for task in asyncio.Task.all_tasks():
+            for task in asyncio.all_tasks():
                 task.cancel()
             exit(1)
         web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
@@ -220,7 +220,7 @@ class Crabfetcher:
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
             print("Too many consecutive timeouts on snowtrace, exit...")
-            for task in asyncio.Task.all_tasks():
+            for task in asyncio.all_tasks():
                 task.cancel()
             exit(1)
         task = asyncio.create_task(get_transactions_between_blocks_async(
@@ -324,7 +324,7 @@ class Crabfetcher:
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
             print("Too many consecutive timeouts on snowtrace, exit...")
-            for task in asyncio.Task.all_tasks():
+            for task in asyncio.all_tasks():
                 task.cancel()
             exit(1)
         task = asyncio.create_task(
@@ -337,7 +337,7 @@ class Crabfetcher:
         self._set_sync_variable("apicrabada_timeout_counter", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
             print("Too many consecutive timeouts on crabada api, exit...")
-            for task in asyncio.Task.all_tasks():
+            for task in asyncio.all_tasks():
                 task.cancel()
             exit(1)
         await asyncio.sleep(seconds)
@@ -446,7 +446,7 @@ class Crabfetcher:
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
             print("Too many consecutive timeouts on snowtrace, exit...")
-            for task in asyncio.Task.all_tasks():
+            for task in asyncio.all_tasks():
                 task.cancel()
             exit(1)
         task = asyncio.create_task(
