@@ -129,14 +129,15 @@ class CrabalertTwitter:
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
                         while True:
                             try:
-                                if not os.path.isfile(f"{token_id}.png"):
-                                    wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
-                                self._client.update_status_with_media(status=message, filename=f"{token_id}.png")
-                                self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                print("posted crab")
-                                if os.path.isfile(f"{token_id}.png"):
-                                    os.remove(f"{token_id}.png")
-                                break
+                                if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                                    if not os.path.isfile(f"{token_id}.png"):
+                                        wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
+                                    self._client.update_status_with_media(status=message, filename=f"{token_id}.png")
+                                    self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
+                                    print("posted crab")
+                                    if os.path.isfile(f"{token_id}.png"):
+                                        os.remove(f"{token_id}.png")
+                                    break
                             except Exception as e:
                                 print("crab", e)
                                 await asyncio.sleep(3)
@@ -192,14 +193,15 @@ class CrabalertTwitter:
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
                         while True:
                             try:
-                                if not os.path.isfile("egg.png"):
-                                    wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
-                                self._client.update_status_with_media(status=message, filename=f"egg.png")
-                                self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                print("posted egg")
-                                if os.path.isfile("egg.png"):
-                                    os.remove(f"egg.png")
-                                break
+                                if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                                    if not os.path.isfile("egg.png"):
+                                        wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
+                                    self._client.update_status_with_media(status=message, filename=f"egg.png")
+                                    self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
+                                    print("posted egg")
+                                    if os.path.isfile("egg.png"):
+                                        os.remove(f"egg.png")
+                                    break
                             except Exception as e:
                                 print("egg", e)
                                 await asyncio.sleep(3)
