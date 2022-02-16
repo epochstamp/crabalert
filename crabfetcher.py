@@ -70,6 +70,8 @@ class Crabfetcher:
             "block_number_ago": block_number_ago,
             "blocks_crabada_listing_transaction": {last_block_crabada_listing_transaction},
             "blocks_crabada_selling_transaction": {last_block_crabada_selling_transaction},
+            "last_block_seen_selling": block_number_ago,
+            "last_block_seen_listing": block_number_ago,
             "web3": web3
         }
         self._prepare_database()
@@ -288,16 +290,18 @@ class Crabfetcher:
     async def _fetch_and_store_crabada_listing_transactions_aux(self, current_block):
         last_block_crabada_listing_transaction = max(self._get_variable("blocks_crabada_listing_transaction", lambda: {0}))
         link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_listing_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
-        task = async_http_get_request_with_callback_on_result_v2(
-                link_transactions,
-                self._fetch_and_store_crabada_listing_transactions_web3,
-                TIMEOUT,
-                self._fetch_and_store_crabada_listing_entry,
-                callback_failure_args = (current_block, last_block_crabada_listing_transaction),
-                semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
-            )
-        
-        asyncio.gather(task)
+        last_block_seen = self._get_variable("last_block_seen_listing", lambda: 0)
+        if current_block - last_block_seen >= NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS:
+            task = async_http_get_request_with_callback_on_result_v2(
+                    link_transactions,
+                    self._fetch_and_store_crabada_listing_transactions_web3,
+                    TIMEOUT,
+                    self._fetch_and_store_crabada_listing_entry,
+                    callback_failure_args = (current_block, last_block_crabada_listing_transaction),
+                    semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
+                )
+            task.add_done_callback(lambda t: self._set_variable("last_block_seen_listing", current_block))
+            asyncio.gather(task)
 
     async def _fetch_and_store_crabada_listing_transactions_web3(self, e, current_block, last_block_crabada_transaction):
         task = asyncio.create_task(
@@ -393,17 +397,19 @@ class Crabfetcher:
 
     async def _fetch_and_store_crabada_selling_transactions_aux(self, current_block):
         last_block_crabada_selling_transaction = max(self._get_variable("blocks_crabada_selling_transaction", lambda: {0}))
-        link_transactions = f"https://api.snowtrace.io/api?module=logs&action=getLogs&fromBlock={last_block_crabada_selling_transaction}&toBlock=99999999999&address=0x7e8deef5bb861cf158d8bdaaa1c31f7b49922f49&apikey={SNOWTRACE_API_KEY}&topic0=0x4d3b1cf93e7676f80b7df86edb68fdf7be63c9964cc44c6b43b51c434b8ab771"
-        task = async_http_get_request_with_callback_on_result_v2(
-                link_transactions,
-                self._fetch_and_store_crabada_selling_transactions_web3,
-                TIMEOUT,
-                self._fetch_and_store_crabada_selling_entry,
-                callback_failure_args = (current_block, last_block_crabada_selling_transaction,),
-                semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
-            )
-        
-        asyncio.gather(task)
+        last_block_seen = self._get_variable("last_block_seen_selling", lambda: 0)
+        if current_block - last_block_seen >= NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS:
+            link_transactions = f"https://api.snowtrace.io/api?module=logs&action=getLogs&fromBlock={last_block_crabada_selling_transaction}&toBlock=99999999999&address=0x7e8deef5bb861cf158d8bdaaa1c31f7b49922f49&apikey={SNOWTRACE_API_KEY}&topic0=0x4d3b1cf93e7676f80b7df86edb68fdf7be63c9964cc44c6b43b51c434b8ab771"
+            task = async_http_get_request_with_callback_on_result_v2(
+                    link_transactions,
+                    self._fetch_and_store_crabada_selling_transactions_web3,
+                    TIMEOUT,
+                    self._fetch_and_store_crabada_selling_entry,
+                    callback_failure_args = (current_block, last_block_crabada_selling_transaction,),
+                    semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
+                )
+            task.add_done_callback(lambda t: self._set_variable("last_block_seen_selling", current_block))
+            asyncio.gather(task)
 
     async def _fetch_and_store_crabada_selling_transactions_web3(self, e, current_block, last_block_crabada_transaction):
         task = asyncio.create_task(
