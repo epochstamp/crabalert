@@ -452,8 +452,8 @@ async def async_http_get_request_with_callback_on_result_v2(
         await semaphore.acquire()
     try:
         
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout, allow_redirects=False)) as session:
-            async with session.get(url, headers=HEADERS) as r:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
+            async with session.get(url, headers=HEADERS, allow_redirects=False) as r:
                 if r.status == 200:
                     js = await r.json()
                     task = asyncio.create_task(f(js["result"], *f_args, **f_kwargs))
