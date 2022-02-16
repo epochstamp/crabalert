@@ -530,10 +530,13 @@ class Crabfetcher:
             self._set_sync_variable("snowtrace_timeout_counter", 0)
             self._set_sync_variable("apicrabada_timeout_counter", 0)
             db = open_database()
-            execute_query(
-                db,
-                query
-            )
+            try:
+                execute_query(
+                    db,
+                    query
+                )
+            except Exception as e:
+                print(f"issue with query '{query}', cause: {type(e)} {e}")
             close_database(db)
             
             print(f"crab spotted {token_id} {type_entry}")
@@ -550,10 +553,13 @@ class Crabfetcher:
             self._set_sync_variable("snowtrace_timeout_counter", 0)
             self._set_sync_variable("apicrabada_timeout_counter", 0)
             db = open_database()
-            execute_query(
-                db,
-                query
-            )
+            try:
+                execute_query(
+                    db,
+                    query
+                )
+            except Exception as e:
+                print(f"issue with query '{query}', cause: {type(e)} {e}")
             close_database(db)
             print(f"egg spotted {token_id} {type_entry}")
 
