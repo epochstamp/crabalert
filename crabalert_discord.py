@@ -322,6 +322,7 @@ class CrabalertDiscord(commands.Bot):
                         tasks.append(asyncio.create_task(
                             self.notify_egg_item(
                                 infos_family,
+                                infos_nft,
                                 token_id,
                                 selling_price,
                                 timestamp,
@@ -388,11 +389,16 @@ class CrabalertDiscord(commands.Bot):
                 listing_channels_to_display_shortdescrs if not is_selling else
                 selling_channels_to_display_shortdescrs
             )
+            buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
+            buyer_seller = f"""
+                https://snowtrace.io/address/{infos_nft['owner']}
+            """
             if channel.id in channels_to_display_shortdescrs:
                 message = (
                     f"{type_entry} :crab: {class_display}({subclass_display})\n" +
-                    f"{first_column}" +
-                    ("\n<marketplace_link>" if not is_selling else "")
+                    f"{first_column}\n" +
+                    "<marketplace_link>\n" +
+                    f"{buyer_seller_type}: {buyer_seller}"
                 )     
             else:
                 message = (
@@ -400,14 +406,15 @@ class CrabalertDiscord(commands.Bot):
                     f"{first_column}\n" +
                     f"{second_column}\n" +
                     f"{third_column}\n" +
-                    f"https://photos.crabada.com/{token_id}.png" +
-                    ("\n<marketplace_link>" if not is_selling else "")
+                    f"https://photos.crabada.com/{token_id}.png\n" +
+                    "<marketplace_link>\n"+
+                    f"{buyer_seller_type}: {buyer_seller}"
                 )
             asyncio.gather(asyncio.create_task(
                 self._send_crab_item_message(token_id, timestamp_transaction, channel, message.replace("<marketplace_link>", marketplace_link), is_selling=is_selling)
             ))
 
-    async def notify_egg_item(self, infos_family_nft, token_id, price, timestamp_transaction, channel, is_selling=False):
+    async def notify_egg_item(self, infos_nft, infos_family_nft, token_id, price, timestamp_transaction, channel, is_selling=False):
         async with self._get_variable(f"sem_{EGGMESSAGE_SEM_ID}_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             type_entry = "**[SOLD<aftertime>]**" if is_selling else "**[LISTING]**"
             if is_selling:
@@ -445,7 +452,10 @@ class CrabalertDiscord(commands.Bot):
             tus_text_len_in_space_bars = sum([1 if c == "1" else 2 for c in str(price)]) + 6 + 1
             usd_text = f":moneybag: **{price_usd}**"
             marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
-            
+            buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
+            buyer_seller = f"""
+                https://snowtrace.io/address/{infos_nft['owner']}
+            """
             if class_parent_1 == class_parent_2:
                 egg_class = class_parent_1
                 egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
@@ -512,7 +522,8 @@ class CrabalertDiscord(commands.Bot):
             header_message = f"{type_entry} <crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1 else ''}{egg_class_display} \n"
             footer_message = (
                 f"https://i.ibb.co/hXcP49w/egg.png" +
-                "\n<marketplace_link>"
+                "\n<marketplace_link>\n"+
+                f"{buyer_seller_type}: {buyer_seller}"
             )
             crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
             crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
@@ -527,7 +538,8 @@ class CrabalertDiscord(commands.Bot):
                     f"{first_column}"
                 )
                 footer_message_egg = (
-                    "\n<marketplace_link>"
+                    "\n<marketplace_link>\n"+
+                    f"{buyer_seller_type}: {buyer_seller}"
                 )
                 header_message_egg = (
                     f"{type_entry} <crabadegg> {egg_class_display} \n"

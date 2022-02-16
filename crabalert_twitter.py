@@ -119,11 +119,16 @@ class CrabalertTwitter:
                         
 
                     close_database(db)
+                buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
+                buyer_seller = f"""
+                    https://snowtrace.io/address/{infos_nft['owner']}
+                """
                 message = (
                     f"[{type_entry}] 🦀 {class_display}({subclass_display}) (No.{token_id}) at {first_column} on #Crabada Marketplace\n" +
                     f"More features in Discord https://discord.gg/KYwprbzpFd\n" +
-                    f"#snibsnib" +
-                    (f"\nhttps://marketplace.crabada.com/crabada/{token_id}")
+                    f"#snibsnib\n" +
+                    f"https://marketplace.crabada.com/crabada/{token_id}\n" +
+                    f"{buyer_seller_type}: {buyer_seller}\n"
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
@@ -142,7 +147,7 @@ class CrabalertTwitter:
                                 print("crab", e)
                                 await asyncio.sleep(3)
 
-    async def _notify_egg_item(self, infos_family_nft, token_id, price, timestamp_transaction, is_selling=False):
+    async def _notify_egg_item(self, infos_nft, infos_family_nft, token_id, price, timestamp_transaction, is_selling=False):
         already_seen = self._get_variable("already_seen", lambda: set())
         if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
             async with self._semaphore:
@@ -183,11 +188,16 @@ class CrabalertTwitter:
                         
 
                     close_database(db)
+                buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
+                buyer_seller = f"""
+                    https://snowtrace.io/address/{infos_nft['owner']}
+                """
                 message = (
                     f"[{type_entry}] 🥚 {class_display} (No.{token_id}) {first_column} on #Crabada Marketplace\n" +
                     f"More features in Discord https://discord.gg/KYwprbzpFd\n" +
-                    f"#snibsnib" +
-                    (f"\nhttps://marketplace.crabada.com/crabada/{token_id}")
+                    f"#snibsnib\n" +
+                    f"https://marketplace.crabada.com/crabada/{token_id}\n" +
+                    f"{buyer_seller_type}: {buyer_seller}\n"
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
@@ -235,7 +245,7 @@ class CrabalertTwitter:
                 if is_crab:
                     tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=False)))
                 else:
-                    tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, token_id, selling_price, timestamp, is_selling=False)))
+                    tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=False)))
             if tasks != []:
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
@@ -263,7 +273,7 @@ class CrabalertTwitter:
                 if is_crab:
                     tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=True)))
                 else:
-                    tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, token_id, selling_price, timestamp, is_selling=True)))
+                    tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=True)))
             if tasks != []:
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
