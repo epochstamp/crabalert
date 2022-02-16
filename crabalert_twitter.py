@@ -123,7 +123,7 @@ class CrabalertTwitter:
                     f"[{type_entry}] 🦀 {class_display}({subclass_display}) (No.{token_id}) at {first_column} on #Crabada Marketplace\n" +
                     f"More features in Discord https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib" +
-                    (f"\nhttps://marketplace.crabada.com/crabada/{token_id}" if not is_selling else "")
+                    (f"\nhttps://marketplace.crabada.com/crabada/{token_id}")
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
@@ -187,7 +187,7 @@ class CrabalertTwitter:
                     f"[{type_entry}] 🥚 {class_display} (No.{token_id}) {first_column} on #Crabada Marketplace\n" +
                     f"More features in Discord https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib" +
-                    (f"\nhttps://marketplace.crabada.com/crabada/{token_id}" if not is_selling else "")
+                    (f"\nhttps://marketplace.crabada.com/crabada/{token_id}")
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:

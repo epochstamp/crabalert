@@ -512,7 +512,7 @@ class CrabalertDiscord(commands.Bot):
             header_message = f"{type_entry} <crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1 else ''}{egg_class_display} \n"
             footer_message = (
                 f"https://i.ibb.co/hXcP49w/egg.png" +
-                ("\n<marketplace_link>" if not is_selling else "")
+                "\n<marketplace_link>"
             )
             crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
             crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
@@ -527,7 +527,7 @@ class CrabalertDiscord(commands.Bot):
                     f"{first_column}"
                 )
                 footer_message_egg = (
-                    "\n<marketplace_link>" if not is_selling else ""
+                    "\n<marketplace_link>"
                 )
                 header_message_egg = (
                     f"{type_entry} <crabadegg> {egg_class_display} \n"
