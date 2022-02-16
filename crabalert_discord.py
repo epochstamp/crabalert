@@ -305,29 +305,30 @@ class CrabalertDiscord(commands.Bot):
         )
         for channel_id, filter_function in channels_to_post.items():
             channel = self._get_variable(f"channel_{channel_id}", f_value_if_not_exists=lambda: self.get_channel(channel_id))
-            if filter_function((infos_nft, None)) and (token_id, timestamp, channel.id, is_selling) not in already_seen:
-                if is_crab:
-                    tasks.append(asyncio.create_task(
-                        self.notify_crab_item(
-                            infos_nft,
-                            token_id,
-                            selling_price,
-                            timestamp,
-                            channel,
-                            is_selling=is_selling
-                        )
-                    ))
-                else:
-                    tasks.append(asyncio.create_task(
-                        self.notify_egg_item(
-                            infos_family,
-                            token_id,
-                            selling_price,
-                            timestamp,
-                            channel,
-                            is_selling=is_selling
-                        )
-                    ))
+            if filter_function((infos_nft, None)):
+                if (token_id, timestamp, channel.id, is_selling) not in already_seen:
+                    if is_crab:
+                        tasks.append(asyncio.create_task(
+                            self.notify_crab_item(
+                                infos_nft,
+                                token_id,
+                                selling_price,
+                                timestamp,
+                                channel,
+                                is_selling=is_selling
+                            )
+                        ))
+                    else:
+                        tasks.append(asyncio.create_task(
+                            self.notify_egg_item(
+                                infos_family,
+                                token_id,
+                                selling_price,
+                                timestamp,
+                                channel,
+                                is_selling=is_selling
+                            )
+                        ))
         if tasks != []:
             asyncio.gather(*tasks)
             
@@ -541,19 +542,19 @@ class CrabalertDiscord(commands.Bot):
             ))
 
     async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, is_selling=False):
-        async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}", lambda: asyncio.Semaphore(value=1)):
+        async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 task = asyncio.create_task(channel.send(message))
-                task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id, is_selling)}))))
+                task.add_done_callback(lambda t: asyncio.create_task(self._set_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))))
                 asyncio.gather(task)
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, is_selling=False):
-        async with self._get_variable(f"semaphore_egg_message_{token_id}_{timestamp_transaction}_{channel.id}", lambda: asyncio.Semaphore(value=1)):
+        async with self._get_variable(f"semaphore_egg_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             message_egg = header_message_egg + message_egg_in + footer_message_egg
             message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji).replace("<marketplace_link>", marketplace_link)
             already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 task = asyncio.create_task(channel.send(message_egg))
-                task.add_done_callback(lambda t: asyncio.gather(asyncio.create_task(self._set_variable("already_seen", self._get_variable("already_seen").union({(token_id, timestamp_transaction, channel.id, is_selling)})))))
+                task.add_done_callback(lambda t: asyncio.gather(asyncio.create_task(self._set_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)})))))
                 asyncio.gather(task)
