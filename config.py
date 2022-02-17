@@ -213,4 +213,4 @@ selling_channels_to_display_shortdescrs = set()
 
 cool_subclasses = {"near", "avalanche", "ethereum", "fantom", "bitcoin"}
 
-cool_classes = {"prime", "craboid"}
+cool_classes = {"prime", "craboid", "organic"}
