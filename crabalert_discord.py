@@ -345,7 +345,7 @@ class CrabalertDiscord(commands.Bot):
             channel_id = channel.id
             tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", "crabadegg")
-            price_formatted = "{:,.2f}".format(price)
+            price_formatted = "{:,}".format(price)
             price_in_usd_formatted = "{:,.2f}".format(price_usd)
             tus_text = f"{tus_emoji} **{price_formatted}**"
             tus_text_len_in_space_bars = sum([1 if c == "1" or c == "." or c == "," else 2 for c in str(price)]) + 6 + 1
@@ -445,7 +445,7 @@ class CrabalertDiscord(commands.Bot):
             egg_purity_probability = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 4)
             if egg_purity_probability.is_integer():
                 egg_purity_probability = int(egg_purity_probability)
-            price_formatted = "{:,.2f}".format(price)
+            price_formatted = "{:,}".format(price)
             price_in_usd_formatted = "{:,.2f}".format(price_usd)
             tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             tus_text = f"{tus_emoji} **{price_formatted}**"
