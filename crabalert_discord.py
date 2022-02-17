@@ -552,10 +552,10 @@ class CrabalertDiscord(commands.Bot):
                     title="Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
                 )
                 embed.add_field(
-                    name=f"Marketplace", value=f"[Crab {token_id}]({marketplace_link})"
+                    name=f"Marketplace", value=f"[{marketplace_link}]({marketplace_link})", inline=False
                 )
                 embed.add_field(
-                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
+                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("{token_id}.png"):
                     wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
@@ -578,10 +578,10 @@ class CrabalertDiscord(commands.Bot):
                     title="Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
                 )
                 embed.add_field(
-                    name=f"Marketplace", value=f"[Egg {token_id}]({marketplace_link})"
+                    name=f"Marketplace", value=f"[{marketplace_link}]({marketplace_link})", inline=False
                 )
                 embed.add_field(
-                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
+                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("egg.png"):
                     wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
