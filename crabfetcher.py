@@ -574,7 +574,7 @@ class Crabfetcher:
             await asyncio.sleep(seconds)
 
     async def _refresh_tus_price(self):
-        price_tus = await get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", TUS_CONTRACT_ADDRESS)
+        price_in_usd = await get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", TUS_CONTRACT_ADDRESS)
         db = open_database()
         dt = datetime.now(timezone.utc)
         utc_time = dt.replace(tzinfo=timezone.utc).timestamp()
