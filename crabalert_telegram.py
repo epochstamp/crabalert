@@ -97,7 +97,7 @@ class CrabalertTelegram:
                 subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
                 class_display = infos_nft['class_name']
                 class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
-                type_entry = "**LISTING**" if not is_selling else "**SOLD**" + "<aftertime>"
+                type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
                 if is_selling:
                     db = open_database()
                     query = f"""
@@ -173,7 +173,7 @@ class CrabalertTelegram:
                     class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else bold(egg_class_1)
                     class_display_2 = egg_class_2 if egg_class_2.lower() not in cool_classes else bold(egg_class_2)
                     class_display = f"{class_display_1}┃{class_display_2}"
-                type_entry = "**LISTING**" if not is_selling else "**SOLD**" + "<aftertime>"
+                type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
                 if is_selling:
                     db = open_database()
                     query = f"""
