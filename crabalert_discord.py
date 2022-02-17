@@ -549,7 +549,7 @@ class CrabalertDiscord(commands.Bot):
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 url_buyer_seller = f"https://snowtrace.io/address/{buyer_seller}"
                 embed = Embed(
-                    title=f"[See crab {token_id} on Marketplace]({marketplace_link})",
+                    title=marketplace_link
                 )
                 embed.add_field(
                     name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
@@ -572,7 +572,7 @@ class CrabalertDiscord(commands.Bot):
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 url_buyer_seller = f"https://snowtrace.io/address/{buyer_seller}"
                 embed = Embed(
-                    title=f"[See egg {token_id} on Marketplace]({marketplace_link})",
+                    title=marketplace_link
                 )
                 embed.add_field(
                     name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
