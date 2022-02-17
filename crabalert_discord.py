@@ -3,6 +3,7 @@ import aiohttp
 from web3.main import Web3
 from pprint import pprint
 from discord.ext import tasks
+from discord import Embed
 from config import (
     COINS_SYMBOL,
     CRABALERT_SEM_ID,
@@ -389,8 +390,7 @@ class CrabalertDiscord(commands.Bot):
                 listing_channels_to_display_shortdescrs if not is_selling else
                 selling_channels_to_display_shortdescrs
             )
-            buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
-            buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
+            buyer_seller = infos_nft['owner']
             if channel.id in channels_to_display_shortdescrs:
                 message = (
                     f"{type_entry} :crab: {class_display}({subclass_display})\n" +
@@ -446,8 +446,7 @@ class CrabalertDiscord(commands.Bot):
             tus_text_len_in_space_bars = sum([1 if c == "1" else 2 for c in str(price)]) + 6 + 1
             usd_text = f":moneybag: **{price_usd}**"
             marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
-            buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
-            buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
+            buyer_seller = infos_nft['owner']
             if class_parent_1 == class_parent_2:
                 egg_class = class_parent_1
                 egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
@@ -514,7 +513,6 @@ class CrabalertDiscord(commands.Bot):
             header_message = f"{type_entry} <crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1 else ''}{egg_class_display} \n"
             footer_message = (
                 f"https://i.ibb.co/hXcP49w/egg.png\n" +
-                f"{buyer_seller_type} {buyer_seller}"
             )
             crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
             crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
@@ -549,11 +547,17 @@ class CrabalertDiscord(commands.Bot):
         async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                embeds = {
-                        "title": "Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
-                        "description": f"[Marketplace link for egg {token_id}]({marketplace_link})\n[Crab {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})",
-                    }
-                task = asyncio.create_task(channel.send(message, embed=embeds))
+                url_buyer_seller = f"https://snowtrace.io/address/{buyer_seller}"
+                embed = Embed(
+                    title="Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
+                )
+                embed.add_field(
+                    name=f"Marketplace", value=f"[Crab {token_id}]({marketplace_link})\n[Crab {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})"
+                )
+                embed.add_field(
+                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
+                )
+                task = asyncio.create_task(channel.send(message, embed=embed))
                 asyncio.gather(task)
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, is_selling=False):
@@ -565,10 +569,16 @@ class CrabalertDiscord(commands.Bot):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                embeds = {
-                        "title": "Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
-                        "description": f"[Marketplace link for egg {token_id}]({marketplace_link})\n[Egg {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})",
-                    }
+                url_buyer_seller = f"https://snowtrace.io/address/{buyer_seller}"
+                embed = Embed(
+                    title="Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
+                )
+                embed.add_field(
+                    name=f"Marketplace", value=f"[Egg {token_id}]({marketplace_link})\n[Crab {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})"
+                )
+                embed.add_field(
+                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
+                )
                 
-                task = asyncio.create_task(channel.send(message_egg, embed=embeds))
+                task = asyncio.create_task(channel.send(message_egg, embed=embed))
                 asyncio.gather(task)
