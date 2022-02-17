@@ -570,7 +570,7 @@ class Crabfetcher:
     async def _refresh_tus_price_loop(self, seconds=60):
         while True:
             task = asyncio.create_task(self._refresh_tus_price())
-            await asyncio.gather(task)
+            asyncio.gather(task)
             await asyncio.sleep(seconds)
 
     async def _refresh_tus_price(self):
