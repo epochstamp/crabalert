@@ -152,6 +152,7 @@ channel_to_post_listings_with_filters = {
     933457087369978016: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "prime",
     933399063330701414: lambda x: x[1] is None and x[0].get("breed_count", -1) is not None and x[0].get("breed_count", -1) == 0,
     933411792925913129: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "craboid",
+    944009796917530674: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "organic",
     933506031261188116: lambda x: (
         x[1] is None and
         x[0].get("breed_count", -1) is not None and
@@ -173,7 +174,9 @@ channel_to_post_listings_with_filters = {
     934101749013291068: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "PRIME" or x[1].get("class_name_2", "") == "PRIME" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
     933861589738737664: lambda x: x[1] is not None and x[1].get("class_name_1", "") == "CRABOID" and x[1].get("class_name_2", "") == "CRABOID",
     934101847420055552: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "CRABOID" or x[1].get("class_name_2", "") == "CRABOID" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
-    938864199394820177: lambda x: x[1] is not None and x[1].get("probability_pure", 0) >= 1,
+    944009583305834496: lambda x: x[1] is not None and x[1].get("class_name_1", "") == "ORGANIC" and x[1].get("class_name_2", "") == "ORGANIC",
+    944009617803980820: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "ORGANIC" or x[1].get("class_name_2", "") == "ORGANIC" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
+    938864199394820177: lambda x: x[1] is not None and x[1].get("probability_pure", 0) >= 1
 }
 
 listing_channels_to_display_shortdescrs = {
