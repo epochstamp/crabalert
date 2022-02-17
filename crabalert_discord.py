@@ -549,18 +549,11 @@ class CrabalertDiscord(commands.Bot):
         async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                embeds = [
+                embeds =
                     {
-                        "title": "Marketplace",
-                        "description": "Marketplace URL for crab #{token_id}",
-                        "url": marketplace_link,
-                    },
-                    {
-                        "title": ("Lister" if is_selling else "Buyer"),
-                        "description": ("Lister" if is_selling else "Buyer") + " wallet link",
-                        "color": buyer_seller,
+                        "title": "Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
+                        "description": f"[Marketplace link for egg {token_id}]({marketplace_link})\n[Crab {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})",
                     }
-                ]
                 task = asyncio.create_task(channel.send(message, embed=embeds))
                 asyncio.gather(task)
 
@@ -573,17 +566,11 @@ class CrabalertDiscord(commands.Bot):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                embeds = [
+                embeds =
                     {
-                        "title": "Marketplace",
-                        "description": "Marketplace URL for egg #{token_id}",
-                        "url": marketplace_link,
-                    },
-                    {
-                        "title": ("Lister" if is_selling else "Buyer"),
-                        "description": ("Lister" if is_selling else "Buyer") + " wallet link",
-                        "color": buyer_seller,
+                        "title": "Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
+                        "description": f"[Marketplace link for egg {token_id}]({marketplace_link})\n[Egg {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})",
                     }
-                ]
+                
                 task = asyncio.create_task(channel.send(message_egg, embed=embeds))
                 asyncio.gather(task)
