@@ -573,16 +573,17 @@ class Crabfetcher:
             task = asyncio.create_task(get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", TUS_CONTRACT_ADDRESS))
             task.add_done_callback(lambda t: self._refresh_tus_price(t.result()))
             asyncio.gather(task)
+            await asyncio.sleep(seconds)
 
      async def _refresh_tus_price(self, price_in_usd):
-            db = open_database()
-            dt = datetime.now(timezone.utc)
-            utc_time = dt.replace(tzinfo=timezone.utc).timestamp()
-            query = f"""
-                INSERT OR REPLACE INTO price_tus (timestamp, price_in_usd) VALUES ({utc_time}, {price_in_usd})
-            """
-            execute_query(db, query)
-            close_database(db)
+        db = open_database()
+        dt = datetime.now(timezone.utc)
+        utc_time = dt.replace(tzinfo=timezone.utc).timestamp()
+        query = f"""
+            INSERT OR REPLACE INTO price_tus (timestamp, price_in_usd) VALUES ({utc_time}, {price_in_usd})
+        """
+        execute_query(db, query)
+        close_database(db)
             
             
 
