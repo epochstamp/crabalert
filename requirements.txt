@@ -9,3 +9,4 @@ aiohttp==3.7.4.post0
 asyncio
 pytweet
 wget
+python-telegram-bot
