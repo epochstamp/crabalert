@@ -394,9 +394,7 @@ class CrabalertDiscord(commands.Bot):
             if channel.id in channels_to_display_shortdescrs:
                 message = (
                     f"{type_entry} :crab: {class_display}({subclass_display})\n" +
-                    f"{first_column}\n" +
-                    "<marketplace_link>\n" +
-                    f"{buyer_seller_type} {buyer_seller}"
+                    f"{first_column}"
                 )     
             else:
                 message = (
@@ -404,12 +402,10 @@ class CrabalertDiscord(commands.Bot):
                     f"{first_column}\n" +
                     f"{second_column}\n" +
                     f"{third_column}\n" +
-                    f"https://photos.crabada.com/{token_id}.png\n" +
-                    "<marketplace_link>\n"+
-                    f"{buyer_seller_type} {buyer_seller}"
+                    f"https://photos.crabada.com/{token_id}.png""
                 )
             asyncio.gather(asyncio.create_task(
-                self._send_crab_item_message(token_id, timestamp_transaction, channel, message.replace("<marketplace_link>", marketplace_link), is_selling=is_selling)
+                self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, is_selling=is_selling)
             ))
 
     async def notify_egg_item(self, infos_nft, infos_family_nft, token_id, price, timestamp_transaction, channel, is_selling=False):
@@ -518,7 +514,6 @@ class CrabalertDiscord(commands.Bot):
             header_message = f"{type_entry} <crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1 else ''}{egg_class_display} \n"
             footer_message = (
                 f"https://i.ibb.co/hXcP49w/egg.png\n" +
-                "<marketplace_link>\n"+
                 f"{buyer_seller_type} {buyer_seller}"
             )
             crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
@@ -534,8 +529,7 @@ class CrabalertDiscord(commands.Bot):
                     f"{first_column}"
                 )
                 footer_message_egg = (
-                    "<marketplace_link>\n"+
-                    f"{buyer_seller_type} {buyer_seller}"
+                    ""
                 )
                 header_message_egg = (
                     f"{type_entry} <crabadegg> {egg_class_display} \n"
@@ -546,25 +540,50 @@ class CrabalertDiscord(commands.Bot):
                 footer_message_egg = footer_message
                 message_egg = message
             asyncio.gather(asyncio.create_task(
-                self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, is_selling=is_selling)
+                self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, is_selling=is_selling)
             ))
 
-    async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, is_selling=False):
+    async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, is_selling=False):
 
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                task = asyncio.create_task(channel.send(message))
+                embeds = [
+                    {
+                        "title": "Marketplace",
+                        "description": "Marketplace URL for crab #{token_id}",
+                        "url": marketplace_link,
+                    },
+                    {
+                        "title": ("Lister" if is_selling else "Buyer"),
+                        "description": ("Lister" if is_selling else "Buyer") + " wallet link",
+                        "color": buyer_seller,
+                    }
+                ]
+                task = asyncio.create_task(channel.send(message, embed=embeds))
                 asyncio.gather(task)
 
-    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, is_selling=False):
+    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, is_selling=False):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
-        message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji).replace("<marketplace_link>", marketplace_link)
+        message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji)
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         
         async with self._get_variable(f"semaphore_egg_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                task = asyncio.create_task(channel.send(message_egg))
+                self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
+                embeds = [
+                    {
+                        "title": "Marketplace",
+                        "description": "Marketplace URL for egg #{token_id}",
+                        "url": marketplace_link,
+                    },
+                    {
+                        "title": ("Lister" if is_selling else "Buyer"),
+                        "description": ("Lister" if is_selling else "Buyer") + " wallet link",
+                        "color": buyer_seller,
+                    }
+                ]
+                task = asyncio.create_task(channel.send(message_egg, embed=embeds))
                 asyncio.gather(task)
