@@ -162,10 +162,13 @@ class Crabfetcher:
     SUBSCRIPTION MANAGEMENT
     """
     async def _fetch_and_store_payments_loop(self, seconds=600):
+        i = 0
         while True:
             await asyncio.sleep(seconds)
+            print("throwing payment task iteration", i)
             task = asyncio.create_task(self._fetch_and_store_payments())
             asyncio.gather(task)
+            i += 1
             
 
     async def _fetch_and_store_payments(self):
@@ -270,26 +273,8 @@ class Crabfetcher:
     LISTING PART
     """ 
 
-    async def _clean_crabada_listing_database_loop(self, seconds=60):
-        while True:
-            await asyncio.sleep(seconds)
-            task = asyncio.create_task(self._clean_crabada_listing_database())
-            asyncio.gather(task)
-            
 
-    async def _clean_crabada_listing_database(self):
-        async with self._get_variable("sem_database_listing", lambda: asyncio.Semaphore(value=1)):
-            db = open_database()
-            dt = datetime.now(timezone.utc)
-            utc_time = int(round(dt.replace(tzinfo=timezone.utc).timestamp(), 0))
-            query = f"""
-            DELETE FROM crabada_listings WHERE {utc_time} - timestamp >= {LISTING_ITEM_EXPIRATION};
-            """
-            execute_query(
-                db,
-                query
-            )
-            close_database(db)
+        
 
 
     
@@ -394,12 +379,6 @@ class Crabfetcher:
     """
     SELLING PART
     """
-
-    async def _clean_crabada_selling_database_loop(self, seconds=60):
-        while True:
-            await asyncio.sleep(seconds)
-            task = asyncio.create_task(self._clean_crabada_selling_database())
-            asyncio.gather(task)
             
 
     async def _clean_crabada_selling_database(self):
@@ -568,11 +547,15 @@ class Crabfetcher:
             print(f"egg spotted {token_id} {type_entry}")
 
     async def _fetch_and_store_crabada_transactions_loop(self, seconds=3):
+        i = 0
         while True:
+            print("throwing transaction task iteration", i)
             await asyncio.sleep(seconds)
             task_listing = asyncio.create_task(self._fetch_and_store_crabada_listing_transactions())
             task_selling = asyncio.create_task(self._fetch_and_store_crabada_selling_transactions())
             asyncio.gather(task_listing, task_selling)
+            i += 1
+            
 
     async def run(self):
         fetch_and_store_crabada_transactions_task = asyncio.create_task(self._fetch_and_store_crabada_transactions_loop())
