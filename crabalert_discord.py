@@ -345,9 +345,11 @@ class CrabalertDiscord(commands.Bot):
             channel_id = channel.id
             tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", "crabadegg")
-            tus_text = f"{tus_emoji} **{price}**"
-            tus_text_len_in_space_bars = sum([1 if c == "1" else 2 for c in str(price)]) + 6 + 1
-            usd_text = f":moneybag: **{price_usd}**"
+            price_formatted = "{:,.2f}".format(price)
+            price_in_usd_formatted = "{:,.2f}".format(price_usd)
+            tus_text = f"{tus_emoji} **{price_formatted}**"
+            tus_text_len_in_space_bars = sum([1 if c == "1" or c == "." or c == "," else 2 for c in str(price)]) + 6 + 1
+            usd_text = f":moneybag: **{price_in_usd_formatted}**"
             purity_text = (':gem: **PURE**' if infos_nft['pure_number'] == 6 else ':diamond_shape_with_a_dot_inside: ' + str(infos_nft['pure_number']))
             purity_text_len_in_space_bars = 3 + 1 + (12 if infos_nft['pure_number'] == 6 else (1 if infos_nft['pure_number'] == 1 else 2))
             breed_text = f"{crabadegg_emoji} {infos_nft['breed_count'] if infos_nft['breed_count'] > 0 else '**NO-BREED**'}"
@@ -442,9 +444,11 @@ class CrabalertDiscord(commands.Bot):
             egg_purity_probability = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 4)
             if egg_purity_probability.is_integer():
                 egg_purity_probability = int(egg_purity_probability)
-            tus_text = f"<tus> **{price}**"
-            tus_text_len_in_space_bars = sum([1 if c == "1" else 2 for c in str(price)]) + 6 + 1
-            usd_text = f":moneybag: **{price_usd}**"
+            price_formatted = "{:,.2f}".format(price)
+            price_in_usd_formatted = "{:,.2f}".format(price_usd)
+            tus_text = f"{tus_emoji} **{price_formatted}**"
+            tus_text_len_in_space_bars = sum([1 if c == "1" or c == "." or c == "," else 2 for c in str(price)]) + 6 + 1
+            usd_text = f":moneybag: **{price_in_usd_formatted}**"
             marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
             buyer_seller = infos_nft['owner']
             if class_parent_1 == class_parent_2:
