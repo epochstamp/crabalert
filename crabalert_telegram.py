@@ -96,7 +96,7 @@ class CrabalertTelegram:
             async with self._semaphore:
                 price_formatted = "{:,.2f}".format(price)
                 price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
-                tus_text = f"{price_formatted} $TUS (${price_in_usd_formatted})"
+                tus_text = f"{price_formatted} $TUS ({price_in_usd_formatted})"
                 first_column = tus_text
                 subclass_display = subclass_map.get(infos_nft['crabada_subclass'], 'unknown')
                 subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
@@ -165,7 +165,7 @@ class CrabalertTelegram:
                 infos_family_nft = infos_family_nft["crabada_parents"]
                 price_formatted = "{:,.2f}".format(price)
                 price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
-                tus_text = f"{price_formatted} $TUS (${price_in_usd_formatted})"
+                tus_text = f"{price_formatted} $TUS ({price_in_usd_formatted})"
                 first_column = tus_text
                 crabada_parent_1 = infos_family_nft[0]
                 crabada_parent_2 = infos_family_nft[1]
