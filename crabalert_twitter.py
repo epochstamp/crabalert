@@ -23,6 +23,7 @@ from utils import (
     close_database,
     download_image,
     execute_query,
+    get_price_tus_in_usd,
     get_transactions_between_blocks,
     get_transactions_between_blocks_async,
     is_crab,
@@ -91,7 +92,9 @@ class CrabalertTwitter:
         if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
             self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
             async with self._semaphore:
-                tus_text = f"{price} $TUS"
+                price_formatted = "${:,.2f}".format(price)
+                price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
+                tus_text = f"{price_formatted} $TUS (${price_in_usd_formatted})"
                 first_column = tus_text
                 subclass_display = subclass_map.get(infos_nft['crabada_subclass'], 'unknown')
                 subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
@@ -122,7 +125,7 @@ class CrabalertTwitter:
                 buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 message = (
-                    f"[{type_entry}] 🦀 {class_display}({subclass_display}) (No.{token_id}) at {first_column} on Crabada Marketplace\n" +
+                    f"[{type_entry}] 🦀 {class_display}({subclass_display}) No.{token_id} at {first_column} on Crabada Marketplace\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
@@ -150,7 +153,9 @@ class CrabalertTwitter:
         if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
             async with self._semaphore:
                 infos_family_nft = infos_family_nft["crabada_parents"]
-                tus_text = f"{price} $TUS"
+                price_formatted = "${:,.2f}".format(price)
+                price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
+                tus_text = f"{price_formatted} $TUS (${price_in_usd_formatted})"
                 first_column = tus_text
                 crabada_parent_1 = infos_family_nft[0]
                 crabada_parent_2 = infos_family_nft[1]
@@ -189,7 +194,7 @@ class CrabalertTwitter:
                 buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 message = (
-                    f"[{type_entry}] 🥚 {class_display} (No.{token_id}) {first_column} on Crabada Marketplace\n" +
+                    f"[{type_entry}] 🥚 {class_display} No.{token_id} {first_column} on Crabada Marketplace\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +

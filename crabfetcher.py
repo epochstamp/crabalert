@@ -13,6 +13,7 @@ from config import (
     SNOWTRACE_API_KEY,
     TIMEOUT,
     LISTING_ITEM_EXPIRATION,
+    TUS_CONTRACT_ADDRESS,
     WALLET_PATTERN,
     stablecoins
 )
@@ -20,6 +21,7 @@ from utils import (
     blockchain_urls,
     close_database,
     execute_query,
+    get_token_price_from_dexs,
     get_transactions_between_blocks,
     get_transactions_between_blocks_async,
     iblock_near_async,
@@ -142,6 +144,16 @@ class Crabfetcher:
         """
         db.execute(query)
         db.commit()
+        query = """
+        CREATE TABLE IF NOT EXISTS 'price_tus' (
+            timestamp timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+            price_in_usd FLOAT NOT NULL DEFAULT 0,
+            PRIMARY KEY (timestamp)
+        )
+        """
+        db.execute(query)
+        db.commit()
+        close_database(db)
 
     @property
     def variables(self):
@@ -162,12 +174,11 @@ class Crabfetcher:
     SUBSCRIPTION MANAGEMENT
     """
     async def _fetch_and_store_payments_loop(self, seconds=600):
-        i = 0
+        
         while True:
             await asyncio.sleep(seconds)
             task = asyncio.create_task(self._fetch_and_store_payments())
             asyncio.gather(task)
-            i += 1
             
 
     async def _fetch_and_store_payments(self):
@@ -547,21 +558,36 @@ class Crabfetcher:
             print(f"egg spotted {token_id} {type_entry}")
 
     async def _fetch_and_store_crabada_transactions_loop(self, seconds=5):
-        i = 0
+        
         while True:
             await asyncio.sleep(seconds)
             task_listing = asyncio.create_task(self._fetch_and_store_crabada_listing_transactions())
             task_selling = asyncio.create_task(self._fetch_and_store_crabada_selling_transactions())
             asyncio.gather(task_listing, task_selling)
-            i += 1
+
+    async def _refresh_tus_price_loop(self, seconds=60):
+        
+        while True:
+            await asyncio.sleep(seconds)
+            price_in_usd = await get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", TUS_CONTRACT_ADDRESS)
+            db = open_database()
+            dt = datetime.now(timezone.utc)
+            utc_time = dt.replace(tzinfo=timezone.utc).timestamp()
+            query = f"""
+                INSERT OR REPLACE INTO price_tus (timestamp, price_in_usd) VALUES ({utc_time}, {price_in_usd})
+            """
+            execute_query(db, query)
+            close_database(db)
             
 
     async def run(self):
-        fetch_and_store_crabada_transactions_task = asyncio.create_task(self._fetch_and_store_crabada_transactions_loop())
-        fetch_and_store_payments_loop_task = asyncio.create_task(self._fetch_and_store_payments_loop())
+        #fetch_and_store_crabada_transactions_task = asyncio.create_task(self._fetch_and_store_crabada_transactions_loop())
+        #fetch_and_store_payments_loop_task = asyncio.create_task(self._fetch_and_store_payments_loop())
+        refresh_tus_price_loop_task = asyncio.create_task(self._refresh_tus_price_loop())
         await asyncio.gather(
-            fetch_and_store_crabada_transactions_task,
-            fetch_and_store_payments_loop_task
+            #fetch_and_store_crabada_transactions_task,
+            #fetch_and_store_payments_loop_task,
+            refresh_tus_price_loop_task
         )
 
         #asyncio.create_task(self._run_fetch_and_store_crabada_selling_transactions_loop())

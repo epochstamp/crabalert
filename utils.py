@@ -736,3 +736,16 @@ def bold(input_text):
 
 async def download_image(url, out, bar=sync_nothing):
     wget.download(url, out=out, bar=nothing)
+
+def get_price_tus_in_usd(database="crabalert.db"):
+    dt = datetime.now(timezone.utc)
+    utc_time = dt.replace(tzinfo=timezone.utc).timestamp()
+    db = open_database(database)
+    query = f"""
+        SELECT * from price_tus order by timestamp DESC where {utc_time} - timestamp <= 60 
+    """
+    data = execute_query(db, query)
+    if len(data) > 0:
+        return float(data[0][1])
+    else:
+        return 0.21
