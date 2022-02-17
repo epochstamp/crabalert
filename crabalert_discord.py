@@ -552,7 +552,7 @@ class CrabalertDiscord(commands.Bot):
                     title="Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
                 )
                 embed.add_field(
-                    name=f"Marketplace", value=f"[Crab {token_id}]({marketplace_link})\n[Crab {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})"
+                    name=f"Marketplace", value=f"[Crab {token_id}]({marketplace_link})"
                 )
                 embed.add_field(
                     name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
@@ -578,7 +578,7 @@ class CrabalertDiscord(commands.Bot):
                     title="Marketplace and " + ("Lister" if is_selling else "Buyer") + " wallet URLs",
                 )
                 embed.add_field(
-                    name=f"Marketplace", value=f"[Egg {token_id}]({marketplace_link})\n[Crab {token_id} {'Buyer (wallet)' if is_selling else 'Seller (wallet)'}]({buyer_seller})"
+                    name=f"Marketplace", value=f"[Egg {token_id}]({marketplace_link})"
                 )
                 embed.add_field(
                     name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
