@@ -183,13 +183,29 @@ listing_channels_to_display_shortdescrs = {
 channel_to_post_sellings_with_filters = {
     #special
     932591668597776414: lambda x: True,
+    935237809697095723: lambda x: True,
     #Crabs and all
-    943230174466547712: lambda x: True
+    943230174466547712: lambda x: True,
+    943964760876138548: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
+    #Eggs
+    943964843063521310: lambda x: x[1] is not None,
+    943966387498532905: lambda x: (x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6) or (x[1] is not None and x[1].get("probability_pure", 0)),
+    943966530889199616: lambda x: (
+        x[1] is None and
+        x[0].get("breed_count", -1) is not None and
+        x[0].get("pure_number", -1) is not None and
+        x[0].get("breed_count", -1) == 0 and
+        x[0].get("pure_number", -1) == 6
+    ),
+    943966566071009290: lambda x: (
+        x[1] is None and
+        x[0].get("breed_count", -1) is not None and
+        x[0].get("breed_count", -1) == 0
+    )
+
 }
 
-selling_channels_to_display_shortdescrs = {
-    943230174466547712
-}
+selling_channels_to_display_shortdescrs = set()
 
 
 cool_subclasses = {"near", "avalanche", "ethereum", "fantom", "bitcoin"}
