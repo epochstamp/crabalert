@@ -124,7 +124,7 @@ class CrabalertTelegram:
                         
 
                     close_database(db)
-                buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
+                buyer_seller_type = "Listed by" if not is_selling else "Bought by"
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 buyer_seller_full_name = infos_nft['owner_full_name']
                 link = f"https://photos.crabada.com/{token_id}.png"
