@@ -165,7 +165,6 @@ class Crabfetcher:
         i = 0
         while True:
             await asyncio.sleep(seconds)
-            print("throwing payment task iteration", i)
             task = asyncio.create_task(self._fetch_and_store_payments())
             asyncio.gather(task)
             i += 1
@@ -549,7 +548,6 @@ class Crabfetcher:
     async def _fetch_and_store_crabada_transactions_loop(self, seconds=5):
         i = 0
         while True:
-            print("throwing transaction task iteration", i)
             await asyncio.sleep(seconds)
             task_listing = asyncio.create_task(self._fetch_and_store_crabada_listing_transactions())
             task_selling = asyncio.create_task(self._fetch_and_store_crabada_selling_transactions())
