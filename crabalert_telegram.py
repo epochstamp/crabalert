@@ -207,7 +207,7 @@ class CrabalertTelegram:
                 buyer_seller_full_name = infos_nft['owner_full_name']
                 link = "https://i.ibb.co/hXcP49w/egg.png"
                 message = (
-                    f"[{type_entry}] 🥚 {class_display} No.{token_id} {first_column} on Crabada Marketplace\n" +
+                    f"[{type_entry}] 🥚 {class_display} No.{token_id} at {first_column} on Crabada Marketplace\n" +
                     f"{link}\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
