@@ -552,7 +552,7 @@ class CrabalertDiscord(commands.Bot):
                     title=marketplace_link
                 )
                 embed.add_field(
-                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
+                    name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("{token_id}.png"):
                     wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
@@ -575,7 +575,7 @@ class CrabalertDiscord(commands.Bot):
                     title=marketplace_link
                 )
                 embed.add_field(
-                    name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
+                    name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("egg.png"):
                     wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
