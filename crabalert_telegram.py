@@ -126,6 +126,7 @@ class CrabalertTelegram:
                     close_database(db)
                 buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
+                buyer_seller_full_name = infos_nft['owner_full_name']
                 link = f"https://photos.crabada.com/{token_id}.png"
                 message = (
                     f"[{type_entry}] 🦀 {class_display}({subclass_display}) No.{token_id} at {first_column} on Crabada Marketplace\n" +
@@ -133,7 +134,7 @@ class CrabalertTelegram:
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
-                    f"{buyer_seller_type} {buyer_seller}"
+                    f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
@@ -203,6 +204,7 @@ class CrabalertTelegram:
                     close_database(db)
                 buyer_seller_type = "Listed by:" if not is_selling else "Bought by:"
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
+                buyer_seller_full_name = infos_nft['owner_full_name']
                 link = "https://i.ibb.co/hXcP49w/egg.png"
                 message = (
                     f"[{type_entry}] 🥚 {class_display} No.{token_id} {first_column} on Crabada Marketplace\n" +
@@ -210,7 +212,7 @@ class CrabalertTelegram:
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
-                    f"{buyer_seller_type} {buyer_seller}"
+                    f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:

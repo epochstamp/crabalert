@@ -394,6 +394,7 @@ class CrabalertDiscord(commands.Bot):
                 selling_channels_to_display_shortdescrs
             )
             buyer_seller = infos_nft['owner']
+            buyer_seller_full_name = infos_nft['owner_full_name']
             if channel.id in channels_to_display_shortdescrs:
                 message = (
                     f"{type_entry} :crab: {class_display}({subclass_display})\n" +
@@ -407,7 +408,7 @@ class CrabalertDiscord(commands.Bot):
                     f"{third_column}"
                 )
             asyncio.gather(asyncio.create_task(
-                self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, is_selling=is_selling)
+                self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=is_selling)
             ))
 
     async def notify_egg_item(self, infos_nft, infos_family_nft, token_id, price, timestamp_transaction, channel, is_selling=False):
@@ -451,6 +452,7 @@ class CrabalertDiscord(commands.Bot):
             usd_text = f":moneybag: **{price_in_usd_formatted}**"
             marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
             buyer_seller = infos_nft['owner']
+            buyer_seller_full_name = infos_nft['owner_full_name']
             if class_parent_1 == class_parent_2:
                 egg_class = class_parent_1
                 egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
@@ -542,10 +544,10 @@ class CrabalertDiscord(commands.Bot):
                 footer_message_egg = footer_message
                 message_egg = message
             asyncio.gather(asyncio.create_task(
-                self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, is_selling=is_selling)
+                self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=is_selling)
             ))
 
-    async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, is_selling=False):
+    async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
 
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
@@ -556,7 +558,7 @@ class CrabalertDiscord(commands.Bot):
                     title=marketplace_link
                 )
                 embed.add_field(
-                    name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
+                    name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller_full_name}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("{token_id}.png"):
                     wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
@@ -565,7 +567,7 @@ class CrabalertDiscord(commands.Bot):
                 if os.path.isfile(f"{token_id}.png"):
                     os.remove(f"{token_id}.png")
 
-    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, is_selling=False):
+    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
         message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji)
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
@@ -579,7 +581,7 @@ class CrabalertDiscord(commands.Bot):
                     title=marketplace_link
                 )
                 embed.add_field(
-                    name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller}]({url_buyer_seller})", inline=False
+                    name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller_full_name}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("egg.png"):
                     wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
