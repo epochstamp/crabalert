@@ -571,6 +571,7 @@ class Crabfetcher:
         while True:
             task = asyncio.create_task(get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", TUS_CONTRACT_ADDRESS))
             task.add_done_callback(lambda t: self._refresh_tus_price(t.result()))
+            await asyncio.gather(task)
             await asyncio.sleep(seconds)
 
     async def _refresh_tus_price(self, price_in_usd):
