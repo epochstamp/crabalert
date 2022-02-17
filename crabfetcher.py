@@ -176,9 +176,9 @@ class Crabfetcher:
     async def _fetch_and_store_payments_loop(self, seconds=600):
         
         while True:
-            await asyncio.sleep(seconds)
             task = asyncio.create_task(self._fetch_and_store_payments())
             asyncio.gather(task)
+            await asyncio.sleep(seconds)
             
 
     async def _fetch_and_store_payments(self):
@@ -560,10 +560,10 @@ class Crabfetcher:
     async def _fetch_and_store_crabada_transactions_loop(self, seconds=3):
         
         while True:
-            await asyncio.sleep(seconds)
             task_listing = asyncio.create_task(self._fetch_and_store_crabada_listing_transactions())
             task_selling = asyncio.create_task(self._fetch_and_store_crabada_selling_transactions())
             asyncio.gather(task_listing, task_selling)
+            await asyncio.sleep(seconds)
 
     async def _refresh_tus_price_loop(self, seconds=60):
         
