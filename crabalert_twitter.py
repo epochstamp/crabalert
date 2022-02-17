@@ -92,7 +92,7 @@ class CrabalertTwitter:
         if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
             self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
             async with self._semaphore:
-                price_formatted = "${:,.2f}".format(price)
+                price_formatted = "{:,.2f}".format(price)
                 price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
                 tus_text = f"{price_formatted} $TUS (${price_in_usd_formatted})"
                 first_column = tus_text
@@ -153,7 +153,7 @@ class CrabalertTwitter:
         if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
             async with self._semaphore:
                 infos_family_nft = infos_family_nft["crabada_parents"]
-                price_formatted = "${:,.2f}".format(price)
+                price_formatted = "{:,.2f}".format(price)
                 price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
                 tus_text = f"{price_formatted} $TUS (${price_in_usd_formatted})"
                 first_column = tus_text
