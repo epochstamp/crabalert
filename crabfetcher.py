@@ -22,6 +22,7 @@ from utils import (
     execute_query,
     get_transactions_between_blocks,
     get_transactions_between_blocks_async,
+    iblock_near_async,
     is_crab,
     is_valid_marketplace_listing_transaction,
     iblock_near,
@@ -192,8 +193,11 @@ class Crabfetcher:
                 task.cancel()
             exit(1)
         web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
-        task = asyncio.create_task(iblock_near(web3, payment_timestamp))
-        task.add_done_callback(lambda t: asyncio.create_task(self._fetch_and_store_payments_aux(t.result(), payment_timestamp)))
+        def create_callback(payment_timestamp):
+            async def f(block_number):
+                task = asyncio.create_task(self._fetch_and_store_payments_aux(block_number, payment_timestamp))
+                asyncio.gather(task)
+        task = asyncio.create_task(iblock_near_async(web3, payment_timestamp, callback=create_callback(payment_timestamp)))
         asyncio.gather(task)
 
     async def _fetch_and_store_payments_aux(self, block_number, payment_timestamp):
