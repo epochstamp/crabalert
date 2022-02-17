@@ -122,7 +122,7 @@ class Crabfetcher:
         db.commit()
         query = """
         CREATE TABLE IF NOT EXISTS 'trials' (
-        'discord_id' char(66) NOT NULL PRIMARY KEY,
+        'discord_id' char(66) NOT NULL,
         'start_trial' timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
         'duration_trial' int(11) NOT NULL DEFAULT '0',
         PRIMARY KEY (discord_id)
@@ -502,9 +502,9 @@ class Crabfetcher:
     async def _store_crabada_entry_crab_aux(self, infos_nft, token_id, selling_price, timestamp, is_selling=True):
 
         table_name = "crabada_sellings" if is_selling else "crabada_listings"
-        
+        json_nft = json.dumps(infos_nft).replace("'", "\\'")
         query = f"""
-            INSERT OR REPLACE INTO {table_name} (token_id, selling_price, timestamp, infos_nft, infos_family, is_crab) VALUES ({token_id}, {selling_price}, {timestamp}, '{json.dumps(infos_nft)}', '', 'TRUE')
+            INSERT OR REPLACE INTO {table_name} (token_id, selling_price, timestamp, infos_nft, infos_family, is_crab) VALUES ({token_id}, {selling_price}, {timestamp}, '{json_nft}', '', 'TRUE')
             """
         type_entry = "selling" if is_selling else "listing"
         print(f"crab to be spotted {token_id} {type_entry}")
@@ -525,9 +525,10 @@ class Crabfetcher:
 
     async def _store_crabada_entry_egg_aux(self, infos_family, token_id, selling_price, timestamp, infos_nft, is_selling=True):
         table_name = "crabada_sellings" if is_selling else "crabada_listings"
-        
+        json_nft = json.dumps(infos_nft).replace("'", "\\'")
+        json_family = json.dumps(infos_family).replace("'", "\\'")
         query = f"""
-            INSERT OR REPLACE INTO {table_name} (token_id, selling_price, timestamp, infos_nft, infos_family, is_crab) VALUES ({token_id}, {selling_price}, {timestamp}, '{json.dumps(infos_nft)}', '{json.dumps(infos_family)}', 'FALSE')
+            INSERT OR REPLACE INTO {table_name} (token_id, selling_price, timestamp, infos_nft, infos_family, is_crab) VALUES ({token_id}, {selling_price}, {timestamp}, '{json_nft}', '{json_family}', 'FALSE')
             """
         type_entry = "selling" if is_selling else "listing"
         print(f"egg to be spotted {token_id} {type_entry}")
