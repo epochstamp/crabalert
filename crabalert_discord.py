@@ -447,6 +447,7 @@ class CrabalertDiscord(commands.Bot):
                 egg_purity_probability = int(egg_purity_probability)
             price_formatted = "{:,.2f}".format(price)
             price_in_usd_formatted = "{:,.2f}".format(price_usd)
+            tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             tus_text = f"{tus_emoji} **{price_formatted}**"
             tus_text_len_in_space_bars = sum([1 if c == "1" or c == "." or c == "," else 2 for c in str(price)]) + 6 + 1
             usd_text = f":moneybag: **{price_in_usd_formatted}**"
@@ -522,7 +523,7 @@ class CrabalertDiscord(commands.Bot):
             )
             crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
             crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
-            tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
+            
             crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", ":crabadegg:")
             channels_to_display_shortdescrs = (
                 listing_channels_to_display_shortdescrs if not is_selling else
