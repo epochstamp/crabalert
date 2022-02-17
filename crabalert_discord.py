@@ -402,7 +402,7 @@ class CrabalertDiscord(commands.Bot):
                     f"{first_column}\n" +
                     f"{second_column}\n" +
                     f"{third_column}\n" +
-                    f"https://photos.crabada.com/{token_id}.png""
+                    f"https://photos.crabada.com/{token_id}.png"
                 )
             asyncio.gather(asyncio.create_task(
                 self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, is_selling=is_selling)
