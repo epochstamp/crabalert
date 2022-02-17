@@ -546,7 +546,7 @@ class Crabfetcher:
             close_database(db)
             print(f"egg spotted {token_id} {type_entry}")
 
-    async def _fetch_and_store_crabada_transactions_loop(self, seconds=3):
+    async def _fetch_and_store_crabada_transactions_loop(self, seconds=5):
         i = 0
         while True:
             print("throwing transaction task iteration", i)
