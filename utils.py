@@ -174,7 +174,7 @@ def open_contract(web3, blockchain, address, providedABI = None):
     global already_opened_contract
     if web3.toChecksumAddress(address) in already_opened_contract:
         return already_opened_contract[web3.toChecksumAddress(address)]
-    folder_file = FOLDER_ABIS+f"/{blockchain}/"
+    folder_file = f"./{blockchain}/"
     name_file = address.lower() + ".json"
     complete_filepath = folder_file + name_file
     while True:
