@@ -557,7 +557,7 @@ class Crabfetcher:
             close_database(db)
             print(f"egg spotted {token_id} {type_entry}")
 
-    async def _fetch_and_store_crabada_transactions_loop(self, seconds=5):
+    async def _fetch_and_store_crabada_transactions_loop(self, seconds=3):
         
         while True:
             await asyncio.sleep(seconds)
@@ -568,7 +568,6 @@ class Crabfetcher:
     async def _refresh_tus_price_loop(self, seconds=60):
         
         while True:
-            await asyncio.sleep(seconds)
             price_in_usd = await get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", TUS_CONTRACT_ADDRESS)
             db = open_database()
             dt = datetime.now(timezone.utc)
@@ -578,6 +577,7 @@ class Crabfetcher:
             """
             execute_query(db, query)
             close_database(db)
+            
             
 
     async def run(self):
@@ -595,6 +595,5 @@ class Crabfetcher:
             
 
 if __name__ == "__main__":
-    time.sleep(5)
     asyncio.run(Crabfetcher().run())
 
