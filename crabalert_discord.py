@@ -1,9 +1,10 @@
 from datetime import datetime, timezone, timedelta
-import aiohttp
+import os
+import wget
 from web3.main import Web3
 from pprint import pprint
 from discord.ext import tasks
-from discord import Embed
+from discord import Embed, File
 from config import (
     COINS_SYMBOL,
     CRABALERT_SEM_ID,
@@ -401,8 +402,7 @@ class CrabalertDiscord(commands.Bot):
                     f"{type_entry} :crab: {'**PURE**' if infos_nft['pure_number'] == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **NO-BREED**' if infos_nft['breed_count'] == 0 else ''} {class_display}({subclass_display})\n" +
                     f"{first_column}\n" +
                     f"{second_column}\n" +
-                    f"{third_column}\n" +
-                    f"https://photos.crabada.com/{token_id}.png"
+                    f"{third_column}"
                 )
             asyncio.gather(asyncio.create_task(
                 self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, is_selling=is_selling)
@@ -512,7 +512,7 @@ class CrabalertDiscord(commands.Bot):
                 }
             header_message = f"{type_entry} <crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1 else ''}{egg_class_display} \n"
             footer_message = (
-                f"https://i.ibb.co/hXcP49w/egg.png\n"
+                ""
             )
             crab_1_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab1", ":crab1:")#"<:crab1:934087822254694441>" if channel_id == 932591668597776414 else "<:crab_1:934075767602700288>"
             crab_2_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crab2", ":crab2:")#"<:crab2:934087853732921384>" if channel_id == 932591668597776414 else "<:crab_2:934076410132332624>"
@@ -557,8 +557,12 @@ class CrabalertDiscord(commands.Bot):
                 embed.add_field(
                     name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
                 )
-                task = asyncio.create_task(channel.send(message, embed=embed))
-                asyncio.gather(task)
+                if not os.path.isfile("{token_id}.png"):
+                    wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
+                
+                await channel.send(message, embed=embed, file=File(f"{token_id}.png"))
+                if os.path.isfile(f"{token_id}.png"):
+                    os.remove(f"{token_id}.png")
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, is_selling=False):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
@@ -579,6 +583,8 @@ class CrabalertDiscord(commands.Bot):
                 embed.add_field(
                     name=f"{'Buyer (wallet)' if is_selling else 'Seller (wallet)'}", value=f"[{buyer_seller}]({url_buyer_seller})"
                 )
-                
-                task = asyncio.create_task(channel.send(message_egg, embed=embed))
-                asyncio.gather(task)
+                if not os.path.isfile("egg.png"):
+                    wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
+                await channel.send(message_egg, embed=embed, file=File("egg.png"))
+                if os.path.isfile(f"egg.png"):
+                    os.remove(f"egg.png")
