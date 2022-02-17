@@ -742,7 +742,7 @@ def get_price_tus_in_usd(database="crabalert.db"):
     utc_time = dt.replace(tzinfo=timezone.utc).timestamp()
     db = open_database(database)
     query = f"""
-        SELECT * from price_tus order by timestamp DESC where {utc_time} - timestamp <= 60 
+        SELECT * from price_tus WHERE {utc_time} - timestamp <= 60 ORDER BY timestamp DESC 
     """
     data = execute_query(db, query)
     if len(data) > 0:
