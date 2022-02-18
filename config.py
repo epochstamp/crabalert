@@ -193,11 +193,11 @@ channel_to_post_listings_with_filters = {
     938865346125889646: lambda x: x[1] is not None,
     933861312809799691: lambda x: x[1] is not None and get_probability_pure(x[1]) >= THRESOLD_PURE_PROBA,
     933861463414669422: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "PRIME" and get_parent_class(x[1], 1) == "PRIME",
-    934101749013291068: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "PRIME" or get_parent_class(x[1], 1) == "PRIME" and get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+    934101749013291068: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "PRIME" or get_parent_class(x[1], 1) == "PRIME") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
     933861589738737664: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "CRABOID" and get_parent_class(x[1], 1) == "CRABOID",
-    934101847420055552: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "CRABOID" or get_parent_class(x[1], 1) == "CRABOID" and get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+    934101847420055552: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "CRABOID" or get_parent_class(x[1], 1) == "CRABOID") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
     944009583305834496: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "ORGANIC" and get_parent_class(x[1], 1) == "ORGANIC",
-    944009617803980820: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "ORGANIC" or get_parent_class(x[1], 1) == "ORGANIC" and get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+    944009617803980820: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "ORGANIC" or get_parent_class(x[1], 1) == "ORGANIC") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
     938864199394820177: lambda x: x[1] is not None and get_probability_pure(x[1]) >= 1
 }
 
