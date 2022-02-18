@@ -210,6 +210,7 @@ class Crabfetcher:
             async def f(block_number):
                 task = asyncio.create_task(self._fetch_and_store_payments_aux(block_number, payment_timestamp))
                 asyncio.gather(task)
+            return f
         task = asyncio.create_task(iblock_near_async(web3, payment_timestamp, callback=create_callback(payment_timestamp)))
         asyncio.gather(task)
 
