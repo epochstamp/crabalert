@@ -243,7 +243,7 @@ class Crabfetcher:
             exit(1)
         task = asyncio.create_task(get_transactions_between_blocks_async(
                 lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])),
-                block_number,
+                int(block_number),
                 filter_t = lambda t: (
                     t["to"].lower() == contract_address.lower() and
                     t["input"][34:74].lower() == "0xbda6ffd736848267afc2bec469c8ee46f20bc342".lower() and
