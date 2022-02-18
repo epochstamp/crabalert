@@ -349,7 +349,7 @@ class Crabfetcher:
                             TIMEOUT,
                             self._fetch_and_store_crabada_entry_aux,
                             callback_failure_args=(token_id, block_number, selling_price, timestamp_transaction),
-                            callback_failure_kwargs={"is_selling": False, "seconds": seconds},
+                            callback_failure_kwargs={"is_selling": is_selling, "seconds": seconds},
                             f_args=(block_number, selling_price, token_id, timestamp_transaction),
                             f_kwargs={"is_selling": is_selling},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
