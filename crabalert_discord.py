@@ -310,10 +310,10 @@ class CrabalertDiscord(commands.Bot):
         )
         for channel_id, filter_function in channels_to_post.items():
             channel = self._get_variable(f"channel_{channel_id}", f_value_if_not_exists=lambda: self.get_channel(channel_id))
-            infos_family_test = infos_family if not is_crab(infos_nft) else None
+            infos_family_test = infos_family if not is_crab_bool else None
             if filter_function((infos_nft, infos_family_test)):
                 if (token_id, timestamp, channel.id, is_selling) not in already_seen:
-                    if is_crab(infos_nft):
+                    if is_crab_bool:
                         tasks.append(asyncio.create_task(
                             self.notify_crab_item(
                                 infos_nft,
