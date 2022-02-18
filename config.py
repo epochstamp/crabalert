@@ -192,7 +192,7 @@ channel_to_post_sellings_with_filters = {
     943964760876138548: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     #Eggs
     943964843063521310: lambda x: x[1] is not None,
-    943966387498532905: lambda x: (x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6) or (x[1] is not None and x[1].get("probability_pure", 0)),
+    943966387498532905: lambda x: (x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6) or (x[1] is not None and x[1].get("probability_pure", 0) == 1),
     943966530889199616: lambda x: (
         x[1] is None and
         x[0].get("breed_count", -1) is not None and
