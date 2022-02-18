@@ -458,69 +458,43 @@ class CrabalertDiscord(commands.Bot):
             marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
             buyer_seller = infos_nft['owner']
             buyer_seller_full_name = infos_nft['owner_full_name']
-            if class_parent_1 == class_parent_2:
-                egg_class = class_parent_1
-                egg_class_display = egg_class if egg_class.lower() not in cool_classes else f"**{egg_class}**"
-                
-                emoji_pure = ":gem:" if egg_purity_probability >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                probability_display = f"**{round(egg_purity_probability*100, 2)}%**" if egg_purity_probability >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability*100, 2)}%"
-                if egg_purity_probability == 1:
-                    probability_display = "**PURE**"
-                egg_class_text = f":crab: {egg_class_display}"
-                egg_class_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
-                purity_probability_text = f"{emoji_pure} {probability_display}"
-                
-                max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_text_len_in_space_bars])
-                first_column = tus_text + " "*((max_len_space_text_first_column*2 - tus_text_len_in_space_bars)) + usd_text
-                second_column = f"{egg_class_text}" + " "*((max_len_space_text_first_column*2 - egg_class_text_len_in_space_bars)) + purity_probability_text
-                message = (
-                    f"{first_column}\n" +
-                    f"{second_column}\n"
-                )
-                infos_egg = {
-                    "class_name_1": egg_class,
-                    "class_name_2": egg_class,
-                    "probability_pure": egg_purity_probability
-                }
-            
-            else:
-                egg_purity_probability_1 = egg_purity_probability
-                egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_2), 4)
-                if egg_purity_probability_2.is_integer():
-                    egg_purity_probability_2 = int(egg_purity_probability_2)
-                egg_class_1 = class_parent_1
-                egg_class_2 = class_parent_2
-                egg_class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else f"**{egg_class_1}**"
-                egg_class_display_2 = egg_class_2 if egg_class_2.lower() not in cool_classes else f"**{egg_class_2}**"
-                egg_class_display = f"({egg_class_display_1}┃{egg_class_display_2})"
-                egg_class_text_1 = f"<crab1> {egg_class_display_1}"
-                egg_class_text_2 = f"<crab2> {egg_class_display_2}"
-                egg_class_1_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
-                emoji_pure_1 = ":gem:" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                emoji_pure_2 = ":gem:" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
-                probability_display_1 = f"**{round(egg_purity_probability_1*100, 2)}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability_1*100, 2)}%"
-                probability_display_2 = f"**{round(egg_purity_probability_2*100, 2)}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability_2*100, 2)}%"
-                purity_probability_text_1 = f"{emoji_pure_1} {probability_display_1}"
-                purity_probability_text_1_len_in_space_bars = 4 + 1 + sum([1 if c == "1" or c == "." else 2 for c in str(int(round(egg_purity_probability_1*100, 2)))])
-                purity_probability_text_2 = f"{emoji_pure_2} {probability_display_2}"
+            egg_purity_probability_1 = egg_purity_probability
+            egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_2), 4)
+            if egg_purity_probability_2.is_integer():
+                egg_purity_probability_2 = int(egg_purity_probability_2)
+            egg_class_1 = class_parent_1
+            egg_class_2 = class_parent_2
+            egg_class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else f"**{egg_class_1}**"
+            egg_class_display_2 = egg_class_2 if egg_class_2.lower() not in cool_classes else f"**{egg_class_2}**"
+            egg_class_display = f"({egg_class_display_1}┃{egg_class_display_2})" if egg_class_1 != egg_class_2 else f"{egg_class_display_1}"
+            egg_class_text_1 = f"<crab1> {egg_class_display_1}"
+            egg_class_text_2 = f"<crab2> {egg_class_display_2}"
+            egg_class_1_text_len_in_space_bars = 4 + 1 + classes_to_spacebarsize_map.get(class_parent_1.upper(), 1)
+            emoji_pure_1 = ":gem:" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
+            emoji_pure_2 = ":gem:" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else ":diamond_shape_with_a_dot_inside:"
+            probability_display_1 = f"**{round(egg_purity_probability_1*100, 2)}%**" if egg_purity_probability_1 >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability_1*100, 2)}%"
+            probability_display_2 = f"**{round(egg_purity_probability_2*100, 2)}%**" if egg_purity_probability_2 >= THRESOLD_PURE_PROBA else f"{round(egg_purity_probability_2*100, 2)}%"
+            purity_probability_text_1 = f"{emoji_pure_1} {probability_display_1}"
+            purity_probability_text_1_len_in_space_bars = 4 + 1 + sum([1 if c == "1" or c == "." else 2 for c in str(int(round(egg_purity_probability_1*100, 2)))])
+            purity_probability_text_2 = f"{emoji_pure_2} {probability_display_2}"
 
-                max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_1_text_len_in_space_bars, purity_probability_text_1_len_in_space_bars])
-                first_column = tus_text + " "*((max_len_space_text_first_column*2 - tus_text_len_in_space_bars)) + usd_text
-                second_column = f"{egg_class_text_1}" + " "*((max_len_space_text_first_column*2 - egg_class_1_text_len_in_space_bars)) + f"{egg_class_text_2}"
-                third_column = purity_probability_text_1 + " "*((max_len_space_text_first_column*2 - purity_probability_text_1_len_in_space_bars)) + purity_probability_text_2
-                message = (
-                    f"{first_column}\n" +
-                    f"{second_column}\n" +
-                    f"{third_column}\n"
-                )
-                probability_pure = round(0.5*egg_purity_probability_1 + 0.5*egg_purity_probability_2, 2)
-                if probability_pure.is_integer():
-                    probability_pure = int(probability_pure)
-                infos_egg = {
-                    "class_name_1": egg_class_1,
-                    "class_name_2": egg_class_2,
-                    "probability_pure": probability_pure
-                }
+            max_len_space_text_first_column = max([tus_text_len_in_space_bars, egg_class_1_text_len_in_space_bars, purity_probability_text_1_len_in_space_bars])
+            first_column = tus_text + " "*((max_len_space_text_first_column*2 - tus_text_len_in_space_bars)) + usd_text
+            second_column = f"{egg_class_text_1}" + " "*((max_len_space_text_first_column*2 - egg_class_1_text_len_in_space_bars)) + f"{egg_class_text_2}"
+            third_column = purity_probability_text_1 + " "*((max_len_space_text_first_column*2 - purity_probability_text_1_len_in_space_bars)) + purity_probability_text_2
+            message = (
+                f"{first_column}\n" +
+                f"{second_column}\n" +
+                f"{third_column}\n"
+            )
+            probability_pure = round(0.5*egg_purity_probability_1 + 0.5*egg_purity_probability_2, 2)
+            if probability_pure.is_integer():
+                probability_pure = int(probability_pure)
+            infos_egg = {
+                "class_name_1": egg_class_1,
+                "class_name_2": egg_class_2,
+                "probability_pure": probability_pure
+            }
             header_message = f"{type_entry} <crabadegg> {'**PURE** ' if infos_egg['probability_pure'] == 1 else ''}{egg_class_display} \n"
             footer_message = (
                 ""
