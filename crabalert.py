@@ -626,7 +626,7 @@ class Crabalert(commands.Bot):
             
             else:
                 egg_purity_probability_1 = egg_purity_probability
-                egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 4)
+                egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_2), 4)
                 if egg_purity_probability_2.is_integer():
                     egg_purity_probability_2 = int(egg_purity_probability_2)
                 egg_class_1 = class_parent_1

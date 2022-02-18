@@ -140,6 +140,28 @@ subclass_map = {
             113: "Crawberry"
         }
 
+def get_parent_class(infos_family: dict, parent: int):
+    lst_parents = infos_family.get("crabada_parents", [])
+    if len(lst_parents) != 2:
+        return ""
+    return lst_parents[parent].get("class_name", "")
+
+def get_probability_pure(infos_family: dict):
+    from eggs_utils import calc_pure_probability
+    lst_parents = infos_family.get("crabada_parents", [])
+    if len(lst_parents) != 2:
+        return 0
+    crabada_parent_1 = lst_parents[0]
+    crabada_parent_2 = lst_parents[1]
+    class_parent_1 = crabada_parent_1["class_name"]
+    class_parent_2 = crabada_parent_2["class_name"]
+    dna_parent_1 = crabada_parent_1["dna"]
+    dna_parent_2 = crabada_parent_2["dna"]
+    egg_purity_probability = calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1)
+    egg_purity_probability_2 = calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_2)
+    probability_pure = 0.5*egg_purity_probability + 0.5*egg_purity_probability_2
+    return probability_pure
+
 channel_to_post_listings_with_filters = {
     #Crabs and all
     932591668597776414: lambda x: True,
@@ -169,14 +191,14 @@ channel_to_post_listings_with_filters = {
     #Eggs
     933470546824396830: lambda x: x[1] is not None,
     938865346125889646: lambda x: x[1] is not None,
-    933861312809799691: lambda x: x[1] is not None and x[1].get("probability_pure", 0) >= THRESOLD_PURE_PROBA,
-    933861463414669422: lambda x: x[1] is not None and x[1].get("class_name_1", "") == "PRIME" and x[1].get("class_name_2", "") == "PRIME",
-    934101749013291068: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "PRIME" or x[1].get("class_name_2", "") == "PRIME" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
-    933861589738737664: lambda x: x[1] is not None and x[1].get("class_name_1", "") == "CRABOID" and x[1].get("class_name_2", "") == "CRABOID",
-    934101847420055552: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "CRABOID" or x[1].get("class_name_2", "") == "CRABOID" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
-    944009583305834496: lambda x: x[1] is not None and x[1].get("class_name_1", "") == "ORGANIC" and x[1].get("class_name_2", "") == "ORGANIC",
-    944009617803980820: lambda x: x[1] is not None and (x[1].get("class_name_1", "") == "ORGANIC" or x[1].get("class_name_2", "") == "ORGANIC" and x[1].get("class_name_1", "") != x[1].get("class_name_2", "")),
-    938864199394820177: lambda x: x[1] is not None and x[1].get("probability_pure", 0) >= 1
+    933861312809799691: lambda x: x[1] is not None and get_probability_pure(x[1]) >= THRESOLD_PURE_PROBA,
+    933861463414669422: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "PRIME" and get_parent_class(x[1], 1) == "PRIME",
+    934101749013291068: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "PRIME" or get_parent_class(x[1], 1) == "PRIME" and get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+    933861589738737664: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "CRABOID" and get_parent_class(x[1], 1) == "CRABOID",
+    934101847420055552: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "CRABOID" or get_parent_class(x[1], 1) == "CRABOID" and get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+    944009583305834496: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "ORGANIC" and get_parent_class(x[1], 1) == "ORGANIC",
+    944009617803980820: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "ORGANIC" or get_parent_class(x[1], 1) == "ORGANIC" and get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+    938864199394820177: lambda x: x[1] is not None and get_probability_pure(x[1]) >= 1
 }
 
 listing_channels_to_display_shortdescrs = {
@@ -190,9 +212,6 @@ channel_to_post_sellings_with_filters = {
     #Crabs and all
     943230174466547712: lambda x: True,
     943964760876138548: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
-    #Eggs
-    943964843063521310: lambda x: x[1] is not None,
-    943966387498532905: lambda x: (x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6) or (x[1] is not None and x[1].get("probability_pure", 0) == 1),
     943966530889199616: lambda x: (
         x[1] is None and
         x[0].get("breed_count", -1) is not None and
@@ -204,7 +223,11 @@ channel_to_post_sellings_with_filters = {
         x[1] is None and
         x[0].get("breed_count", -1) is not None and
         x[0].get("breed_count", -1) == 0
-    )
+    ),
+    #Eggs
+    943964843063521310: lambda x: x[1] is not None,
+    943966387498532905: lambda x: (x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6) or (x[1] is not None and get_probability_pure(x[1]) == 1)
+
 
 }
 
