@@ -351,7 +351,7 @@ class Crabfetcher:
                             callback_failure_args=(token_id, block_number, selling_price, timestamp_transaction),
                             callback_failure_kwargs={"is_selling": False, "seconds": seconds},
                             f_args=(block_number, selling_price, token_id, timestamp_transaction),
-                            f_kwargs={"is_selling": False},
+                            f_kwargs={"is_selling": is_selling},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
                         )
             

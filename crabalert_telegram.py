@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime, timezone
 import os
+from pathlib import Path
 import wget
 from config import (
     APICRABADA_SEM_ID,
@@ -63,6 +64,7 @@ class CrabalertTelegram:
         self._semaphore = Semaphore(value=1)
         self._variables = dict() if variables is None else variables
         self._context = context
+        Path("images/").mkdir(parents=True, exist_ok=True)
 
     @property
     def context(self):

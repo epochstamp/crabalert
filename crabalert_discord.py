@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 import os
+from pathlib import Path
 import wget
 from web3.main import Web3
 from pprint import pprint
@@ -69,6 +70,7 @@ class CrabalertDiscord(commands.Bot):
         self._launched = False
         self._tasks = []
         self._variables = variables if variables is not None else dict()
+        Path("images/").mkdir(parents=True, exist_ok=True)
         asyncio.run(
             self._refresh_prices_coin()
         )
@@ -561,12 +563,10 @@ class CrabalertDiscord(commands.Bot):
                 embed.add_field(
                     name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller_full_name}]({url_buyer_seller})", inline=False
                 )
-                if not os.path.isfile("{token_id}.png"):
-                    wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"{token_id}.png", bar=None)
+                if not os.path.isfile("images/{token_id}.png"):
+                    wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
                 
-                await channel.send(message, embed=embed, file=File(f"{token_id}.png"))
-                if os.path.isfile(f"{token_id}.png"):
-                    os.remove(f"{token_id}.png")
+                await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
@@ -584,8 +584,6 @@ class CrabalertDiscord(commands.Bot):
                 embed.add_field(
                     name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller_full_name}]({url_buyer_seller})", inline=False
                 )
-                if not os.path.isfile("egg.png"):
-                    wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"egg.png", bar=None)
-                await channel.send(message_egg, embed=embed, file=File("egg.png"))
-                if os.path.isfile(f"egg.png"):
-                    os.remove(f"egg.png")
+                if not os.path.isfile("images/egg.png"):
+                    wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
+                await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
