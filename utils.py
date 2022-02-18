@@ -681,25 +681,25 @@ async def iblock_near_async(web3, tunix_s, ipre=1, ipost=None, current_block_num
     if ipre == ipost:
         task = asyncio.create_task(callback(ipre))
         asyncio.gather(task)
+    else:
+        t0, t1 = T(web3, ipre), T(web3, ipost)
 
-    t0, t1 = T(web3, ipre), T(web3, ipost)
+        av_block_time = (t1 - t0) / (ipost-ipre)
 
-    av_block_time = (t1 - t0) / (ipost-ipre)
+        # if block-times were evenly-spaced, get expected block number
+        k = (tunix_s - t0) / (t1-t0)
+        iexpected = int(ipre + k * (ipost - ipre))
+        # get the ACTUAL time for that block
+        texpected = T(web3, iexpected)
 
-    # if block-times were evenly-spaced, get expected block number
-    k = (tunix_s - t0) / (t1-t0)
-    iexpected = int(ipre + k * (ipost - ipre))
-    # get the ACTUAL time for that block
-    texpected = T(web3, iexpected)
+        # use the discrepancy to improve our guess
+        est_nblocks_from_expected_to_target = int((tunix_s - texpected) / av_block_time)
+        iexpected_adj = iexpected + est_nblocks_from_expected_to_target
 
-    # use the discrepancy to improve our guess
-    est_nblocks_from_expected_to_target = int((tunix_s - texpected) / av_block_time)
-    iexpected_adj = iexpected + est_nblocks_from_expected_to_target
+        r = abs(est_nblocks_from_expected_to_target)
 
-    r = abs(est_nblocks_from_expected_to_target)
-
-    task = asyncio.create_task(iblock_near_async(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number, callback=callback))
-    asyncio.gather(task)
+        task = asyncio.create_task(iblock_near_async(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number, callback=callback))
+        asyncio.gather(task)
 
 adfly_api = AdflyApi(
     user_id=ADFLY_USER_ID,
