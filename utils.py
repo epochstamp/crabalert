@@ -680,7 +680,6 @@ async def iblock_near_async(web3, tunix_s, ipre=1, ipost=None, current_block_num
     
     if ipre == ipost:
         task = asyncio.create_task(callback(ipre))
-        asyncio.gather(task)
     else:
         t0, t1 = T(web3, ipre), T(web3, ipost)
 
@@ -699,7 +698,7 @@ async def iblock_near_async(web3, tunix_s, ipre=1, ipost=None, current_block_num
         r = abs(est_nblocks_from_expected_to_target)
 
         task = asyncio.create_task(iblock_near_async(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number, callback=callback))
-        asyncio.gather(task)
+    asyncio.gather(task)
 
 adfly_api = AdflyApi(
     user_id=ADFLY_USER_ID,
