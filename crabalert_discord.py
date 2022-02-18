@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 import os
 from pathlib import Path
+from pytz_deprecation_shim import NonExistentTimeError
 import wget
 from web3.main import Web3
 from pprint import pprint
@@ -299,7 +300,7 @@ class CrabalertDiscord(commands.Bot):
         if tasks != []:
             asyncio.gather(*tasks)
 
-    async def _notify_marketplace_item(self, infos_nft, infos_family, token_id, selling_price, timestamp, is_crab, is_selling=False):
+    async def _notify_marketplace_item(self, infos_nft, infos_family, token_id, selling_price, timestamp, is_crab_bool, is_selling=False):
         tasks = []
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         channels_to_post = (
@@ -309,9 +310,10 @@ class CrabalertDiscord(commands.Bot):
         )
         for channel_id, filter_function in channels_to_post.items():
             channel = self._get_variable(f"channel_{channel_id}", f_value_if_not_exists=lambda: self.get_channel(channel_id))
-            if filter_function((infos_nft, None)):
+            infos_family_test = infos_family if not is_crab(infos_nft) else None
+            if filter_function((infos_nft, infos_family_test)):
                 if (token_id, timestamp, channel.id, is_selling) not in already_seen:
-                    if is_crab:
+                    if is_crab(infos_nft):
                         tasks.append(asyncio.create_task(
                             self.notify_crab_item(
                                 infos_nft,
