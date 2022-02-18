@@ -332,7 +332,7 @@ class Crabfetcher:
         )
         asyncio.gather(task)
 
-    async def _recall_crabada_api_after_sleep(self, e, token_id, block_number, selling_price, timestamp_transaction, seconds=2, is_selling=True):
+    async def _recall_crabada_infos_api_after_sleep(self, e, token_id, block_number, selling_price, timestamp_transaction, seconds=2, is_selling=True):
         timeout_counter = self._get_variable("apicrabada_timeout_counter", lambda: 0)
         self._set_sync_variable("apicrabada_timeout_counter", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
@@ -346,7 +346,7 @@ class Crabfetcher:
         if (token_id, timestamp_transaction, selling_price, is_selling) not in already_seen:
             task = async_http_get_request_with_callback_on_result_v2(
                             link_nft_crabada,
-                            self._recall_crabada_api_after_sleep,
+                            self._recall_crabada_infos_api_after_sleep,
                             TIMEOUT,
                             self._fetch_and_store_crabada_entry_aux,
                             callback_failure_args=(token_id, block_number, selling_price, timestamp_transaction),
@@ -354,6 +354,32 @@ class Crabfetcher:
                             f_args=(block_number, selling_price, token_id, timestamp_transaction),
                             f_kwargs={"is_selling": is_selling},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1))
+                        )
+            
+            asyncio.gather(task)
+
+    async def _recall_crabada_infos_family_after_sleep(self, e, token_id, block_number, selling_price, timestamp_transaction, infos_nft, seconds=2, is_selling=True):
+        timeout_counter = self._get_variable("apicrabada_timeout_counter", lambda: 0)
+        self._set_sync_variable("apicrabada_timeout_counter", timeout_counter + 1)
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
+            print("Too many consecutive timeouts on crabada api, exit...")
+            for task in asyncio.all_tasks():
+                task.cancel()
+            exit(1)
+        await asyncio.sleep(seconds)
+        family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
+        already_seen = self._get_variable("already_seen", lambda: set())
+        if (token_id, timestamp_transaction, selling_price, is_selling) not in already_seen:
+            task = async_http_get_request_with_callback_on_result_v2(
+                            family_infos_link,
+                            self._recall_crabada_infos_family_after_sleep,
+                            TIMEOUT,
+                            self._store_crabada_entry_egg_aux,
+                            callback_failure_args=(token_id, block_number, selling_price, timestamp_transaction, infos_nft),
+                            callback_failure_kwargs={"is_selling": is_selling},
+                            f_args=(token_id, selling_price, timestamp_transaction, infos_nft),
+                            f_kwargs={"is_selling": is_selling},
+                            semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1)),
                         )
             
             asyncio.gather(task)
@@ -374,7 +400,7 @@ class Crabfetcher:
                     print(f"spotted listing item {token_id}")
                     tasks.append(async_http_get_request_with_callback_on_result_v2(
                             link_nft_crabada,
-                            self._recall_crabada_api_after_sleep,
+                            self._recall_crabada_infos_api_after_sleep,
                             TIMEOUT,
                             self._fetch_and_store_crabada_entry_aux,
                             callback_failure_args=(token_id, block_number, selling_price, timestamp_transaction),
@@ -471,7 +497,7 @@ class Crabfetcher:
             print(f"spotted selling item {token_id}")
             task = async_http_get_request_with_callback_on_result_v2(
                             link_nft_crabada,
-                            self._recall_crabada_api_after_sleep,
+                            self._recall_crabada_infos_api_after_sleep,
                             TIMEOUT,
                             self._fetch_and_store_crabada_entry_aux,
                             callback_failure_args=(token_id, block_number, selling_price, timestamp),
@@ -501,9 +527,11 @@ class Crabfetcher:
                     family_infos_link = f"https://api.crabada.com/public/crabada/family/{token_id}"
                     task = async_http_get_request_with_callback_on_result_v2(
                             family_infos_link,
-                            lambda e: self._set_variable("already_seen", already_seen.difference({(token_id, timestamp, selling_price, is_selling)})),
+                            self._recall_crabada_infos_family_after_sleep,
                             TIMEOUT,
                             self._store_crabada_entry_egg_aux,
+                            callback_failure_args=(token_id, block_number, selling_price, timestamp, infos_nft),
+                            callback_failure_kwargs={"is_selling": is_selling},
                             f_args=(token_id, selling_price, timestamp, infos_nft),
                             f_kwargs={"is_selling": is_selling},
                             semaphore=self._get_variable(f"sem_{APICRABADA_SEM_ID}", lambda: asyncio.Semaphore(value=1)),
