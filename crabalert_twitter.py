@@ -130,7 +130,6 @@ class CrabalertTwitter:
                 message = (
                     f"[{type_entry}] 🦀 {class_display}({subclass_display}) No.{token_id} at {first_column}\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
-                    f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
                     f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
                 )
@@ -198,7 +197,6 @@ class CrabalertTwitter:
                 message = (
                     f"[{type_entry}] 🥚 {class_display} No.{token_id} {first_column}\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
-                    f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
                     f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
                 )
