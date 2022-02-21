@@ -50,7 +50,8 @@ from discord.utils import get
 import humanize
 from discord.ext import commands
 import asyncio
-import urllib
+from urllib.request import Request, urlopen
+import urllib.request
 import json
 from eggs_utils import calc_pure_probability
 from classes import classes_to_spacebarsize_map
@@ -68,13 +69,13 @@ class Crabalert(commands.Bot):
             #Look for last block up to one day ago
             web3 = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"]))
             try:
-                req = urllib.request.Request(f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={current_timestamp_ago}&closest=before&apikey={SNOWTRACE_API_KEY}", headers=HEADERS)
+                req = Request(f"https://api.snowtrace.io/api?module=block&action=getblocknobytime&timestamp={current_timestamp_ago}&closest=before&apikey={SNOWTRACE_API_KEY}", headers=HEADERS)
                 block_number_ago = int(json.loads(urllib.request.urlopen(req).read())["result"])
             except:
                 block_number_ago = asyncio.run(iblock_near(web3, current_timestamp_ago))
             # Get last block for crabada transaction        
             try:
-                req = urllib.request.Request(
+                req = Request(
                     f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={block_number_ago}&sort=desc&endblock=999999999999&apikey={SNOWTRACE_API_KEY}",
                     headers=HEADERS
                 )

@@ -128,7 +128,7 @@ class CrabalertTwitter:
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 buyer_seller_full_name = infos_nft['owner_full_name']
                 message = (
-                    f"[{type_entry}] 🦀 {class_display}({subclass_display}) No.{token_id} at {first_column} on Crabada Marketplace\n" +
+                    f"[{type_entry}] 🦀 {class_display}({subclass_display}) No.{token_id} at {first_column}\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
@@ -146,7 +146,7 @@ class CrabalertTwitter:
                                     print(f"posted crab {token_id} {is_selling}")
                                     break
                             except Exception as e:
-                                print("crab", e)
+                                print("crab", type(e), e)
                                 await asyncio.sleep(3)
 
     async def _notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
@@ -196,7 +196,7 @@ class CrabalertTwitter:
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 buyer_seller_full_name = infos_nft['owner_full_name']
                 message = (
-                    f"[{type_entry}] 🥚 {class_display} No.{token_id} at {first_column} on Crabada Marketplace\n" +
+                    f"[{type_entry}] 🥚 {class_display} No.{token_id} {first_column}\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
@@ -214,7 +214,7 @@ class CrabalertTwitter:
                                     print(f"posted egg {token_id} {is_selling}")
                                     break
                             except Exception as e:
-                                print("egg", e)
+                                print("egg", type(e), e)
                                 await asyncio.sleep(3)
                 #self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, is_selling)}))
 

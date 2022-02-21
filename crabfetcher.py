@@ -35,7 +35,7 @@ from utils import (
 )
 from web3 import Web3
 import json
-import urllib
+import urllib.request
 import re
 
 class Crabfetcher:
