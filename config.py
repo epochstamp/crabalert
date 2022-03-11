@@ -1,4 +1,7 @@
+import json
+import os
 from adfly import AdflyApi
+from subclasses import subclass_type_map
 
 WAITING_BEFORE_RECONNECT = 5
 SPAN = 100
@@ -162,12 +165,23 @@ def get_probability_pure(infos_family: dict):
     probability_pure = 0.5*egg_purity_probability + 0.5*egg_purity_probability_2
     return probability_pure
 
+def is_below_floor_price(price):
+    if not os.path.isfile("floor_prices.json"):
+        return False
+    floor_prices = json.load(open("floor_prices.json"))
+    return price*10**-18 <= floor_prices[-1][1]
+
 channel_to_post_listings_with_filters = {
     #Crabs and all
     932591668597776414: lambda x: True,
     934178951998357584: lambda x: True,
     933456755395006495: lambda x: True,
     935237809697095723: lambda x: True,
+    951797923086213140: lambda x: float(x[0].get("price", float("+inf")))*10**-18 <= 10000,
+    951798251139522610: lambda x: float(x[0].get("price", float("+inf")))*10**-18 <= 12000,
+    951798278691881000: lambda x: float(x[0].get("price", float("+inf")))*10**-18 <= 14000,
+    951798307989114900: lambda x: float(x[0].get("price", float("+inf")))*10**-18 <= 16000,
+    951797761601318912: lambda x: is_below_floor_price(float(x[0].get("price", float("+inf")))*10**-18),
     933473949445144676: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6,
@@ -175,6 +189,9 @@ channel_to_post_listings_with_filters = {
     933399063330701414: lambda x: x[1] is None and x[0].get("breed_count", -1) is not None and x[0].get("breed_count", -1) == 0,
     933411792925913129: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "craboid",
     944009796917530674: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "organic",
+    951797051329507328: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "tank",
+    951797103863136306: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "damage",
+    951797172419047424: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "buff",
     933506031261188116: lambda x: (
         x[1] is None and
         x[0].get("breed_count", -1) is not None and
