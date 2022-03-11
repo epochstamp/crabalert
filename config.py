@@ -1,7 +1,6 @@
 import json
 import os
 from adfly import AdflyApi
-from subclasses import subclass_type_map
 
 WAITING_BEFORE_RECONNECT = 5
 SPAN = 100
@@ -166,6 +165,7 @@ def get_probability_pure(infos_family: dict):
     return probability_pure
 
 def is_below_floor_price(price):
+    from subclasses import subclass_type_map
     if not os.path.isfile("floor_prices.json"):
         return False
     floor_prices = json.load(open("floor_prices.json"))
