@@ -41,7 +41,7 @@ from config import (
     ADFLY_SEM_ID,
     subclass_map,
     MONTHLY_RATE)
-from subclasses import calc_subclass_info
+from subclasses import calc_subclass_info, subclass_type_map
 from utils import (
     async_http_get_request_with_callback_on_result,
     blockchain_urls,
@@ -374,6 +374,16 @@ class CrabalertDiscord(commands.Bot):
             class_display = infos_nft['class_name']
             dna = infos_nft["dna"]
             n_comp_subclass = sum([(1 if sbc.lower() == subclass.lower() else 0) for sbc in calc_subclass_info(dna)])
+            subclass_type = subclass_type_map.get(infos_nft['crabada_subclass'], 'unknown')
+            if subclass_type == "Tank":
+                emoji_subclass_type = "🛡️"
+            elif subclass_type == "Damage":
+                emoji_subclass_type = "🗡️"
+            elif subclass_type == "Buff":
+                emoji_subclass_type = "✨"
+            else:
+                emoji_subclass_type = "❓"
+
             class_display = class_display if class_display.lower() not in cool_classes else f"**{class_display}**"
             type_entry = "**[SOLD<aftertime>]**" if is_selling else "**[LISTING]**"
             if is_selling:
@@ -409,7 +419,7 @@ class CrabalertDiscord(commands.Bot):
                 )     
             else:
                 message = (
-                    f"{type_entry} :crab: {'**PURE**' if infos_nft['pure_number'] == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **NO-BREED**' if infos_nft['breed_count'] == 0 else ''} {class_display}({subclass_display} {n_comp_subclass}/18)\n" +
+                    f"{type_entry} :crab: {'**PURE**' if infos_nft['pure_number'] == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **NO-BREED**' if infos_nft['breed_count'] == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
                     f"{first_column}\n" +
                     f"{second_column}\n" +
                     f"{third_column}"

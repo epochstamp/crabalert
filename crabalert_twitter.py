@@ -19,7 +19,7 @@ from config import (
     cool_subclasses,
     subclass_map
 )
-from subclasses import calc_subclass_info
+from subclasses import calc_subclass_info, subclass_type_map
 from utils import (
     blockchain_urls,
     close_database,
@@ -104,6 +104,15 @@ class CrabalertTwitter:
                 subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
                 dna = infos_nft["dna"]
                 n_comp_subclass = sum([(1 if sbc.lower() == subclass.lower() else 0) for sbc in calc_subclass_info(dna)])
+                subclass_type = subclass_type_map.get(infos_nft['crabada_subclass'], 'unknown')
+                if subclass_type == "Tank":
+                    emoji_subclass_type = "🛡️"
+                elif subclass_type == "Damage":
+                    emoji_subclass_type = "🗡️"
+                elif subclass_type == "Buff":
+                    emoji_subclass_type = "✨"
+                else:
+                    emoji_subclass_type = "❓"
                 class_display = infos_nft['class_name']
                 class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
                 type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
@@ -132,7 +141,7 @@ class CrabalertTwitter:
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 buyer_seller_full_name = infos_nft['owner_full_name']
                 message = (
-                    f"[{type_entry}] 🦀 {class_display}({subclass_display} {n_comp_subclass}/18) No.{token_id} at {first_column}\n" +
+                    f"[{type_entry}] 🦀 {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18) No.{token_id} at {first_column}\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"https://marketplace.crabada.com/crabada/{token_id}\n" +
                     f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
