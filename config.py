@@ -142,6 +142,73 @@ subclass_map = {
             113: "Crawberry"
         }
 
+subclass_type_map = {
+            1: "Tank",
+            2: "Damage",
+            3: "Damage",
+            4: "Tank",
+            5: "Buff",
+            6: "Tank",
+            7: "Buff",
+            8: "Damage",
+            16: "Tank",
+            17: "Tank",
+            18: "Damage",
+            19: "Buff",
+            20: "Tank",
+            21: "Damage",
+            22: "Buff",
+            23: "Damage",
+            31: "Damage",
+            32: "Tank",
+            33: "Damage",
+            34: "Tank",
+            35: "Damage",
+            36: "Buff",
+            37: "Tank",
+            38: "Damage",
+            46: "Tank",
+            47: "Tank",
+            48: "Damage",
+            49: "Damage",
+            50: "Buff",
+            51: "Tank",
+            52: "Buff",
+            53: "Damage",
+            61: "Damage",
+            62: "Damage",
+            63: "Buff",
+            64: "Tank",
+            65: "Damage",
+            66: "Tank",
+            67: "Buff",
+            68: "Tank",
+            76: "Tank",
+            77: "Damage",
+            78: "Buff",
+            79: "Damage",
+            80: "Damage",
+            81: "Tank",
+            82: "Tank",
+            83: "Buff",
+            91: "Damage",
+            92: "Tank",
+            93: "Tank",
+            94: "Damage",
+            95: "Tank",
+            96: "Damage",
+            97: "Buff",
+            98: "Buff",
+            106: "Tank",
+            107: "Buff",
+            108: "Tank",
+            109: "Damage",
+            110: "Buff",
+            111: "Tank",
+            112: "Damage",
+            113: "Damage"
+        }
+
 def get_parent_class(infos_family: dict, parent: int):
     lst_parents = infos_family.get("crabada_parents", [])
     if len(lst_parents) != 2:
@@ -165,7 +232,6 @@ def get_probability_pure(infos_family: dict):
     return probability_pure
 
 def is_below_floor_price(price):
-    from subclasses import subclass_type_map
     if not os.path.isfile("floor_prices.json"):
         return False
     floor_prices = json.load(open("floor_prices.json"))
