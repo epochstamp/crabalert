@@ -1,3 +1,5 @@
+from utils import Aliasstr, dec2hex
+
 subclass_map = {
             1: "Emeraldo",
             2: "Crazor",
@@ -64,3 +66,36 @@ subclass_map = {
             112: "Cranana",
             113: "Crawberry"
         }
+
+def lookup_subclass(n):
+    return subclass_map.get(n, "unknown")
+
+def calc_subclass_info(dna):
+    hexString = dec2hex(dna)
+    dnafixed = Aliasstr(f"0{hexString}")
+
+    shellr0 = lookup_subclass(int(dnafixed.substring(28, 30), 16))
+    shellr1 = lookup_subclass(int(dnafixed.substring(30, 32), 16))
+    shellr2 = lookup_subclass(int(dnafixed.substring(32, 34), 16))
+
+    hornr0 = lookup_subclass(int(dnafixed.substring(34, 36), 16))
+    hornr1 = lookup_subclass(int(dnafixed.substring(36, 38), 16))
+    hornr2 = lookup_subclass(int(dnafixed.substring(38, 40), 16))
+
+    bodyr0 = lookup_subclass(int(dnafixed.substring(40, 42), 16))
+    bodyr1 = lookup_subclass(int(dnafixed.substring(42, 44), 16))
+    bodyr2 = lookup_subclass(int(dnafixed.substring(44, 46), 16))
+
+    mouthr0 = lookup_subclass(int(dnafixed.substring(46, 48), 16))
+    mouthr1 = lookup_subclass(int(dnafixed.substring(48, 50), 16))
+    mouthr2 = lookup_subclass(int(dnafixed.substring(50, 52), 16))
+
+    eyer0 = lookup_subclass(int(dnafixed.substring(52, 54), 16))
+    eyer1 = lookup_subclass(int(dnafixed.substring(54, 56), 16))
+    eyer2 = lookup_subclass(int(dnafixed.substring(56, 58), 16))
+
+    pincerr0 = lookup_subclass(int(dnafixed.substring(58, 60), 16))
+    pincerr1 = lookup_subclass(int(dnafixed.substring(60, 62), 16))
+    pincerr2 = lookup_subclass(int(dnafixed.substring(62, 64), 16))
+
+    return [shellr0, shellr1, shellr2, hornr0, hornr1, hornr2, bodyr0, bodyr1, bodyr2, mouthr0, mouthr1, mouthr2, eyer0, eyer1, eyer2, pincerr0, pincerr1, pincerr2]

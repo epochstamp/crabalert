@@ -1,33 +1,7 @@
-def dec2hex(dna):
-    dec = int(dna)
-    return hex(dec).split('x')[-1]
 
 
-def lookup(value: int) -> str:
-        if (value <= 8):
-            return 'SURGE'
-        elif (value < 24):
-            return 'SUNKEN'
-        elif (value < 39):
-            return 'PRIME'
-        elif (value < 54):
-            return 'BULK'
-        elif (value < 69):
-            return 'CRABOID'
-        elif (value < 84):
-            return 'RUINED'
-        elif (value < 99):
-            return 'GEM'
-        elif (value < 114):
-            return 'ORGANIC'
+from utils import Aliasstr, dec2hex, lookup
 
-class Aliasstr:
-
-    def __init__(self, s):
-        self._s = s
-    
-    def substring(self, a, b):
-        return self._s[a: b]
 
 def calc_pure_probability(dna1, dna2, class_name):
     hex_string1 = dec2hex(dna1)

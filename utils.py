@@ -748,3 +748,34 @@ def get_price_tus_in_usd(database="crabalert.db"):
         return float(data[0][1])
     else:
         return 0.21
+
+def dec2hex(dna):
+    dec = int(dna)
+    return hex(dec).split('x')[-1]
+
+
+def lookup(value: int) -> str:
+        if (value <= 8):
+            return 'SURGE'
+        elif (value < 24):
+            return 'SUNKEN'
+        elif (value < 39):
+            return 'PRIME'
+        elif (value < 54):
+            return 'BULK'
+        elif (value < 69):
+            return 'CRABOID'
+        elif (value < 84):
+            return 'RUINED'
+        elif (value < 99):
+            return 'GEM'
+        elif (value < 114):
+            return 'ORGANIC'
+
+class Aliasstr:
+
+    def __init__(self, s):
+        self._s = s
+    
+    def substring(self, a, b):
+        return self._s[a: b]
