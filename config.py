@@ -235,7 +235,7 @@ def is_below_floor_price(price):
     if not os.path.isfile("floor_prices.json"):
         return False
     floor_prices = json.load(open("floor_prices.json"))
-    return price*10**-18 <= floor_prices[-1][1]
+    return price <= floor_prices[-1][1]
 
 channel_to_post_listings_with_filters = {
     #Crabs and all
