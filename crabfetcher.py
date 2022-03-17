@@ -586,7 +586,7 @@ class Crabfetcher:
             close_database(db)
             print(f"egg spotted {token_id} {type_entry}")
 
-    async def _fetch_and_store_crabada_transactions_loop(self, seconds=3):
+    async def _fetch_and_store_crabada_transactions_loop(self, seconds=4):
         
         while True:
             task_listing = asyncio.create_task(self._fetch_and_store_crabada_listing_transactions())
@@ -617,11 +617,11 @@ class Crabfetcher:
 
     async def run(self):
         fetch_and_store_crabada_transactions_task = asyncio.create_task(self._fetch_and_store_crabada_transactions_loop())
-        fetch_and_store_payments_loop_task = asyncio.create_task(self._fetch_and_store_payments_loop())
+        #fetch_and_store_payments_loop_task = asyncio.create_task(self._fetch_and_store_payments_loop())
         refresh_tus_price_loop_task = asyncio.create_task(self._refresh_tus_price_loop())
         await asyncio.gather(
             fetch_and_store_crabada_transactions_task,
-            fetch_and_store_payments_loop_task,
+            #fetch_and_store_payments_loop_task,
             refresh_tus_price_loop_task
         )
 
