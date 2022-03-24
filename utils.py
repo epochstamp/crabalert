@@ -446,7 +446,7 @@ async def async_http_get_request_with_callback_on_result_v2(
     await_if_success = False,
     await_if_failure = False,
     wait_time=2,
-    wait_time_if_timeout=6):
+    wait_time_if_timeout=2):
 
     if semaphore is not None:
         await semaphore.acquire()
