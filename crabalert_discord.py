@@ -257,11 +257,7 @@ class CrabalertDiscord(commands.Bot):
 
     @tasks.loop(seconds=1)
     async def _crabada_listing_alert_loop(self):
-        try:
-            connection = open_database()
-        except Exception as e:
-            #TODO : logging
-            return
+        
         dt = datetime.now(timezone.utc)
         utc_time = dt.replace(tzinfo=timezone.utc)
         current_timestamp = utc_time.timestamp()
@@ -269,22 +265,25 @@ class CrabalertDiscord(commands.Bot):
             SELECT * FROM crabada_listings WHERE {current_timestamp} - timestamp <= {LISTING_ITEM_EXPIRATION}
         """
         tasks = []
-        data = execute_query(connection, query)
-        for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
-            infos_nft = json.loads(infos_nft)
-            if infos_family != "":
-                infos_family = json.loads(infos_family)
-            tasks.append(asyncio.create_task(self._notify_marketplace_item(infos_nft, infos_family, token_id, selling_price, timestamp, is_crab.lower() == "true", is_selling=False)))
-        if tasks != []:
-            asyncio.gather(*tasks)
+        async with self._get_variable(f"sem_database", lambda: asyncio.Semaphore(value=1)):
+            try:
+                connection = open_database()
+            except Exception as e:
+                #TODO : logging
+                return
+            data = execute_query(connection, query)
+            close_database(connection)
+            for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
+                infos_nft = json.loads(infos_nft)
+                if infos_family != "":
+                    infos_family = json.loads(infos_family)
+                tasks.append(asyncio.create_task(self._notify_marketplace_item(infos_nft, infos_family, token_id, selling_price, timestamp, is_crab.lower() == "true", is_selling=False)))
+            if tasks != []:
+                asyncio.gather(*tasks)
 
     @tasks.loop(seconds=1)
     async def _crabada_selling_alert_loop(self):
-        try:
-            connection = open_database()
-        except Exception as e:
-            #TODO : logging
-            return
+        
         dt = datetime.now(timezone.utc)
         utc_time = dt.replace(tzinfo=timezone.utc)
         current_timestamp = utc_time.timestamp()
@@ -292,14 +291,21 @@ class CrabalertDiscord(commands.Bot):
             SELECT * FROM crabada_sellings WHERE {current_timestamp} - timestamp <= {SELLING_ITEM_EXPIRATION}
         """
         tasks = []
-        data = execute_query(connection, query)
-        for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
-            infos_nft = json.loads(infos_nft)
-            if infos_family != "":
-                infos_family = json.loads(infos_family)
-            tasks.append(asyncio.create_task(self._notify_marketplace_item(infos_nft, infos_family, token_id, selling_price, timestamp, is_crab.lower() == "true", is_selling=True)))
-        if tasks != []:
-            asyncio.gather(*tasks)
+        async with self._get_variable(f"sem_database", lambda: asyncio.Semaphore(value=1)):
+            try:
+                connection = open_database()
+            except Exception as e:
+                #TODO : logging
+                return
+            data = execute_query(connection, query)
+            close_database(connection)
+            for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
+                infos_nft = json.loads(infos_nft)
+                if infos_family != "":
+                    infos_family = json.loads(infos_family)
+                tasks.append(asyncio.create_task(self._notify_marketplace_item(infos_nft, infos_family, token_id, selling_price, timestamp, is_crab.lower() == "true", is_selling=True)))
+            if tasks != []:
+                asyncio.gather(*tasks)
 
     async def _notify_marketplace_item(self, infos_nft, infos_family, token_id, selling_price, timestamp, is_crab_bool, is_selling=False):
         tasks = []

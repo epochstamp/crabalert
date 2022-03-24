@@ -548,7 +548,7 @@ class Crabfetcher:
             """
         type_entry = "selling" if is_selling else "listing"
         print(f"crab to be spotted {token_id} {type_entry}")
-        async with self._get_variable(f"sem_database_{is_selling}", lambda: asyncio.Semaphore(value=1)):
+        async with self._get_variable(f"sem_database", lambda: asyncio.Semaphore(value=1)):
             self._set_sync_variable("snowtrace_timeout_counter", 0)
             self._set_sync_variable("apicrabada_timeout_counter", 0)
             db = open_database()
@@ -572,7 +572,7 @@ class Crabfetcher:
             """
         type_entry = "selling" if is_selling else "listing"
         print(f"egg to be spotted {token_id} {type_entry}")
-        async with self._get_variable(f"sem_database_{is_selling}", lambda: asyncio.Semaphore(value=1)):
+        async with self._get_variable(f"sem_database", lambda: asyncio.Semaphore(value=1)):
             self._set_sync_variable("snowtrace_timeout_counter", 0)
             self._set_sync_variable("apicrabada_timeout_counter", 0)
             db = open_database()
