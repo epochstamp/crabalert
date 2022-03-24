@@ -320,18 +320,32 @@ class Crabfetcher:
                 )
             asyncio.gather(task)
 
-    async def _fetch_and_store_crabada_listing_transactions_web3(self, e, current_block, last_block_crabada_transaction):
+    async def _fetch_and_store_crabada_listing_transactions_web3(self, e, current_block, last_block_crabada_transaction, seconds=2):
         timeout_counter = self._get_variable("snowtrace_timeout_counter", lambda: 0)
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_SNOWTRACE:
             print("Too many consecutive timeouts on snowtrace, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
             exit(1)
+        await asyncio.sleep(seconds)
+        link_transactions = f"https://api.snowtrace.io/api?module=account&action=txlist&address=0x1b7966315eF0259de890F38f1bDB95Acc03caCdD&startblock={last_block_crabada_transaction}&sort=desc&apikey={SNOWTRACE_API_KEY}"
+        last_block_seen = self._get_variable("last_block_seen_listing", lambda: 0)
+        task = async_http_get_request_with_callback_on_result_v2(
+                link_transactions,
+                self._fetch_and_store_crabada_listing_transactions_web3,
+                TIMEOUT,
+                self._fetch_and_store_crabada_listing_entry,
+                callback_failure_args = (current_block, last_block_crabada_transaction),
+                semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
+            )
+        asyncio.gather(task)
+        """
         task = asyncio.create_task(
             get_transactions_between_blocks_async(lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), last_block_crabada_transaction, end_block=current_block, filter_t=lambda t: is_valid_marketplace_listing_transaction(t), convert_to_logs=False, callback = self._fetch_and_store_crabada_listing_entry)
         )
         asyncio.gather(task)
+        """
 
     async def _recall_crabada_infos_api_after_sleep(self, e, token_id, block_number, selling_price, timestamp_transaction, seconds=2, is_selling=True):
         timeout_counter = self._get_variable("apicrabada_timeout_counter", lambda: 0)
@@ -462,18 +476,32 @@ class Crabfetcher:
             self._set_sync_variable("last_block_seen_selling", current_block)
             asyncio.gather(task)
 
-    async def _fetch_and_store_crabada_selling_transactions_web3(self, e, current_block, last_block_crabada_transaction):
+    async def _fetch_and_store_crabada_selling_transactions_web3(self, e, current_block, last_block_crabada_transaction, seconds=2):
         timeout_counter = self._get_variable("snowtrace_timeout_counter", lambda: 0)
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_SNOWTRACE:
             print("Too many consecutive timeouts on snowtrace, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
             exit(1)
+        await asyncio.sleep(seconds)
+        link_transactions = f"https://api.snowtrace.io/api?module=logs&action=getLogs&fromBlock={last_block_crabada_transaction}&toBlock=99999999999&address=0x7e8deef5bb861cf158d8bdaaa1c31f7b49922f49&apikey={SNOWTRACE_API_KEY}&topic0=0x4d3b1cf93e7676f80b7df86edb68fdf7be63c9964cc44c6b43b51c434b8ab771"
+        task = async_http_get_request_with_callback_on_result_v2(
+                link_transactions,
+                self._fetch_and_store_crabada_selling_transactions_web3,
+                TIMEOUT,
+                self._fetch_and_store_crabada_selling_entry,
+                callback_failure_args = (current_block, last_block_crabada_transaction,),
+                semaphore=self._get_variable(f"sem_{SNOWTRACE_SEM_ID}", lambda: asyncio.Semaphore(value=1))
+            )
+        self._set_sync_variable("last_block_seen_selling", current_block)
+        asyncio.gather(task)
+        """
         task = asyncio.create_task(
             get_transactions_between_blocks_async(lambda: Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), last_block_crabada_transaction, end_block=current_block, filter_t=lambda t: is_valid_marketplace_selling_transaction(t), convert_to_logs=True, callback = self._fetch_and_store_crabada_selling_entry)
         )
         asyncio.gather(task)
+        """
 
     async def _fetch_and_store_crabada_selling_entry(self, logs):
         log = [log for log in logs if str(log["address"]).lower() == "0x7E8DEef5bb861cF158d8BdaAa1c31f7B49922F49".lower()]
