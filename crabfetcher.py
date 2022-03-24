@@ -4,7 +4,8 @@ import time
 from config import (
     APICRABADA_SEM_ID,
     COINS,
-    MAX_TIMEOUT_BEFORE_KILL,
+    MAX_TIMEOUT_BEFORE_KILL_SNOWTRACE,
+    MAX_TIMEOUT_BEFORE_KILL_CRABADA,
     NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS,
     PAYMENT_SEM_ID,
     SNOWTRACE_SEM_ID,
@@ -200,7 +201,7 @@ class Crabfetcher:
     async def _fetch_and_store_payments_web3(self, e, payment_timestamp):
         timeout_counter = self._get_variable("snowtrace_timeout_counter", lambda: 0)
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_SNOWTRACE:
             print("Too many consecutive timeouts on snowtrace, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
@@ -236,7 +237,7 @@ class Crabfetcher:
     async def _fetch_and_store_payments_web3_2(self, e, block_number, payment_timestamp, contract_address):
         timeout_counter = self._get_variable("snowtrace_timeout_counter", lambda: 0)
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_SNOWTRACE:
             print("Too many consecutive timeouts on snowtrace, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
@@ -322,7 +323,7 @@ class Crabfetcher:
     async def _fetch_and_store_crabada_listing_transactions_web3(self, e, current_block, last_block_crabada_transaction):
         timeout_counter = self._get_variable("snowtrace_timeout_counter", lambda: 0)
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
             print("Too many consecutive timeouts on snowtrace, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
@@ -335,7 +336,7 @@ class Crabfetcher:
     async def _recall_crabada_infos_api_after_sleep(self, e, token_id, block_number, selling_price, timestamp_transaction, seconds=2, is_selling=True):
         timeout_counter = self._get_variable("apicrabada_timeout_counter", lambda: 0)
         self._set_sync_variable("apicrabada_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
             print("Too many consecutive timeouts on crabada api, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
@@ -361,7 +362,7 @@ class Crabfetcher:
     async def _recall_crabada_infos_family_after_sleep(self, e, token_id, block_number, selling_price, timestamp_transaction, infos_nft, seconds=2, is_selling=True):
         timeout_counter = self._get_variable("apicrabada_timeout_counter", lambda: 0)
         self._set_sync_variable("apicrabada_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
             print("Too many consecutive timeouts on crabada api, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
@@ -464,7 +465,7 @@ class Crabfetcher:
     async def _fetch_and_store_crabada_selling_transactions_web3(self, e, current_block, last_block_crabada_transaction):
         timeout_counter = self._get_variable("snowtrace_timeout_counter", lambda: 0)
         self._set_sync_variable("snowtrace_timeout_counter", timeout_counter + 1)
-        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL:
+        if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
             print("Too many consecutive timeouts on snowtrace, exit...")
             for task in asyncio.all_tasks():
                 task.cancel()
