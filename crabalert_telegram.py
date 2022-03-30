@@ -36,7 +36,6 @@ from utils import (
     get_current_block,
     nothing,
     open_database,
-    close_database,
     bold,
     safe_json,
     seconds_to_pretty_print
