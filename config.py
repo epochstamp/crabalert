@@ -239,6 +239,8 @@ def is_below_floor_price(price):
     return price <= floor_prices[-1][1]
 
 channel_to_post_listings_with_filters = {
+    #Special
+    958728365861396550: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 8000,
     #Crabs and all
     932591668597776414: lambda x: True,
     934178951998357584: lambda x: True,
