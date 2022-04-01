@@ -122,6 +122,7 @@ class CrabalertTwitter:
                         SELECT timestamp from crabada_listings where token_id={token_id}
                     """
                     data = execute_query(db, query)
+                    close_database(db)
                     duration_min = float("+inf")
                     duration_argmin = None
                     for ts, in data:
@@ -136,7 +137,7 @@ class CrabalertTwitter:
                         type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
                         
 
-                    close_database(db)
+                    
                 buyer_seller_type = "Listed by" if not is_selling else "Bought by"
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 buyer_seller_full_name = infos_nft['owner_full_name']
@@ -190,6 +191,7 @@ class CrabalertTwitter:
                         SELECT timestamp from crabada_listings where token_id={token_id}
                     """
                     data = execute_query(db, query)
+                    close_database(db)
                     duration_min = float("+inf")
                     duration_argmin = None
                     for ts, in data:
@@ -203,7 +205,7 @@ class CrabalertTwitter:
                         type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
                         
 
-                    close_database(db)
+                    
                 buyer_seller_type = "Listed by" if not is_selling else "Bought by"
                 buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
                 buyer_seller_full_name = infos_nft['owner_full_name']

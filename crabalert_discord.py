@@ -398,6 +398,7 @@ class CrabalertDiscord(commands.Bot):
                     SELECT timestamp from crabada_listings where token_id={token_id}
                 """
                 data = execute_query(db, query)
+                close_database(db)
                 duration_min = float("+inf")
                 duration_argmin = None
                 for ts, in data:
@@ -411,7 +412,7 @@ class CrabalertDiscord(commands.Bot):
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
                     
 
-                close_database(db)
+                
             channels_to_display_shortdescrs = (
                 listing_channels_to_display_shortdescrs if not is_selling else
                 selling_channels_to_display_shortdescrs
