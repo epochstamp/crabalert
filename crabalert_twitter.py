@@ -251,6 +251,7 @@ class CrabalertTwitter:
             """
             tasks = []
             data = execute_query(connection, query)
+            close_database(connection)
             for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
                 is_crab = is_crab.lower() == "true"
                 infos_nft = json.loads(infos_nft)
@@ -279,6 +280,7 @@ class CrabalertTwitter:
             """
             tasks = []
             data = execute_query(connection, query)
+            close_database(connection)
             for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
                 infos_nft = json.loads(infos_nft)
                 is_crab = is_crab.lower() == "true"

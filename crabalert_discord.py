@@ -444,6 +444,7 @@ class CrabalertDiscord(commands.Bot):
                     SELECT timestamp from crabada_listings where token_id={token_id}
                 """
                 data = execute_query(db, query)
+                close_database(db)
                 duration_min = float("+inf")
                 duration_argmin = None
                 for ts, in data:

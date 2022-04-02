@@ -266,10 +266,11 @@ class Crabfetcher:
             except Exception as e:
                 wallet_transactions = [w for w in wallet_transactions if int(w["timeStamp"]) > int(payment_timestamp)]
             lst = [((int(w["value"])*(10**-decimals)), int(w["timeStamp"]), w["hash"], w["from"].lower()) for w in wallet_transactions]
-            db = open_database()
+            
             if lst != []:
                 timestamp_max = lst[0][1]
                 for value, timestamp, hash, from_wallet in lst:
+                    db = open_database()
                     execute_query(
                         db,
                         f"""
@@ -277,9 +278,10 @@ class Crabfetcher:
                             VALUES('{from_wallet}', {timestamp}, '{contract_address}', '{hash}', {value})
                         """
                     )
+                    close_database(db)
                     timestamp_max = max(timestamp_max, timestamp)
                 self._set_sync_variable("payment_timestamp", timestamp_max)
-            close_database(db)
+            
             
     """
     LISTING PART
