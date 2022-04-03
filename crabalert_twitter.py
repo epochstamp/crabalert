@@ -124,7 +124,7 @@ class CrabalertTwitter:
                     data = execute_query(db, query)
                     close_database(db)
                     if len(data) > 0:
-                        duration_min = data[0]
+                        duration_min = float(data[0][0])
                     else:
                         duration_min = None
                     if duration_min is None:
@@ -188,7 +188,7 @@ class CrabalertTwitter:
                     data = execute_query(db, query)
                     close_database(db)
                     if len(data) > 0:
-                        duration_min = data[0]
+                        duration_min = float(data[0][0])
                     else:
                         duration_min = None
                     if duration_min is None:
