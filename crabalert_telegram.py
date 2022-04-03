@@ -121,20 +121,17 @@ class CrabalertTelegram:
                 if is_selling:
                     db = open_database()
                     query = f"""
-                        SELECT timestamp from crabada_listings where token_id={token_id}
+                        SELECT timestamp from crabada_listings where token_id={token_id}  ORDER BY timestamp DESC LIMIT 1
                     """
                     data = execute_query(db, query)
                     close_database(db)
-                    duration_min = float("+inf")
-                    duration_argmin = None
-                    for ts, in data:
-                        if timestamp_transaction - ts <= duration_min:
-                            duration_min = timestamp_transaction - ts
-                            duration_argmin = ts
-                    if duration_argmin is None:
+                    if len(data) > 0:
+                        duration_min = data[0]
+                    else:
+                        duration_min = None
+                    if duration_min is None:
                         type_entry = type_entry.replace("<aftertime>", "")
                     else:
-                        
                         human_deltatime = seconds_to_pretty_print(duration_min)
                         type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
                         
@@ -201,17 +198,15 @@ class CrabalertTelegram:
                 if is_selling:
                     db = open_database()
                     query = f"""
-                        SELECT timestamp from crabada_listings where token_id={token_id}
+                        SELECT timestamp from crabada_listings where token_id={token_id}  ORDER BY timestamp DESC LIMIT 1
                     """
                     data = execute_query(db, query)
                     close_database(db)
-                    duration_min = float("+inf")
-                    duration_argmin = None
-                    for ts, in data:
-                        if timestamp_transaction - ts <= duration_min:
-                            duration_min = timestamp_transaction - ts
-                            duration_argmin = ts
-                    if duration_argmin is None:
+                    if len(data) > 0:
+                        duration_min = data[0]
+                    else:
+                        duration_min = None
+                    if duration_min is None:
                         type_entry = type_entry.replace("<aftertime>", "")
                     else:
                         human_deltatime = seconds_to_pretty_print(duration_min)
