@@ -158,7 +158,7 @@ class CrabalertTwitter:
                         except Exception as e:
                             print(f"crab {token_id}", type(e), e)
                             reposts = self._get_variable(f"{'selling' if is_selling else 'listing'}_reposts", lambda : set())
-                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({json.dumps(infos_nft), None, token_id, price, timestamp_transaction}))
+                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({(json.dumps(infos_nft), None, token_id, price, timestamp_transaction)}))
 
     async def _notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
         already_seen = self._get_variable("already_seen", lambda: set())
@@ -225,7 +225,7 @@ class CrabalertTwitter:
                         except Exception as e:
                             print(f"egg {token_id}", type(e), e)
                             reposts = self._get_variable(f"{'selling' if is_selling else 'listing'}_reposts", lambda : set())
-                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({json.dumps(infos_nft), json.dumps(infos_family_nft), token_id, price, timestamp_transaction}))
+                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({(json.dumps(infos_nft), json.dumps(infos_family_nft), token_id, price, timestamp_transaction)}))
                 #self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, is_selling)}))
 
 
