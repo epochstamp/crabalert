@@ -233,7 +233,7 @@ class CrabalertTwitter:
     """
     SUBSCRIPTION MANAGEMENT
     """
-    async def _crabada_listing_alert_loop(self, seconds=5):
+    async def _crabada_listing_alert_loop(self, seconds=1):
         while True:
             try:
                 connection = open_database()
@@ -273,7 +273,7 @@ class CrabalertTwitter:
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
 
-    async def _crabada_selling_alert_loop(self, seconds=5):
+    async def _crabada_selling_alert_loop(self, seconds=1):
         while True:
             try:
                 connection = open_database()
