@@ -253,14 +253,16 @@ class CrabalertTwitter:
             data = execute_query(connection, query)
             close_database(connection)
             for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
-                is_crab = is_crab.lower() == "true"
-                infos_nft = json.loads(infos_nft)
-                if infos_family != "":
-                    infos_family = json.loads(infos_family)
-                if is_crab:
-                    tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=False)))
-                else:
-                    tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=False)))
+                already_seen = self._get_variable("already_seen", lambda: set())
+                if (token_id, timestamp, selling_price, False) not in already_seen:
+                    is_crab = is_crab.lower() == "true"
+                    infos_nft = json.loads(infos_nft)
+                    if infos_family != "":
+                        infos_family = json.loads(infos_family)
+                    if is_crab:
+                        tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=False)))
+                    else:
+                        tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=False)))
             if tasks != []:
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
@@ -282,14 +284,16 @@ class CrabalertTwitter:
             data = execute_query(connection, query)
             close_database(connection)
             for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
-                infos_nft = json.loads(infos_nft)
-                is_crab = is_crab.lower() == "true"
-                if infos_family != "":
-                    infos_family = json.loads(infos_family)
-                if is_crab:
-                    tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=True)))
-                else:
-                    tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=True)))
+                already_seen = self._get_variable("already_seen", lambda: set())
+                if (token_id, timestamp, selling_price, True) not in already_seen:
+                    infos_nft = json.loads(infos_nft)
+                    is_crab = is_crab.lower() == "true"
+                    if infos_family != "":
+                        infos_family = json.loads(infos_family)
+                    if is_crab:
+                        tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=True)))
+                    else:
+                        tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=True)))
             if tasks != []:
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
