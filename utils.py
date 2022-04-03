@@ -527,7 +527,7 @@ def close_database(conn):
 
 def open_database(file_db = 'crabalert.db'):
     try:
-        connection = sl.connect(file_db)
+        connection = sl.connect(file_db, timeout=10)
         return connection
     except Exception as e:
         #TODO : logging
