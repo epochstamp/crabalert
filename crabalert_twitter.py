@@ -159,7 +159,7 @@ class CrabalertTwitter:
                                         print(f"posted crab {token_id} {is_selling}")
                                         break
                                 except Exception as e:
-                                    print("crab", type(e), e)
+                                    print(f"crab {token_id}", type(e), e)
                                     await asyncio.sleep(3)
 
     async def _notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
@@ -227,7 +227,7 @@ class CrabalertTwitter:
                                         print(f"posted egg {token_id} {is_selling}")
                                         break
                                 except Exception as e:
-                                    print("egg", type(e), e)
+                                    print(f"egg {token_id}", type(e), e)
                                     await asyncio.sleep(3)
                 #self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, is_selling)}))
 
