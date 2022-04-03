@@ -92,143 +92,143 @@ class CrabalertTwitter:
 
     async def _notify_crab_item(self, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
         already_seen = self._get_variable("already_seen", lambda: set())
-        if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-            self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-            async with self._semaphore:
-                price_formatted = "{:,}".format(price)
-                price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
-                tus_text = f"{price_formatted} $TUS ({price_in_usd_formatted})"
-                first_column = tus_text
-                subclass = subclass_map.get(infos_nft['crabada_subclass'], 'unknown')
-                subclass_display = subclass
-                subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
-                dna = infos_nft["dna"]
-                n_comp_subclass = sum([(1 if sbc.lower() == subclass.lower() else 0) for sbc in calc_subclass_info(dna)])
-                subclass_type = subclass_type_map.get(infos_nft['crabada_subclass'], 'unknown')
-                if subclass_type == "Tank":
-                    emoji_subclass_type = "🛡️"
-                elif subclass_type == "Damage":
-                    emoji_subclass_type = "🗡️"
-                elif subclass_type == "Buff":
-                    emoji_subclass_type = "✨"
-                else:
-                    emoji_subclass_type = "❓"
-                class_display = infos_nft['class_name']
-                class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
-                type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
-                if is_selling:
-                    db = open_database()
-                    query = f"""
-                        SELECT timestamp from crabada_listings where token_id={token_id}
-                    """
-                    data = execute_query(db, query)
-                    close_database(db)
-                    duration_min = float("+inf")
-                    duration_argmin = None
-                    for ts, in data:
-                        if timestamp_transaction - ts <= duration_min:
-                            duration_min = timestamp_transaction - ts
-                            duration_argmin = ts
-                    if duration_argmin is None:
-                        type_entry = type_entry.replace("<aftertime>", "")
+        async with self._semaphore:
+            if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
+                    price_formatted = "{:,}".format(price)
+                    price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
+                    tus_text = f"{price_formatted} $TUS ({price_in_usd_formatted})"
+                    first_column = tus_text
+                    subclass = subclass_map.get(infos_nft['crabada_subclass'], 'unknown')
+                    subclass_display = subclass
+                    subclass_display = subclass_display if subclass_display.lower() not in cool_subclasses else bold(subclass_display)
+                    dna = infos_nft["dna"]
+                    n_comp_subclass = sum([(1 if sbc.lower() == subclass.lower() else 0) for sbc in calc_subclass_info(dna)])
+                    subclass_type = subclass_type_map.get(infos_nft['crabada_subclass'], 'unknown')
+                    if subclass_type == "Tank":
+                        emoji_subclass_type = "🛡️"
+                    elif subclass_type == "Damage":
+                        emoji_subclass_type = "🗡️"
+                    elif subclass_type == "Buff":
+                        emoji_subclass_type = "✨"
                     else:
-                        
-                        human_deltatime = seconds_to_pretty_print(duration_min)
-                        type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                        
+                        emoji_subclass_type = "❓"
+                    class_display = infos_nft['class_name']
+                    class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
+                    type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
+                    if is_selling:
+                        db = open_database()
+                        query = f"""
+                            SELECT timestamp from crabada_listings where token_id={token_id}
+                        """
+                        data = execute_query(db, query)
+                        close_database(db)
+                        duration_min = float("+inf")
+                        duration_argmin = None
+                        for ts, in data:
+                            if timestamp_transaction - ts <= duration_min:
+                                duration_min = timestamp_transaction - ts
+                                duration_argmin = ts
+                        if duration_argmin is None:
+                            type_entry = type_entry.replace("<aftertime>", "")
+                        else:
+                            
+                            human_deltatime = seconds_to_pretty_print(duration_min)
+                            type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
+                            
 
-                    
-                buyer_seller_type = "Listed by" if not is_selling else "Bought by"
-                buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
-                buyer_seller_full_name = infos_nft['owner_full_name']
-                message = (
-                    f"[{type_entry}] 🦀 {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18) No.{token_id} at {first_column}\n" +
-                    f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
-                    f"https://marketplace.crabada.com/crabada/{token_id}\n" +
-                    f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
-                )
-                async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
-                    if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                        while True:
-                            try:
-                                if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                                    if not os.path.isfile(f"images/{token_id}.png"):
-                                        wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
-                                    self._client.update_status_with_media(status=message, filename=f"images/{token_id}.png")
-                                    self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                    print(f"posted crab {token_id} {is_selling}")
-                                    break
-                            except Exception as e:
-                                print("crab", type(e), e)
-                                await asyncio.sleep(3)
+                        
+                    buyer_seller_type = "Listed by" if not is_selling else "Bought by"
+                    buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                    message = (
+                        f"[{type_entry}] 🦀 {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18) No.{token_id} at {first_column}\n" +
+                        f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
+                        f"https://marketplace.crabada.com/crabada/{token_id}\n" +
+                        f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
+                    )
+                    async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
+                        if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                            while True:
+                                try:
+                                    if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                                        if not os.path.isfile(f"images/{token_id}.png"):
+                                            wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
+                                        self._client.update_status_with_media(status=message, filename=f"images/{token_id}.png")
+                                        self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
+                                        print(f"posted crab {token_id} {is_selling}")
+                                        break
+                                except Exception as e:
+                                    print("crab", type(e), e)
+                                    await asyncio.sleep(3)
 
     async def _notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
         already_seen = self._get_variable("already_seen", lambda: set())
-        if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-            async with self._semaphore:
-                infos_family_nft = infos_family_nft["crabada_parents"]
-                price_formatted = "{:,}".format(price)
-                price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
-                tus_text = f"{price_formatted} $TUS ({price_in_usd_formatted})"
-                first_column = tus_text
-                crabada_parent_1 = infos_family_nft[0]
-                crabada_parent_2 = infos_family_nft[1]
-                class_parent_1 = crabada_parent_1["class_name"]
-                class_parent_2 = crabada_parent_2["class_name"]
-                if class_parent_1 == class_parent_2:
-                    class_display = class_parent_1
-                    class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
-                else:
-                    egg_class_1 = class_parent_1
-                    egg_class_2 = class_parent_2
-                    class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else bold(egg_class_1)
-                    class_display_2 = egg_class_2 if egg_class_2.lower() not in cool_classes else bold(egg_class_2)
-                    class_display = f"{class_display_1}┃{class_display_2}"
-                type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
-                if is_selling:
-                    db = open_database()
-                    query = f"""
-                        SELECT timestamp from crabada_listings where token_id={token_id}
-                    """
-                    data = execute_query(db, query)
-                    close_database(db)
-                    duration_min = float("+inf")
-                    duration_argmin = None
-                    for ts, in data:
-                        if timestamp_transaction - ts <= duration_min:
-                            duration_min = timestamp_transaction - ts
-                            duration_argmin = ts
-                    if duration_argmin is None:
-                        type_entry = type_entry.replace("<aftertime>", "")
+        async with self._semaphore:
+            if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                    infos_family_nft = infos_family_nft["crabada_parents"]
+                    price_formatted = "{:,}".format(price)
+                    price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
+                    tus_text = f"{price_formatted} $TUS ({price_in_usd_formatted})"
+                    first_column = tus_text
+                    crabada_parent_1 = infos_family_nft[0]
+                    crabada_parent_2 = infos_family_nft[1]
+                    class_parent_1 = crabada_parent_1["class_name"]
+                    class_parent_2 = crabada_parent_2["class_name"]
+                    if class_parent_1 == class_parent_2:
+                        class_display = class_parent_1
+                        class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
                     else:
-                        human_deltatime = seconds_to_pretty_print(duration_min)
-                        type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                        
+                        egg_class_1 = class_parent_1
+                        egg_class_2 = class_parent_2
+                        class_display_1 = egg_class_1 if egg_class_1.lower() not in cool_classes else bold(egg_class_1)
+                        class_display_2 = egg_class_2 if egg_class_2.lower() not in cool_classes else bold(egg_class_2)
+                        class_display = f"{class_display_1}┃{class_display_2}"
+                    type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
+                    if is_selling:
+                        db = open_database()
+                        query = f"""
+                            SELECT timestamp from crabada_listings where token_id={token_id}
+                        """
+                        data = execute_query(db, query)
+                        close_database(db)
+                        duration_min = float("+inf")
+                        duration_argmin = None
+                        for ts, in data:
+                            if timestamp_transaction - ts <= duration_min:
+                                duration_min = timestamp_transaction - ts
+                                duration_argmin = ts
+                        if duration_argmin is None:
+                            type_entry = type_entry.replace("<aftertime>", "")
+                        else:
+                            human_deltatime = seconds_to_pretty_print(duration_min)
+                            type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
+                            
 
-                    
-                buyer_seller_type = "Listed by" if not is_selling else "Bought by"
-                buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
-                buyer_seller_full_name = infos_nft['owner_full_name']
-                message = (
-                    f"[{type_entry}] 🥚 {class_display} No.{token_id} {first_column}\n" +
-                    f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
-                    f"https://marketplace.crabada.com/crabada/{token_id}\n" +
-                    f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
-                )
-                async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
-                    if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                        while True:
-                            try:
-                                if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                                    if not os.path.isfile("images/egg.png"):
-                                        wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
-                                    self._client.update_status_with_media(status=message, filename=f"images/egg.png")
-                                    self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                    print(f"posted egg {token_id} {is_selling}")
-                                    break
-                            except Exception as e:
-                                print("egg", type(e), e)
-                                await asyncio.sleep(3)
+                        
+                    buyer_seller_type = "Listed by" if not is_selling else "Bought by"
+                    buyer_seller = f"https://snowtrace.io/address/{infos_nft['owner']}"
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                    message = (
+                        f"[{type_entry}] 🥚 {class_display} No.{token_id} {first_column}\n" +
+                        f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
+                        f"https://marketplace.crabada.com/crabada/{token_id}\n" +
+                        f"{buyer_seller_type} {buyer_seller_full_name}({buyer_seller})"
+                    )
+                    async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
+                        if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                            while True:
+                                try:
+                                    if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                                        if not os.path.isfile("images/egg.png"):
+                                            wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
+                                        self._client.update_status_with_media(status=message, filename=f"images/egg.png")
+                                        self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
+                                        print(f"posted egg {token_id} {is_selling}")
+                                        break
+                                except Exception as e:
+                                    print("egg", type(e), e)
+                                    await asyncio.sleep(3)
                 #self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, is_selling)}))
 
 
