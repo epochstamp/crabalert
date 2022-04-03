@@ -233,7 +233,7 @@ class CrabalertTwitter:
     """
     SUBSCRIPTION MANAGEMENT
     """
-    async def _crabada_listing_alert_loop(self, seconds=7):
+    async def _crabada_listing_alert_loop(self, seconds=5):
         while True:
             try:
                 connection = open_database()
@@ -260,17 +260,20 @@ class CrabalertTwitter:
                         tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=False)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=False)))
-            for infos_nft, infos_family, token_id, selling_price, timestamp_transaction in self._get_variable(f"listing_reposts", lambda : set()):
+            listing_reposts = self._get_variable(f"listing_reposts", lambda : set())
+            for infos_nft, infos_family, token_id, selling_price, timestamp_transaction in listing_reposts:
                 if current_timestamp - timestamp_transaction <= LISTING_ITEM_EXPIRATION and (token_id, timestamp, selling_price, False) not in already_seen:
                     if infos_family is not None:
                         tasks.append(asyncio.create_task(self._notify_crab_item(json.loads(infos_nft), token_id, selling_price, timestamp, is_selling=False)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(json.loads(infos_family), json.loads(infos_nft), token_id, selling_price, timestamp, is_selling=False)))
+                else:
+                    self._set_sync_variable(f"listing_reposts", listing_reposts.difference({(infos_nft, infos_family, token_id, selling_price, timestamp_transaction)}))
             if tasks != []:
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
 
-    async def _crabada_selling_alert_loop(self, seconds=10):
+    async def _crabada_selling_alert_loop(self, seconds=5):
         while True:
             try:
                 connection = open_database()
@@ -297,12 +300,15 @@ class CrabalertTwitter:
                         tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=True)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=True)))
-            for infos_nft, infos_family, token_id, selling_price, timestamp_transaction in self._get_variable(f"selling_reposts", lambda : set()):
+            selling_reposts = self._get_variable(f"selling_reposts", lambda : set())
+            for infos_nft, infos_family, token_id, selling_price, timestamp_transaction in selling_reposts:
                 if current_timestamp - timestamp_transaction <= SELLING_ITEM_EXPIRATION and (token_id, timestamp, selling_price, True) not in already_seen:
                     if infos_family is not None:
                         tasks.append(asyncio.create_task(self._notify_crab_item(json.loads(infos_nft), token_id, selling_price, timestamp, is_selling=True)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(json.loads(infos_family), json.loads(infos_nft), token_id, selling_price, timestamp, is_selling=True)))
+                else:
+                    self._set_sync_variable(f"selling_reposts", selling_reposts.difference({(infos_nft, infos_family, token_id, selling_price, timestamp_transaction)}))
             if tasks != []:
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
