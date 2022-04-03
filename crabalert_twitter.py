@@ -260,7 +260,7 @@ class CrabalertTwitter:
                         tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=False)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=False)))
-            for (infos_nft, infos_family, token_id, selling_price, timestamp_transaction) in self._get_variable(f"listing_reposts", lambda : set()):
+            for infos_nft, infos_family, token_id, selling_price, timestamp_transaction in self._get_variable(f"listing_reposts", lambda : set()):
                 if current_timestamp - timestamp_transaction <= LISTING_ITEM_EXPIRATION and (token_id, timestamp, selling_price, False) not in already_seen:
                     if infos_family is not None:
                         tasks.append(asyncio.create_task(self._notify_crab_item(json.loads(infos_nft), token_id, selling_price, timestamp, is_selling=False)))
@@ -297,7 +297,7 @@ class CrabalertTwitter:
                         tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=True)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=True)))
-            for (infos_nft, infos_family, token_id, selling_price, timestamp_transaction) in self._get_variable(f"selling_reposts", lambda : set()):
+            for infos_nft, infos_family, token_id, selling_price, timestamp_transaction in self._get_variable(f"selling_reposts", lambda : set()):
                 if current_timestamp - timestamp_transaction <= SELLING_ITEM_EXPIRATION and (token_id, timestamp, selling_price, True) not in already_seen:
                     if infos_family is not None:
                         tasks.append(asyncio.create_task(self._notify_crab_item(json.loads(infos_nft), token_id, selling_price, timestamp, is_selling=True)))
