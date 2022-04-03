@@ -149,18 +149,16 @@ class CrabalertTwitter:
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                        while True:
-                            try:
-                                if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                                    if not os.path.isfile(f"images/{token_id}.png"):
-                                        wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
-                                    self._client.update_status_with_media(status=message, filename=f"images/{token_id}.png")
-                                    self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                    print(f"posted crab {token_id} {is_selling}")
-                                    break
-                            except Exception as e:
-                                print(f"crab {token_id}", type(e), e)
-                                await asyncio.sleep(3)
+                        try:
+                            if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                                if not os.path.isfile(f"images/{token_id}.png"):
+                                    wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
+                                self._client.update_status_with_media(status=message, filename=f"images/{token_id}.png")
+                                self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
+                        except Exception as e:
+                            print(f"crab {token_id}", type(e), e)
+                            reposts = self._get_variable(f"{'selling' if is_selling else 'listing'}_reposts", lambda : {})
+                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({infos_nft, None, token_id, price, timestamp_transaction}))
 
     async def _notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
         already_seen = self._get_variable("already_seen", lambda: set())
@@ -217,18 +215,17 @@ class CrabalertTwitter:
                 )
                 async with self._get_variable(f"sem_{token_id}_{timestamp_transaction}_{price}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
                     if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                        while True:
-                            try:
-                                if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                                    if not os.path.isfile("images/egg.png"):
-                                        wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
-                                    self._client.update_status_with_media(status=message, filename=f"images/egg.png")
-                                    self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
-                                    print(f"posted egg {token_id} {is_selling}")
-                                    break
-                            except Exception as e:
-                                print(f"egg {token_id}", type(e), e)
-                                await asyncio.sleep(3)
+                        try:
+                            if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                                if not os.path.isfile("images/egg.png"):
+                                    wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
+                                self._client.update_status_with_media(status=message, filename=f"images/egg.png")
+                                self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, price, is_selling)}))
+                                print(f"posted egg {token_id} {is_selling}")
+                        except Exception as e:
+                            print(f"egg {token_id}", type(e), e)
+                            reposts = self._get_variable(f"{'selling' if is_selling else 'listing'}_reposts", lambda : {})
+                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({infos_nft, infos_family_nft, token_id, price, timestamp_transaction}))
                 #self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, is_selling)}))
 
 
@@ -236,7 +233,7 @@ class CrabalertTwitter:
     """
     SUBSCRIPTION MANAGEMENT
     """
-    async def _crabada_listing_alert_loop(self, seconds=10):
+    async def _crabada_listing_alert_loop(self, seconds=7):
         while True:
             try:
                 connection = open_database()
@@ -260,6 +257,12 @@ class CrabalertTwitter:
                     if infos_family != "":
                         infos_family = json.loads(infos_family)
                     if is_crab:
+                        tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=False)))
+                    else:
+                        tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=False)))
+            for (infos_nft, infos_family, token_id, selling_price, timestamp_transaction) in self._get_variable(f"listing_reposts", lambda : {}):
+                if current_timestamp - timestamp_transaction <= LISTING_ITEM_EXPIRATION and (token_id, timestamp, selling_price, False) not in already_seen:
+                    if infos_family is not None:
                         tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=False)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=False)))
@@ -291,6 +294,12 @@ class CrabalertTwitter:
                     if infos_family != "":
                         infos_family = json.loads(infos_family)
                     if is_crab:
+                        tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=True)))
+                    else:
+                        tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=True)))
+            for (infos_nft, infos_family, token_id, selling_price, timestamp_transaction) in self._get_variable(f"selling_reposts", lambda : {}):
+                if current_timestamp - timestamp_transaction <= SELLING_ITEM_EXPIRATION and (token_id, timestamp, selling_price, True) not in already_seen:
+                    if infos_family is not None:
                         tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=True)))
                     else:
                         tasks.append(asyncio.create_task(self._notify_egg_item(infos_family, infos_nft, token_id, selling_price, timestamp, is_selling=True)))
