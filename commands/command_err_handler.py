@@ -25,7 +25,8 @@ class CommandErrHandler(commands.Cog):
             The Exception raised.
         """
         if isinstance(error, discord.ext.commands.CommandNotFound):
-            create_task(ctx.send('I do not know that command?!'))
+            if ctx.channel.id == ID_COMMAND_CENTER:
+                create_task(ctx.send('I do not know that command?!'))
         elif isinstance(error, discord.ext.commands.CheckFailure):
             pass
         else:
