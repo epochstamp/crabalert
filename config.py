@@ -244,7 +244,6 @@ channel_to_post_listings_with_filters = {
     959174623247868026: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
     #Crabs and all
     932591668597776414: lambda x: True,
-    934178951998357584: lambda x: True,
     933456755395006495: lambda x: True,
     935237809697095723: lambda x: True,
     951797923086213140: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 10000,
@@ -252,7 +251,6 @@ channel_to_post_listings_with_filters = {
     951798278691881000: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 14000,
     951798307989114900: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 16000,
     951797761601318912: lambda x: is_below_floor_price(float(x[0].get("price", float("+inf")))*10**-18),
-    933473949445144676: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
     933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6,
     933457087369978016: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "prime",
@@ -276,7 +274,6 @@ channel_to_post_listings_with_filters = {
     938919076447813672: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Fantom",
     933862594278740048: lambda x: x[1] is None and x[0].get("is_origin", -1) == 1,
     #Eggs
-    933470546824396830: lambda x: x[1] is not None,
     938865346125889646: lambda x: x[1] is not None,
     933861312809799691: lambda x: x[1] is not None and get_probability_pure(x[1]) >= THRESOLD_PURE_PROBA,
     933861463414669422: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "PRIME" and get_parent_class(x[1], 1) == "PRIME",
@@ -286,10 +283,6 @@ channel_to_post_listings_with_filters = {
     944009583305834496: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "ORGANIC" and get_parent_class(x[1], 1) == "ORGANIC",
     944009617803980820: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "ORGANIC" or get_parent_class(x[1], 1) == "ORGANIC") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
     938864199394820177: lambda x: x[1] is not None and get_probability_pure(x[1]) >= 1
-}
-
-listing_channels_to_display_shortdescrs = {
-    934178951998357584, 933473949445144676, 933470546824396830
 }
 
 channel_to_post_sellings_with_filters = {
