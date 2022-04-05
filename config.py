@@ -285,6 +285,10 @@ channel_to_post_listings_with_filters = {
     938864199394820177: lambda x: x[1] is not None and get_probability_pure(x[1]) >= 1
 }
 
+listing_channels_to_display_shortdescrs = {
+    
+}
+
 channel_to_post_sellings_with_filters = {
     #special
     932591668597776414: lambda x: True,
