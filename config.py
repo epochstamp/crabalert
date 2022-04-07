@@ -242,9 +242,9 @@ def is_below_floor_price(price):
 
 def filter_by_number_of_components(infos_nft: dict, nb_min: int= 15):
     from subclasses import calc_subclass_info
-    a = sum([(1 if sbc.lower() == subclass_map.get(int(infos_nft.get("crabada_subclass", "")), 'unknown').lower() else 0) for sbc in calc_subclass_info(infos_nft.get("dna", ""))]) >= nb_min
+    a = sum([(1 if sbc.lower() == subclass_map.get(int(infos_nft.get("crabada_subclass", "")), 'unknown').lower() else 0) for sbc in calc_subclass_info(infos_nft.get("dna", ""))]) 
     print(a)
-    return a
+    return a >= nb_min
 
 channel_to_post_listings_with_filters = {
     #Special
