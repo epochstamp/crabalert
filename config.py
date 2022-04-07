@@ -2,7 +2,7 @@ import json
 import os
 from adfly import AdflyApi
 
-from subclasses import calc_subclass_info
+
 
 WAITING_BEFORE_RECONNECT = 5
 SPAN = 100
@@ -240,12 +240,16 @@ def is_below_floor_price(price):
     floor_prices = json.load(open("floor_prices.json"))
     return price <= floor_prices[-1][1]
 
+def filter_by_number_of_components(infos_nft: dict, nb_min: int= 15):
+    from subclasses import calc_subclass_info
+    return sum([(1 if sbc.lower() == subclass_map.get(int(infos_nft.get("crabada_subclass", "")), 'unknown').lower() else 0) for sbc in calc_subclass_info(infos_nft.get("dna", ""))]) >= nb_min
+
 channel_to_post_listings_with_filters = {
     #Special
     958728365861396550: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
     959174623247868026: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
     961248732945469511: lambda x: x[1] is None and round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 15200 and x[0].get("class_name", "").lower() == "bulk" and x[0].get("pure_number", -1) == 6,
-    961701024089903104: lambda x: sum([(1 if sbc.lower() == subclass_map.get(int(x[0].get("crabada_subclass", "")), 'unknown').lower() else 0) for sbc in calc_subclass_info(x[0].get("dna", ""))]) >= 15,
+    961701024089903104: lambda x: filter_by_number_of_components(x[0], nb_min=15),
     #Crabs and all
     932591668597776414: lambda x: True,
     933456755395006495: lambda x: True,
