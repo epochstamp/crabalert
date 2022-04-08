@@ -237,11 +237,12 @@ def get_probability_pure(infos_family: dict):
 def is_below_floor_price(price):
     if not os.path.isfile("floor_prices.json"):
         return False
+    content = open("floor_prices.json").read()
     try:
-        floor_prices = json.load(open("floor_prices.json"))
+        floor_prices = json.loads(content)
         return price <= floor_prices[-1][1]
     except Exception as e:
-        print(e)
+        print(e, "******"content+"******")
         return False
 
 def filter_by_number_of_components(infos_nft: dict, nb_min: int = 15):
