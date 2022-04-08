@@ -242,7 +242,7 @@ def is_below_floor_price(price):
         floor_prices = json.loads(content)
         return price <= floor_prices[-1][1]
     except Exception as e:
-        print(e, "******"content+"******")
+        print(e, "******"+content+"******")
         return False
 
 def filter_by_number_of_components(infos_nft: dict, nb_min: int = 15):
