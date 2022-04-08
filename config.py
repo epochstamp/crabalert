@@ -257,7 +257,7 @@ channel_to_post_listings_with_filters = {
     959174623247868026: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
     961248732945469511: lambda x: x[1] is None and round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 15200 and x[0].get("class_name", "").lower() == "bulk" and x[0].get("pure_number", -1) == 6,
     961701024089903104: lambda x: x[1] is None and filter_by_number_of_components(x[0], nb_min=15),
-    961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
+    961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and x[0].get("pure_number", -1) == 6 and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
     #Crabs and all
     932591668597776414: lambda x: True,
     933456755395006495: lambda x: True,
