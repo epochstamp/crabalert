@@ -245,7 +245,7 @@ def is_below_floor_price(price):
         i = len(content) - 1
         while i >= 0:
             try:
-                floor_prices = json.loads(content[:i])
+                floor_prices = json.loads(content[:i] + "]")
                 return price <= floor_prices[-1][1]
             except Exception as e:
                 i = i - 1
