@@ -242,7 +242,6 @@ def is_below_floor_price(price):
         floor_prices = json.loads(content)
         return price <= floor_prices[-1][1]
     except Exception as e:
-        print(content)
         i = len(content) - 1
         while i >= 0:
             try:
