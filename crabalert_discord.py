@@ -318,34 +318,33 @@ class CrabalertDiscord(commands.Bot):
         for channel_id, filter_function in channels_to_post.items():
             channel = self._get_variable(f"channel_{channel_id}", f_value_if_not_exists=lambda: self.get_channel(channel_id))
             infos_family_test = infos_family if not is_crab_bool else None
-            try:
-                if filter_function((infos_nft, infos_family_test)):
-                    if (token_id, timestamp, channel.id, is_selling) not in already_seen:
-                        if is_crab_bool:
-                            tasks.append(asyncio.create_task(
-                                self.notify_crab_item(
-                                    infos_nft,
-                                    token_id,
-                                    selling_price,
-                                    timestamp,
-                                    channel,
-                                    is_selling=is_selling
-                                )
-                            ))
-                        else:
-                            tasks.append(asyncio.create_task(
-                                self.notify_egg_item(
-                                    infos_nft,
-                                    infos_family,
-                                    token_id,
-                                    selling_price,
-                                    timestamp,
-                                    channel,
-                                    is_selling=is_selling
-                                )
-                            ))
-            except Exception as e:
-                print(infos_nft)
+            if infos_nft["price"] is None:
+                infos_nft["price"] = selling_price * 10**18
+            if filter_function((infos_nft, infos_family_test)):
+                if (token_id, timestamp, channel.id, is_selling) not in already_seen:
+                    if is_crab_bool:
+                        tasks.append(asyncio.create_task(
+                            self.notify_crab_item(
+                                infos_nft,
+                                token_id,
+                                selling_price,
+                                timestamp,
+                                channel,
+                                is_selling=is_selling
+                            )
+                        ))
+                    else:
+                        tasks.append(asyncio.create_task(
+                            self.notify_egg_item(
+                                infos_nft,
+                                infos_family,
+                                token_id,
+                                selling_price,
+                                timestamp,
+                                channel,
+                                is_selling=is_selling
+                            )
+                        ))
         if tasks != []:
             asyncio.gather(*tasks)
             
