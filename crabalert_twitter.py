@@ -157,12 +157,11 @@ class CrabalertTwitter:
                             reposts = self._get_variable(f"{'selling' if is_selling else 'listing'}_reposts", lambda : set())
                             self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({(json.dumps(infos_nft), None, token_id, price, timestamp_transaction)}))
 
-    async def _notify_egg_item(self, infos_family_nft, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
+    async def _notify_egg_item(self, infos_family_nft_init, infos_nft, token_id, price, timestamp_transaction, is_selling=False):
         already_seen = self._get_variable("already_seen", lambda: set())
         async with self._semaphore:
             if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
-                print(infos_family_nft)
-                infos_family_nft = infos_family_nft["crabada_parents"]
+                infos_family_nft = infos_family_nft_init["crabada_parents"]
                 price_formatted = "{:,}".format(price)
                 price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
                 tus_text = f"{price_formatted} $TUS ({price_in_usd_formatted})"
@@ -221,7 +220,7 @@ class CrabalertTwitter:
                         except Exception as e:
                             print(f"egg {token_id}", type(e), e)
                             reposts = self._get_variable(f"{'selling' if is_selling else 'listing'}_reposts", lambda : set())
-                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({(json.dumps(infos_nft), json.dumps(infos_family_nft), token_id, price, timestamp_transaction)}))
+                            self._set_sync_variable(f"{'selling' if is_selling else 'listing'}_reposts", reposts.union({(json.dumps(infos_nft), json.dumps(infos_family_nft_init), token_id, price, timestamp_transaction)}))
                 #self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, is_selling)}))
 
 
