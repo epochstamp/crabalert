@@ -161,6 +161,7 @@ class CrabalertTwitter:
         already_seen = self._get_variable("already_seen", lambda: set())
         async with self._semaphore:
             if (token_id, timestamp_transaction, price, is_selling) not in already_seen:
+                print(infos_family_nft)
                 infos_family_nft = infos_family_nft["crabada_parents"]
                 price_formatted = "{:,}".format(price)
                 price_in_usd_formatted = "${:,.2f}".format(price*get_price_tus_in_usd())
