@@ -109,7 +109,7 @@ class CrabalertDiscord(commands.Bot):
             self._tasks.append(self._crabada_selling_alert_loop.start())
             self._tasks.append(self._refresh_tus_loop.start())
             self._tasks.append(self._refresh_prices_coin_loop.start())
-            self._tasks.append(self._manage_alerted_roles.start())
+            #self._tasks.append(self._manage_alerted_roles.start())
             self._launched = True
 
     def _get_members(self):
