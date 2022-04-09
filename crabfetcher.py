@@ -573,6 +573,8 @@ class Crabfetcher:
     async def _store_crabada_entry_crab_aux(self, infos_nft, token_id, selling_price, timestamp, is_selling=True):
 
         table_name = "crabada_sellings" if is_selling else "crabada_listings"
+        if infos_nft["price"] is None:
+            infos_nft["price"] = selling_price * 10**18
         json_nft = json.dumps(infos_nft).replace("'", "`")
         query = f"""
             INSERT OR REPLACE INTO {table_name} (token_id, selling_price, timestamp, infos_nft, infos_family, is_crab) VALUES ({token_id}, {selling_price}, {timestamp}, '{json_nft}', '', 'TRUE')
@@ -596,6 +598,8 @@ class Crabfetcher:
 
     async def _store_crabada_entry_egg_aux(self, infos_family, token_id, selling_price, timestamp, infos_nft, is_selling=True):
         table_name = "crabada_sellings" if is_selling else "crabada_listings"
+        if infos_nft["price"] is None:
+            infos_nft["price"] = selling_price * 10**18
         json_nft = json.dumps(infos_nft).replace("'", "`")
         json_family = json.dumps(infos_family).replace("'", "`")
         query = f"""
