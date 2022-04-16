@@ -271,7 +271,11 @@ class CrabalertDiscord(commands.Bot):
             except Exception as e:
                 #TODO : logging
                 return
-            data = execute_query(connection, query)
+            try:
+                data = execute_query(connection, query)
+            except Exception as e:
+                print('warning', type(e))
+                data = []
             close_database(connection)
             for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
                 infos_nft = json.loads(infos_nft)
@@ -297,7 +301,11 @@ class CrabalertDiscord(commands.Bot):
             except Exception as e:
                 #TODO : logging
                 return
-            data = execute_query(connection, query)
+            try:
+                data = execute_query(connection, query)
+            except Exception as e:
+                print('warning', type(e))
+                data = []
             close_database(connection)
             for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
                 infos_nft = json.loads(infos_nft)
