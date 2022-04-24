@@ -31,7 +31,7 @@ FOLDER_ABIS = "/home/samait/apr-fetcher/abis"
 
 
 blockchain_urls = {
-    "avalanche": "avalanche": "https://api.avax.network/ext/bc/C/rpc",#"https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/avalanche/mainnet","https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/avalanche/mainnet",
+    "avalanche": "avalanche": "https://api.avax.network/ext/bc/C/rpc",#"https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/avalanche/mainnet",
     "binance_smart_chain": "https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/bsc/mainnet"
 }
 
