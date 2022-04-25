@@ -257,7 +257,7 @@ class CrabalertDiscord(commands.Bot):
             )
         )
 
-    @tasks.loop(seconds=1)
+    @tasks.loop(seconds=2)
     async def _crabada_listing_alert_loop(self):
         
         dt = datetime.now(timezone.utc)
@@ -287,7 +287,7 @@ class CrabalertDiscord(commands.Bot):
             if tasks != []:
                 asyncio.gather(*tasks)
 
-    @tasks.loop(seconds=1)
+    @tasks.loop(seconds=2)
     async def _crabada_selling_alert_loop(self):
         
         dt = datetime.now(timezone.utc)
