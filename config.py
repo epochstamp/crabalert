@@ -71,13 +71,13 @@ channels_emojis = {
         "crab2": "<:crab_2:935299577861509121>"
     },
     968164496856207460: {
-        "tus": ":TUS:",
+        "tus": "<:TUS:968203615128916088>",
         "crabadegg": ":egg:",
         "crab1": ":crab:",
         "crab2": ":crab:"
     },
     968180866264223764: {
-        "tus": ":TUS:",
+        "tus": "<:TUS:968203615128916088>",
         "crabadegg": ":egg:",
         "crab1": ":crab:",
         "crab2": ":crab:"
