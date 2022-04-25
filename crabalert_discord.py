@@ -7,7 +7,8 @@ from web3.main import Web3
 from pprint import pprint
 from discord.ext import tasks
 from discord import Embed, File
-from aiohttp.client_exceptions import ServerDisconnectedError
+from aiohttp.client_exceptions import ServerDisconnectedError, ClientOSError
+from asyncio.exceptions import TimeoutError
 from config import (
     COINS_SYMBOL,
     CRABALERT_SEM_ID,
@@ -570,7 +571,7 @@ class CrabalertDiscord(commands.Bot):
                     wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
                 try:
                     await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
-                except ServerDisconnectedError:
+                except (ServerDisconnectedError, ClientOSError, TimeoutError):
                     already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
 
@@ -594,7 +595,7 @@ class CrabalertDiscord(commands.Bot):
                     wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
                 try:
                     await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
-                except ServerDisconnectedError:
+                except (ServerDisconnectedError, ClientOSError, TimeoutError)::
                     already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 
