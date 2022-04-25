@@ -569,12 +569,8 @@ class CrabalertDiscord(commands.Bot):
                 )
                 if not os.path.isfile("images/{token_id}.png"):
                     wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
-                try:
-                    await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
-                except (ServerDisconnectedError, ClientOSError, TimeoutError) as e:
-                    print(e)
-                    already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
-                    self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
+                task = asyncio.create_task(channel.send(message, embed=embed, file=File(f"images/{token_id}.png")))
+                asyncio.gather(task)
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
@@ -594,10 +590,6 @@ class CrabalertDiscord(commands.Bot):
                 )
                 if not os.path.isfile("images/egg.png"):
                     wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
-                try:
-                    await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
-                except (ServerDisconnectedError, ClientOSError, TimeoutError) as e:
-                    print(e)
-                    already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
-                    self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
+                task = asyncio.create_task(channel.send(message_egg, embed=embed, file=File("images/egg.png")))
+                asyncio.gather(task)
                 
