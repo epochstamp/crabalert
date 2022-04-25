@@ -7,6 +7,7 @@ from web3.main import Web3
 from pprint import pprint
 from discord.ext import tasks
 from discord import Embed, File
+from aiohttp.client_exceptions import ServerDisconnectedError
 from config import (
     COINS_SYMBOL,
     CRABALERT_SEM_ID,
@@ -554,7 +555,6 @@ class CrabalertDiscord(commands.Bot):
             ))
 
     async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
-
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
@@ -568,8 +568,11 @@ class CrabalertDiscord(commands.Bot):
                 )
                 if not os.path.isfile("images/{token_id}.png"):
                     wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
-                
-                await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
+                try:
+                    await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
+                except ServerDisconnectedError:
+                    already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
+                    self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
 
     async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
@@ -589,4 +592,9 @@ class CrabalertDiscord(commands.Bot):
                 )
                 if not os.path.isfile("images/egg.png"):
                     wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
-                await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
+                try:
+                    await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
+                except ServerDisconnectedError:
+                    already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
+                    self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
+                
