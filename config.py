@@ -270,6 +270,7 @@ channel_to_post_listings_with_filters = {
     961701024089903104: lambda x: x[1] is None and filter_by_number_of_components(x[0], nb_min=15),
     961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and x[0].get("pure_number", -1) == 6 and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
     #Crabs and all
+    968180866264223764: lambda x: True,
     932591668597776414: lambda x: True,
     933456755395006495: lambda x: True,
     935237809697095723: lambda x: True,
@@ -320,6 +321,7 @@ channel_to_post_sellings_with_filters = {
     #special
     932591668597776414: lambda x: True,
     935237809697095723: lambda x: True,
+    968164496856207460: lambda x: True,
     #Crabs and all
     943230174466547712: lambda x: True,
     943964760876138548: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
