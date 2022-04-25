@@ -595,7 +595,7 @@ class CrabalertDiscord(commands.Bot):
                     wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
                 try:
                     await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
-                except (ServerDisconnectedError, ClientOSError, TimeoutError)::
+                except (ServerDisconnectedError, ClientOSError, TimeoutError):
                     already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 
