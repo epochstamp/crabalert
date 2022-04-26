@@ -278,9 +278,9 @@ channel_to_post_listings_with_filters = {
     #Special
     958728365861396550: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
     959174623247868026: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
-    961248732945469511: lambda x: x[1] is None and round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 15200 and x[0].get("class_name", "").lower() == "bulk" and x[0].get("pure_number", -1) == 6,
+    961248732945469511: lambda x: x[1] is None and round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 15200 and x[0].get("class_name", "").lower() == "bulk" and int(x[0].get("pure_number", -1)) == 6,
     961701024089903104: lambda x: x[1] is None and filter_by_number_of_components(x[0], nb_min=15),
-    961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and x[0].get("pure_number", -1) == 6 and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
+    961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and int(x[0].get("pure_number", -1)) == 6 and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
     #Crabs and all
     968180866264223764: lambda x: True,
     932591668597776414: lambda x: True,
@@ -292,9 +292,9 @@ channel_to_post_listings_with_filters = {
     951798307989114900: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 16000,
     951797761601318912: lambda x: is_below_floor_price(float(x[0].get("price", float("+inf")))*10**-18),
     938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
-    933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6,
+    933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and int(x[0].get("pure_number", -1)) == 6,
     933457087369978016: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "prime",
-    933399063330701414: lambda x: x[1] is None and x[0].get("breed_count", -1) is not None and x[0].get("breed_count", -1) == 0,
+    933399063330701414: lambda x: x[1] is None and x[0].get("breed_count", -1) is not None and int(x[0].get("breed_count", -1)) == 0,
     933411792925913129: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "craboid",
     944009796917530674: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "organic",
     951797051329507328: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "tank",
@@ -341,13 +341,13 @@ channel_to_post_sellings_with_filters = {
         x[1] is None and
         x[0].get("breed_count", -1) is not None and
         x[0].get("pure_number", -1) is not None and
-        x[0].get("breed_count", -1) == 0 and
-        x[0].get("pure_number", -1) == 6
+        int(x[0].get("breed_count", -1)) == 0 and
+        int(x[0].get("pure_number", -1)) == 6
     ),
     943966566071009290: lambda x: (
         x[1] is None and
         x[0].get("breed_count", -1) is not None and
-        x[0].get("breed_count", -1) == 0
+        int(x[0].get("breed_count", -1) == 0)
     ),
     #Eggs
     943964843063521310: lambda x: x[1] is not None,

@@ -373,9 +373,9 @@ class CrabalertDiscord(commands.Bot):
             tus_text = f"{tus_emoji} **{price_formatted}**"
             tus_text_len_in_space_bars = sum([1 if c == "1" or c == "." or c == "," else 2 for c in str(price)]) + 6 + 1
             usd_text = f":moneybag: **{price_in_usd_formatted}**"
-            purity_text = (':gem: **PURE**' if infos_nft['pure_number'] == 6 else ':diamond_shape_with_a_dot_inside: ' + str(infos_nft['pure_number']))
-            purity_text_len_in_space_bars = 3 + 1 + (12 if infos_nft['pure_number'] == 6 else (1 if infos_nft['pure_number'] == 1 else 2))
-            breed_text = f"{crabadegg_emoji} {infos_nft['breed_count'] if infos_nft['breed_count'] > 0 else '**NO-BREED**'}"
+            purity_text = (':gem: **PURE**' if int(infos_nft['pure_number']) == 6 else ':diamond_shape_with_a_dot_inside: ' + str(infos_nft['pure_number']))
+            purity_text_len_in_space_bars = 3 + 1 + (12 if int(infos_nft['pure_number']) == 6 else (1 if int(infos_nft['pure_number']) == 1 else 2))
+            breed_text = f"{crabadegg_emoji} {infos_nft['breed_count'] if int(infos_nft['breed_count']) > 0 else '**NO-BREED**'}"
             mining_text = f":pick: {infos_nft['speed'] + infos_nft['critical']}"
             mining_text_len_in_space_bars = 4 + 1 + sum([1 if c == "1" else 2 for c in str(infos_nft['speed'] + infos_nft['critical'])])
 
@@ -436,7 +436,7 @@ class CrabalertDiscord(commands.Bot):
                 )     
             else:
                 message = (
-                    f"{type_entry} :crab: {'**PURE**' if infos_nft['pure_number'] == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **NO-BREED**' if infos_nft['breed_count'] == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
+                    f"{type_entry} :crab: {'**PURE**' if int(infos_nft['pure_number']) == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **NO-BREED**' if int(infos_nft['breed_count']) == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
                     f"{first_column}\n" +
                     f"{second_column}\n" +
                     f"{third_column}"
