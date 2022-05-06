@@ -381,11 +381,6 @@ def calculate_special_token_price(web3, blockchain, pool_address):
 def is_crab(infos):
     return infos["class_name"] is not None
 
-def in_channel(*channels):
-    def predicate(ctx):
-        return ctx.channel.id in channels
-    return commands.check(predicate)
-
 async def async_http_get_request_with_callback_on_result(
     url,
     callback_failure,

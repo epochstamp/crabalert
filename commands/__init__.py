@@ -18,3 +18,9 @@ commands = {
     "whitelist": Whitelist,
     "alive": Alive
 }
+
+
+def in_channel(*channels):
+    def predicate(ctx):
+        return ctx.channel.id in channels
+    return commands.check(predicate)
