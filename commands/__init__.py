@@ -8,6 +8,7 @@ from .duration_trial import DurationTrial
 from .alive import Alive
 from .whitelist import Whitelist
 
+
 commands = {
     "shutdown": Shutdown,
     "reboot": Reboot,
@@ -20,7 +21,3 @@ commands = {
 }
 
 
-def in_channel(*channels):
-    def predicate(ctx):
-        return ctx.channel.id in channels
-    return commands.check(predicate)

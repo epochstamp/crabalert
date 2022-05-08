@@ -5,7 +5,7 @@ from discord.ext import commands
 from asyncio import create_task
 
 from config import ID_COMMAND_CENTER
-from . import in_channel
+from utils import in_channel
 
 
 class CommandErrHandler(commands.Cog):

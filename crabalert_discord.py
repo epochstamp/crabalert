@@ -1,69 +1,31 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import os
 from pathlib import Path
-from pytz_deprecation_shim import NonExistentTimeError
 import wget
-from web3.main import Web3
-from pprint import pprint
 from discord.ext import tasks
 from discord import Embed, File
-from aiohttp.client_exceptions import ServerDisconnectedError, ClientOSError
-from asyncio.exceptions import TimeoutError
+import memcache
 from config import (
-    COINS_SYMBOL,
-    CRABALERT_SEM_ID,
-    ID_COMMAND_CENTER,
-    LISTING_ITEM_EXPIRATION,
     SELLING_ITEM_EXPIRATION,
     channel_to_post_listings_with_filters,
     channel_to_post_sellings_with_filters,
-    APICRABADA_SEM_ID,
-    TIMEOUT,
     listing_channels_to_display_shortdescrs,
     selling_channels_to_display_shortdescrs,
     cool_classes,
     cool_subclasses,
     THRESOLD_PURE_PROBA,
     channels_emojis,
-    NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS,
-    SNOWTRACE_SEM_ID,
-    CRABREFRESH_SEM_ID,
     CRABMESSAGE_SEM_ID,
     EGGMESSAGE_SEM_ID,
-    SNOWTRACE_API_KEY,
-    PAYMENT_SEM_ID,
-    ID_TUS_BOT,
-    ID_SERVER,
-    COINS,
-    TUS_CONTRACT_ADDRESS,
-    stablecoins,
-    MINIMUM_PAYMENT,
-    HEADERS,
-    SPAN_TIMESTAMP,
-    ADFLY_SEM_ID,
-    subclass_map,
-    MONTHLY_RATE)
+    subclass_map)
 from subclasses import calc_subclass_info, subclass_type_map
 from utils import (
-    async_http_get_request_with_callback_on_result,
-    blockchain_urls,
-    get_token_price_from_dexs,
-    is_crab,
-    is_valid_marketplace_listing_transaction,
-    open_database,
-    close_database,
-    execute_query,
-    iblock_near,
-    get_transactions_between_blocks,
-    get_current_block,
+    download_image,
     seconds_to_pretty_print
 )
 from discord.utils import get
-import humanize
 from discord.ext import commands
 import asyncio
-import urllib
-import json
 from eggs_utils import calc_pure_probability
 from classes import classes_to_spacebarsize_map
 
@@ -75,9 +37,7 @@ class CrabalertDiscord(commands.Bot):
         self._tasks = []
         self._variables = variables if variables is not None else dict()
         Path("images/").mkdir(parents=True, exist_ok=True)
-        asyncio.run(
-            self._refresh_prices_coin()
-        )
+        self._shared = memcache.Client(["127.0.0.1:11211"], debug=0)
         
         
     @property
@@ -104,218 +64,28 @@ class CrabalertDiscord(commands.Bot):
         
     async def on_ready(self):
         if not self._launched:
-            channel = self._get_variable(f"channel_{ID_COMMAND_CENTER}", f_value_if_not_exists=lambda: self.get_channel(ID_COMMAND_CENTER))
-            asyncio.gather(asyncio.create_task(channel.send("Hi ! I'm back.")))
-            self._refresh_tus_price()
-            self._tasks.append(self._crabada_listing_alert_loop.start())
-            self._tasks.append(self._crabada_selling_alert_loop.start())
-            self._tasks.append(self._refresh_tus_loop.start())
-            self._tasks.append(self._refresh_prices_coin_loop.start())
-            #self._tasks.append(self._manage_alerted_roles.start())
+            self._tasks.append(self._crabada_alert_loop.start())
             self._launched = True
 
-    def _get_members(self):
-        return self.get_guild(ID_SERVER).members
-
-    @tasks.loop(minutes=10)
-    async def _manage_alerted_roles(self):
-        guild = self.get_guild(ID_SERVER)
-        role_alerted = get(guild.roles, name="Alerted")
-        tasks = []
-        for member in self._get_members():
-            roles_str = [str(role) for role in member.roles]
-            if not "Admin" in roles_str and not "Moderator" in roles_str and ("Verified" in roles_str or "Alerted" in roles_str):
-                # Two cases :
-                # Member is Alerted. Database is fetched to check that payment is up to date.
-                # If member not in database, role is immediately revoked and we continue with others, otherwise...
-                # If current_timestamp - payment_timestamp_txhash is lower than the duration, we leave it as it is.
-                # (DM is sent to the user 1 week as a reminder)
-                # Otherwise, we check all payments coming from this wallet in the explorer, occured after that timestamp and up to now.
-                # All these payments will add their ratio in terms of USDT per second, and subscription starts from the first of these payments
-                # 
-                # Member is not Alerted. If not in database, skip.
-                # If in database, we check all payments coming from this wallet in the explorer, occured after that timestamp and up to now.
-                # If payment_timestamp is 0 then it is needed to check all the txs.
-                # All these payments will add their ratio in terms of USDT per second, and subscription starts from the first of these payments
-                try:
-                    connection = open_database()
-                except Exception as e:
-                    #TODO : logging
-                    return
-                dt = datetime.now(timezone.utc)
-                utc_time = dt.replace(tzinfo=timezone.utc)
-                current_timestamp = utc_time.timestamp()
-                
-                data = list(execute_query(
-                    connection, f"SELECT * FROM trials WHERE discord_id = {member.id}"
-                ))
-                rowcount = len(data)
-                if rowcount > 0:
-                    start_trial, duration_trial = data[0][1:]
-                    if current_timestamp - datetime.strptime(start_trial, "%Y-%m-%d %H:%M:%S").astimezone(timezone.utc).timestamp() <= duration_trial:
-                        if "Alerted" not in roles_str:
-                            tasks.append(asyncio.create_task(member.add_roles(role_alerted)))
-                        continue
-                    else:
-                        if "Alerted" in roles_str:
-                            tasks.append(asyncio.create_task(member.remove_roles(role_alerted)))
-
-
-                data = list(execute_query(
-                    connection, f"SELECT * FROM last_received_payment WHERE discord_id = {member.id}"
-                ))
-                rowcount = len(data)
-
-                if "Alerted" in roles_str and rowcount == 0:
-                    tasks.append(asyncio.create_task(member.remove_roles(role_alerted)))
-                
-                if rowcount > 0:
-                    wallet_address, payment_date, duration, _, reminded = data[0][1:]
-                    if duration < 0:
-                        if "Alerted" not in roles_str:
-                            tasks.append(asyncio.create_task(member.add_roles(role_alerted)))
-                    else:
-                        reminded = reminded.lower() == "true"
-                        if payment_date == 0:
-                            payment_timestamp = int(round(current_timestamp, 0)) - 3600
-                        else:
-                            payment_timestamp = int(round(datetime.fromtimestamp(int(payment_date)).astimezone(timezone.utc).timestamp(), 0))
-                        data = list(execute_query(
-                            connection, f"SELECT received_timestamp, contract_address, txn_hash, value FROM payments WHERE from_wallet = '{wallet_address}' and received_timestamp >= {payment_timestamp}"
-                        ))
-                        rowcount = len(data)
-                        if rowcount == 0:
-                            if current_timestamp - int(payment_timestamp) > duration:
-                                if "Alerted" in roles_str:
-                                    tasks.append(asyncio.create_task(member.remove_roles(role_alerted)))
-                                    tasks.append(asyncio.create_task(member.send("Your subscription to Crabalert has expired and your access to the alerts removed.")))
-                                    tasks.append(asyncio.create_task(member.send("If you want to renew it, please send payments again (see #instructions for a soft reminder)")))
-                            else:
-                                #Send reminders if subscription is close (< 1h)
-                                remaining_time = (int(payment_timestamp) + int(duration)) - current_timestamp
-                                if remaining_time <= 3600*24 and not reminded:
-                                    remaining_deltatime = humanize.naturaltime(current_timestamp + timedelta(seconds = remaining_time))
-                                    tasks.append(asyncio.create_task(member.send(
-                                        f"Your subscription to Crabalert is going to expire in less than one day (remaining:{remaining_deltatime}). If you want to keep it, please send payment again (see #instructions for a soft reminder)"
-                                    )))
-                                    update_query = f"UPDATE last_received_payment SET reminded='TRUE' WHERE discord_id={member.id}"
-                                    execute_query(connection, update_query)
-                                if "Alerted" not in roles_str:
-                                    tasks.append(asyncio.create_task(member.add_roles(role_alerted)))
-                        else:
-                            for trans_timestamp, contract_address, txn_hash, value in data:
-                                rate = 1 if contract_address.lower() in stablecoins else 1.3
-                                price_coins = self._get_variable("price_coins", lambda: dict())
-                                price_in_usd = price_coins.get(contract_address.lower(), -1)
-                                value_in_usd = (value*price_in_usd)/rate
-                                new_duration = (value_in_usd)/MONTHLY_RATE * 3600 * 24 * 30 + max((int(payment_timestamp) + int(duration)) - current_timestamp, 0)
-                                trans_timestamp_date = datetime.fromtimestamp(trans_timestamp, timezone.utc)
-                                update_query = f"UPDATE last_received_payment SET duration={int(round(new_duration, 0))}, received_timestamp='{current_timestamp}', reminded='FALSE' WHERE discord_id={member.id}"
-                                execute_query(connection, update_query)
-                                if "Alerted" not in roles_str:
-                                    tasks.append(asyncio.create_task(member.add_roles(role_alerted)))
-                                delta_duration = timedelta(seconds = new_duration + 3600*24*30)
-                                current_timestamp_datetime = datetime.fromtimestamp(current_timestamp, timezone.utc)
-                                human_friendly_duration = humanize.naturaldelta(current_timestamp_datetime - (current_timestamp_datetime+delta_duration), when=current_timestamp_datetime)
-                                tasks.append(asyncio.create_task(member.send(f"Your payment of {value} {COINS_SYMBOL.get(contract_address.lower(), '???')} received at {trans_timestamp_date.strftime('%d, %b %Y')} (txn_hash : {txn_hash}) has been checked and your subscription has just been extended for a duration of {human_friendly_duration}.")))
-                        
-                close_database(connection)
-        if tasks != []:
-            asyncio.gather(*tasks)
 
     @tasks.loop(seconds=1)
-    async def _refresh_tus_loop(self):
-        self._refresh_tus_price()
-        
-    def _refresh_tus_price(self):
-        server = self.get_guild(ID_SERVER)
-        tus_bot = server.get_member(ID_TUS_BOT)
-        price = float(tus_bot.nick.split(" ")[0][1:])
-        self._set_sync_variable("price_tus", price)
-        self._set_sync_variable(
-            "price_coins",
-            {
-                **{TUS_CONTRACT_ADDRESS.lower(): self._get_variable("price_tus", lambda: -1)}, **self._get_variable("price_coins", dict())
-            }
-        )
-
-    @tasks.loop(minutes=1)
-    async def _refresh_prices_coin_loop(self):
-        asyncio.gather(asyncio.create_task(self._refresh_prices_coin()))
-
-    async def _refresh_prices_coin(self):
-        coins_keys = [k for k in COINS.keys() if k.lower() != TUS_CONTRACT_ADDRESS.lower()]
-        tasks = tuple([get_token_price_from_dexs(Web3(Web3.HTTPProvider(blockchain_urls["avalanche"])), "avalanche", c) for c in coins_keys])
-
-        task = asyncio.gather(*tasks)
-        task.add_done_callback(
-            lambda t: self._set_sync_variable(
-                "price_coins",
-                {
-                    **{TUS_CONTRACT_ADDRESS.lower(): self._get_variable("price_tus", lambda: -1)}, **{coins_keys[i]: t.result()[i] for i in range(len(coins_keys))}
-                }
-            )
-        )
-
-    @tasks.loop(seconds=2)
-    async def _crabada_listing_alert_loop(self):
+    async def _crabada_alert_loop(self):
         
         dt = datetime.now(timezone.utc)
         utc_time = dt.replace(tzinfo=timezone.utc)
         current_timestamp = utc_time.timestamp()
-        query = f"""
-            SELECT * FROM crabada_listings WHERE {current_timestamp} - timestamp <= {LISTING_ITEM_EXPIRATION}
-        """
         tasks = []
         async with self._get_variable(f"sem_database", lambda: asyncio.Semaphore(value=1)):
-            try:
-                connection = open_database()
-            except Exception as e:
-                #TODO : logging
-                return
-            try:
-                data = execute_query(connection, query)
-            except Exception as e:
-                print('warning', type(e))
-                data = []
-            close_database(connection)
-            for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
-                infos_nft = json.loads(infos_nft)
-                if infos_family != "":
-                    infos_family = json.loads(infos_family)
-                tasks.append(asyncio.create_task(self._notify_marketplace_item(infos_nft, infos_family, token_id, selling_price, timestamp, is_crab.lower() == "true", is_selling=False)))
-            if tasks != []:
-                asyncio.gather(*tasks)
-
-    @tasks.loop(seconds=2)
-    async def _crabada_selling_alert_loop(self):
-        
-        dt = datetime.now(timezone.utc)
-        utc_time = dt.replace(tzinfo=timezone.utc)
-        current_timestamp = utc_time.timestamp()
-        query = f"""
-            SELECT * FROM crabada_sellings WHERE {current_timestamp} - timestamp <= {SELLING_ITEM_EXPIRATION}
-        """
-        tasks = []
-        async with self._get_variable(f"sem_database", lambda: asyncio.Semaphore(value=1)):
-            try:
-                connection = open_database()
-            except Exception as e:
-                #TODO : logging
-                return
-            try:
-                data = execute_query(connection, query)
-            except Exception as e:
-                print('warning', type(e))
-                data = []
-            close_database(connection)
-            for token_id, selling_price, timestamp, is_crab, infos_nft, infos_family in data:
-                infos_nft = json.loads(infos_nft)
-                if infos_family != "":
-                    infos_family = json.loads(infos_family)
-                tasks.append(asyncio.create_task(self._notify_marketplace_item(infos_nft, infos_family, token_id, selling_price, timestamp, is_crab.lower() == "true", is_selling=True)))
-            if tasks != []:
-                asyncio.gather(*tasks)
+            nft_pool = self._shared.get("nft_pool")
+            for keys_info, infos_nft in nft_pool.items():
+                token_id, timestamp, selling_price, is_selling = keys_info
+                if current_timestamp - timestamp <= SELLING_ITEM_EXPIRATION:
+                    if infos_nft["is_crab"]:
+                        infos_family = None
+                    else:
+                        infos_family = infos_nft
+                    tasks.append(asyncio.create_task(self._notify_marketplace_item(infos_nft, infos_family, token_id, selling_price, timestamp, infos_nft["is_crab"], is_selling=is_selling)))
+            asyncio.gather(*tasks)
 
     async def _notify_marketplace_item(self, infos_nft, infos_family, token_id, selling_price, timestamp, is_crab_bool, is_selling=False):
         tasks = []
@@ -362,12 +132,13 @@ class CrabalertDiscord(commands.Bot):
     async def notify_crab_item(self, infos_nft, token_id, price, timestamp_transaction, channel, is_selling=False):
         async with self._get_variable(f"sem_{CRABMESSAGE_SEM_ID}_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             # print"crab from timestamp", timestamp_transaction,"will be posted", token_id, "at channel", channel.id)
-            marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
-            price_tus = self._get_variable(f"price_tus", f_value_if_not_exists=lambda:-1)
-            price_usd = round(price * price_tus, 2)
+            marketplace_link = infos_nft["marketplace_link"]
+            photos_link = infos_nft["photos_link"]
+            price_usd = infos_nft["price_usd"]
             channel_id = channel.id
             tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             crabadegg_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("crabadegg", "crabadegg")
+            price = int(round(price * 10**-18, 0))
             price_formatted = "{:,}".format(price)
             price_in_usd_formatted = "{:,.2f}".format(price_usd)
             tus_text = f"{tus_emoji} **{price_formatted}**"
@@ -403,16 +174,15 @@ class CrabalertDiscord(commands.Bot):
                 emoji_subclass_type = "❓"
 
             class_display = class_display if class_display.lower() not in cool_classes else f"**{class_display}**"
+            order_id_pool = self._shared.get("order_id_pool")
+            seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None, None))
             type_entry = "**[SOLD<aftertime>]**" if is_selling else "**[LISTING]**"
             if is_selling:
-                db = open_database()
-                query = f"""
-                    SELECT timestamp from crabada_listings where token_id={token_id}  ORDER BY timestamp DESC LIMIT 1
-                """
-                data = execute_query(db, query)
-                close_database(db)
-                if len(data) > 0:
-                    duration_min = abs(timestamp_transaction - float(data[0][0]))
+                if timestamp_listing is not None:
+                    if timestamp_selling is None:
+                        duration_min = abs(timestamp_transaction - float(timestamp_listing))
+                    else:
+                        duration_min = abs(float(timestamp_selling) - float(timestamp_listing))
                 else:
                     duration_min = None
                 if duration_min is None:
@@ -420,6 +190,19 @@ class CrabalertDiscord(commands.Bot):
                 else:
                     human_deltatime = seconds_to_pretty_print(duration_min)
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
+                if buyer_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                else:
+                    buyer_seller = buyer_wallet
+                    buyer_seller_full_name = buyer_wallet
+            else:
+                if seller_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                else:
+                    buyer_seller = seller_wallet
+                    buyer_seller_full_name = seller_wallet
                     
 
                 
@@ -427,8 +210,7 @@ class CrabalertDiscord(commands.Bot):
                 listing_channels_to_display_shortdescrs if not is_selling else
                 selling_channels_to_display_shortdescrs
             )
-            buyer_seller = infos_nft['owner']
-            buyer_seller_full_name = infos_nft['owner_full_name']
+            url_buyer_seller = infos_nft["url_wallet"]
             if channel.id in channels_to_display_shortdescrs:
                 message = (
                     f"{type_entry} :crab: {class_display}({subclass_display})\n" +
@@ -442,21 +224,20 @@ class CrabalertDiscord(commands.Bot):
                     f"{third_column}"
                 )
             asyncio.gather(asyncio.create_task(
-                self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=is_selling)
+                self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, photos_link, url_buyer_seller, buyer_seller_full_name, is_selling=is_selling)
             ))
 
     async def notify_egg_item(self, infos_nft, infos_family_nft, token_id, price, timestamp_transaction, channel, is_selling=False):
         async with self._get_variable(f"sem_{EGGMESSAGE_SEM_ID}_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             type_entry = "**[SOLD<aftertime>]**" if is_selling else "**[LISTING]**"
+            order_id_pool = self._shared.get("order_id_pool")
+            seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None))
             if is_selling:
-                db = open_database()
-                query = f"""
-                    SELECT timestamp from crabada_listings where token_id={token_id}  ORDER BY timestamp DESC LIMIT 1
-                """
-                data = execute_query(db, query)
-                close_database(db)
-                if len(data) > 0:
-                    duration_min = abs(timestamp_transaction - float(data[0][0]))
+                if timestamp_listing is not None:
+                    if timestamp_selling is None:
+                        duration_min = abs(timestamp_transaction - float(timestamp_listing))
+                    else:
+                        duration_min = abs(float(timestamp_selling) - float(timestamp_listing))
                 else:
                     duration_min = None
                 if duration_min is None:
@@ -464,10 +245,22 @@ class CrabalertDiscord(commands.Bot):
                 else:
                     human_deltatime = seconds_to_pretty_print(duration_min)
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                
+                if buyer_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                else:
+                    buyer_seller = buyer_wallet
+                    buyer_seller_full_name = buyer_wallet
+            else:
+                if seller_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                else:
+                    buyer_seller = seller_wallet
+                    buyer_seller_full_name = seller_wallet
+            url_buyer_seller = infos_nft["url_wallet"]
             channel_id = channel.id
-            price_tus = self._get_variable(f"price_tus", f_value_if_not_exists=lambda:-1)
-            price_usd = round(price * price_tus, 2)
+            price_usd = infos_nft["price_usd"]
             infos_family_nft = infos_family_nft["crabada_parents"]
             crabada_parent_1 = infos_family_nft[0]
             crabada_parent_2 = infos_family_nft[1]
@@ -478,15 +271,14 @@ class CrabalertDiscord(commands.Bot):
             egg_purity_probability = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_1), 4)
             if egg_purity_probability.is_integer():
                 egg_purity_probability = int(egg_purity_probability)
+            price = int(round(price * 10**-18, 0))
             price_formatted = "{:,}".format(price)
             price_in_usd_formatted = "{:,.2f}".format(price_usd)
             tus_emoji = channels_emojis.get(channel_id, channels_emojis.get("default")).get("tus", ":tus:")
             tus_text = f"{tus_emoji} **{price_formatted}**"
             tus_text_len_in_space_bars = sum([1 if c == "1" or c == "." or c == "," else 2 for c in str(price)]) + 6 + 1
             usd_text = f":moneybag: **{price_in_usd_formatted}**"
-            marketplace_link = f"https://marketplace.crabada.com/crabada/{token_id}"
-            buyer_seller = infos_nft['owner']
-            buyer_seller_full_name = infos_nft['owner_full_name']
+            marketplace_link = infos_nft["marketplace_link"]
             egg_purity_probability_1 = egg_purity_probability
             egg_purity_probability_2 = round(calc_pure_probability(dna_parent_1, dna_parent_2, class_parent_2), 4)
             if egg_purity_probability_2.is_integer():
@@ -552,15 +344,14 @@ class CrabalertDiscord(commands.Bot):
                 footer_message_egg = footer_message
                 message_egg = message
             asyncio.gather(asyncio.create_task(
-                self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=is_selling)
+                self._send_egg_item_message(message_egg, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, url_buyer_seller, buyer_seller_full_name, is_selling=is_selling)
             ))
 
-    async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
+    async def _send_crab_item_message(self, token_id, timestamp_transaction, channel, message, marketplace_link, photos_link, url_buyer_seller, buyer_seller_full_name, is_selling=False):
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
         async with self._get_variable(f"semaphore_crab_message_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                url_buyer_seller = f"https://snowtrace.io/address/{buyer_seller}"
                 embed = Embed(
                     title=marketplace_link
                 )
@@ -568,7 +359,7 @@ class CrabalertDiscord(commands.Bot):
                     name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller_full_name}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("images/{token_id}.png"):
-                    wget.download(f"https://photos.crabada.com/{token_id}.png", out=f"images/{token_id}.png", bar=None)
+                    download_image(photos_link, out=f"images/{token_id}.png")
                 try:
                     await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
                 except BaseException as e:
@@ -576,7 +367,7 @@ class CrabalertDiscord(commands.Bot):
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
                     
 
-    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, buyer_seller, buyer_seller_full_name, is_selling=False):
+    async def _send_egg_item_message(self, message_egg_in, header_message_egg, footer_message_egg, crab_2_emoji, tus_emoji, crab_1_emoji, crabadegg_emoji, token_id, timestamp_transaction, channel, marketplace_link, url_buyer_seller, buyer_seller_full_name, is_selling=False):
         message_egg = header_message_egg + message_egg_in + footer_message_egg
         message_egg = message_egg.replace("<crab1>", crab_1_emoji).replace("<crab2>", crab_2_emoji).replace("<tus>", tus_emoji).replace("<crabadegg>" ,crabadegg_emoji)
         already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
@@ -585,7 +376,6 @@ class CrabalertDiscord(commands.Bot):
             if (token_id, timestamp_transaction, channel.id, is_selling) not in already_seen:
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 self._set_sync_variable("already_seen", already_seen.union({(token_id, timestamp_transaction, channel.id, is_selling)}))
-                url_buyer_seller = f"https://snowtrace.io/address/{buyer_seller}"
                 embed = Embed(
                     title=marketplace_link
                 )
@@ -593,7 +383,7 @@ class CrabalertDiscord(commands.Bot):
                     name=f"{'Bought by' if is_selling else 'Listed by'}", value=f"[{buyer_seller_full_name}]({url_buyer_seller})", inline=False
                 )
                 if not os.path.isfile("images/egg.png"):
-                    wget.download(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png", bar=None)
+                    download_image(f"https://i.ibb.co/hXcP49w/egg.png", out=f"images/egg.png")
                 try:
                     await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
                 except BaseException as e:

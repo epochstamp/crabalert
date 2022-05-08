@@ -25,20 +25,20 @@ THRESOLD_PURE_PROBA = 0.8
 ID_TUS_BOT = 910250184271867924
 ID_SERVER = 932475138434277377
 ID_COMMAND_CENTER = 933453311967887370
-TIMEOUT = 4
+TIMEOUT = 0.1
 SNOWTRACE_API_KEY = "KNDGDGKUAJ3UT1F8BHZDT61P2X453KGVAA"
 NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS = 7
 MINIMUM_PAYMENT = 0.5
 ADFLY_USER_ID = 26237719
 ADFLY_PUBLIC_KEY = "3584d4107dc520de199b2a023b8c9a2b"
 ADFLY_PRIVATE_KEY = "0b66ae48-4171-46c6-8c2a-2228358521bd"
-HEADERS = {'User-Agent': 'Mozilla/5.0'}
+HEADERS = {'User-Agent': "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36"}
 MONTHLY_RATE = 9
 DURATION_TRIAL = 3600*24*7
-LISTING_ITEM_EXPIRATION = 30
-SELLING_ITEM_EXPIRATION = 30
+LISTING_ITEM_EXPIRATION = 60
+SELLING_ITEM_EXPIRATION = 60
 MAX_TIMEOUT_BEFORE_KILL_SNOWTRACE = 2
-MAX_TIMEOUT_BEFORE_KILL_CRABADAPI = 4
+MAX_TIMEOUT_BEFORE_KILL_CRABADAPI = 2
 
 
 stablecoins = {
@@ -274,62 +274,67 @@ def filter_by_pincers(infos_nft: dict, subclass: str = "freshie"):
     return subclass_info[-1].lower() == subclass.lower() and subclass_info[-2].lower() == subclass.lower() and subclass_info[-3].lower() == subclass.lower()
 
 
+"""
+        #Special
+        958728365861396550: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
+        959174623247868026: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
+        961248732945469511: lambda x: x[1] is None and round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 15200 and x[0].get("class_name", "").lower() == "bulk" and int(x[0].get("pure_number", -1)) == 6,
+        961701024089903104: lambda x: x[1] is None and filter_by_number_of_components(x[0], nb_min=15),
+        961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and int(x[0].get("pure_number", -1)) == 6 and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
+        #Crabs and all
+        968180866264223764: lambda x: True,
+        932591668597776414: lambda x: True,
+        933456755395006495: lambda x: True,
+        935237809697095723: lambda x: True,
+        951797923086213140: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 10000,
+        951798251139522610: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 12000,
+        951798278691881000: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 14000,
+        951798307989114900: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 16000,
+        951797761601318912: lambda x: is_below_floor_price(float(x[0].get("price", float("+inf")))*10**-18),
+        938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
+        933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and int(x[0].get("pure_number", -1)) == 6,
+        933457087369978016: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "prime",
+        933399063330701414: lambda x: x[1] is None and x[0].get("breed_count", -1) is not None and int(x[0].get("breed_count", -1)) == 0,
+        933411792925913129: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "craboid",
+        944009796917530674: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "organic",
+        951797051329507328: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "tank",
+        951797103863136306: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "damage",
+        951797172419047424: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "buff",
+        933506031261188116: lambda x: (
+            x[1] is None and
+            x[0].get("breed_count", -1) is not None and
+            x[0].get("pure_number", -1) is not None and
+            x[0].get("breed_count", -1) == 0 and
+            x[0].get("pure_number", -1) == 6
+        ),
+        933860819920355359: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Avalanche",
+        933860865831223318: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Ethereum",
+        933860950942044180: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Near",
+        933861077312217129: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Bitcoin",
+        938919076447813672: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Fantom",
+        933862594278740048: lambda x: x[1] is None and x[0].get("is_origin", -1) == 1,
+        #Eggs
+        938865346125889646: lambda x: x[1] is not None,
+        933861312809799691: lambda x: x[1] is not None and get_probability_pure(x[1]) >= THRESOLD_PURE_PROBA,
+        933861463414669422: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "PRIME" and get_parent_class(x[1], 1) == "PRIME",
+        934101749013291068: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "PRIME" or get_parent_class(x[1], 1) == "PRIME") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+        933861589738737664: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "CRABOID" and get_parent_class(x[1], 1) == "CRABOID",
+        934101847420055552: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "CRABOID" or get_parent_class(x[1], 1) == "CRABOID") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+        944009583305834496: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "ORGANIC" and get_parent_class(x[1], 1) == "ORGANIC",
+        944009617803980820: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "ORGANIC" or get_parent_class(x[1], 1) == "ORGANIC") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
+        938864199394820177: lambda x: x[1] is not None and get_probability_pure(x[1]) >= 0.98
+    """
 channel_to_post_listings_with_filters = {
-    #Special
-    958728365861396550: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
-    959174623247868026: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
-    961248732945469511: lambda x: x[1] is None and round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 15200 and x[0].get("class_name", "").lower() == "bulk" and int(x[0].get("pure_number", -1)) == 6,
-    961701024089903104: lambda x: x[1] is None and filter_by_number_of_components(x[0], nb_min=15),
-    961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and int(x[0].get("pure_number", -1)) == 6 and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
-    #Crabs and all
-    968180866264223764: lambda x: True,
-    932591668597776414: lambda x: True,
-    933456755395006495: lambda x: True,
-    935237809697095723: lambda x: True,
-    951797923086213140: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 10000,
-    951798251139522610: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 12000,
-    951798278691881000: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 14000,
-    951798307989114900: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 16000,
-    951797761601318912: lambda x: is_below_floor_price(float(x[0].get("price", float("+inf")))*10**-18),
-    938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
-    933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and int(x[0].get("pure_number", -1)) == 6,
-    933457087369978016: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "prime",
-    933399063330701414: lambda x: x[1] is None and x[0].get("breed_count", -1) is not None and int(x[0].get("breed_count", -1)) == 0,
-    933411792925913129: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "craboid",
-    944009796917530674: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "organic",
-    951797051329507328: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "tank",
-    951797103863136306: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "damage",
-    951797172419047424: lambda x: x[1] is None and subclass_type_map.get(x[0].get("crabada_subclass", -1), "unknown").lower() == "buff",
-    933506031261188116: lambda x: (
-        x[1] is None and
-        x[0].get("breed_count", -1) is not None and
-        x[0].get("pure_number", -1) is not None and
-        x[0].get("breed_count", -1) == 0 and
-        x[0].get("pure_number", -1) == 6
-    ),
-    933860819920355359: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Avalanche",
-    933860865831223318: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Ethereum",
-    933860950942044180: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Near",
-    933861077312217129: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Bitcoin",
-    938919076447813672: lambda x: x[1] is None and subclass_map.get(x[0].get("crabada_subclass", -1), "unknown")  == "Fantom",
-    933862594278740048: lambda x: x[1] is None and x[0].get("is_origin", -1) == 1,
-    #Eggs
-    938865346125889646: lambda x: x[1] is not None,
-    933861312809799691: lambda x: x[1] is not None and get_probability_pure(x[1]) >= THRESOLD_PURE_PROBA,
-    933861463414669422: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "PRIME" and get_parent_class(x[1], 1) == "PRIME",
-    934101749013291068: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "PRIME" or get_parent_class(x[1], 1) == "PRIME") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
-    933861589738737664: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "CRABOID" and get_parent_class(x[1], 1) == "CRABOID",
-    934101847420055552: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "CRABOID" or get_parent_class(x[1], 1) == "CRABOID") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
-    944009583305834496: lambda x: x[1] is not None and get_parent_class(x[1], 0) == "ORGANIC" and get_parent_class(x[1], 1) == "ORGANIC",
-    944009617803980820: lambda x: x[1] is not None and (get_parent_class(x[1], 0) == "ORGANIC" or get_parent_class(x[1], 1) == "ORGANIC") and (get_parent_class(x[1], 0) != get_parent_class(x[1], 1)),
-    938864199394820177: lambda x: x[1] is not None and get_probability_pure(x[1]) >= 0.98
+    967762790129475634: lambda x: True,
+    
+    
 }
 
 listing_channels_to_display_shortdescrs = {
     
 }
 
-channel_to_post_sellings_with_filters = {
+"""
     #special
     932591668597776414: lambda x: True,
     935237809697095723: lambda x: True,
@@ -352,6 +357,10 @@ channel_to_post_sellings_with_filters = {
     #Eggs
     943964843063521310: lambda x: x[1] is not None,
     943966387498532905: lambda x: (x[1] is None and x[0].get("pure_number", -1) is not None and x[0].get("pure_number", -1) == 6) or (x[1] is not None and get_probability_pure(x[1]) >= 0.98)
+"""
+channel_to_post_sellings_with_filters = {
+
+    967762790129475634: lambda x: True
 
 
 }
@@ -362,3 +371,4 @@ selling_channels_to_display_shortdescrs = set()
 cool_subclasses = {"near", "avalanche", "ethereum", "fantom", "bitcoin"}
 
 cool_classes = {"prime", "craboid", "organic"}
+

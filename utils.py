@@ -21,6 +21,7 @@ from config import (
 import wget
 from discord.ext import commands
 from pathlib import Path
+import requests
 
 EXPLORER_API_KEY = {
     "avalanche": "KEV93B2FGT1RKAX96UVIWDYP7Z9K6HEQ4C",
@@ -32,7 +33,8 @@ FOLDER_ABIS = "/home/samait/apr-fetcher/abis"
 
 blockchain_urls = {
     "avalanche": "https://api.avax.network/ext/bc/C/rpc",#"https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/avalanche/mainnet",
-    "binance_smart_chain": "https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/bsc/mainnet"
+    "binance_smart_chain": "https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/bsc/mainnet",
+    "swimmer_test": "https://testnet-rpc.swimmer.network/ext/bc/2hUULz82ZYMKwjBHZybVRyouk38EmcW7UKP4iocf9rghpvfm84/rpc"
 }
 
 explorer_api_link_per_blockchain = {
@@ -428,6 +430,11 @@ async def async_http_get_request_with_callback_on_result(
         else:
             asyncio.gather(task)
 
+def in_channel(*channels):
+    def predicate(ctx):
+        return ctx.channel.id in channels
+    return commands.check(predicate)
+
 async def async_http_get_request_with_callback_on_result_v2(
     url,
     callback_failure,
@@ -533,18 +540,6 @@ def execute_query(conn, query):
         data = conn.execute(query)
         conn.commit()
     return list(data)
-
-def is_valid_marketplace_listing_transaction(transaction):
-    return (
-        "0x" + str(transaction.get("input", ""))[98:138].lower() == "0x7E8DEef5bb861cF158d8BdaAa1c31f7B49922F49".lower() and
-        transaction["to"].lower() == "0x1b7966315ef0259de890f38f1bdb95acc03cacdd".lower()
-    )
-
-def is_valid_marketplace_selling_transaction(transaction):
-    return (
-        str(transaction.get("input", ""))[:10].lower() == "0xc70f5eaa".lower() and
-        transaction["to"].lower() == "0x7e8deef5bb861cf158d8bdaaa1c31f7b49922f49".lower()
-    )
 
 async def extract_transaction(web3, i, filter_t, convert_to_log=False):
     try:
@@ -728,8 +723,13 @@ def bold(input_text):
 
     return output
 
-async def download_image(url, out, bar=sync_nothing):
-    wget.download(url, out=out, bar=nothing)
+def download_image(url, out):
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    url = url
+
+    r = requests.get(url, headers=headers)
+    with open(out, 'wb') as fh:
+        fh.write(r.content)
 
 def get_price_tus_in_usd(database="crabalert.db"):
     dt = datetime.now(timezone.utc)
