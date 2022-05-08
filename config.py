@@ -25,7 +25,7 @@ THRESOLD_PURE_PROBA = 0.8
 ID_TUS_BOT = 910250184271867924
 ID_SERVER = 932475138434277377
 ID_COMMAND_CENTER = 933453311967887370
-TIMEOUT = 0.1
+TIMEOUT = 0.00001
 SNOWTRACE_API_KEY = "KNDGDGKUAJ3UT1F8BHZDT61P2X453KGVAA"
 NUMBER_BLOCKS_WAIT_BETWEEN_SNOWTRACE_CALLS = 7
 MINIMUM_PAYMENT = 0.5
@@ -263,34 +263,20 @@ def is_below_floor_price(price):
                 i = i - 1
         return False
 
-def filter_by_number_of_components(infos_nft: dict, nb_min: int = 15):
-    from subclasses import calc_subclass_info
-    a = sum([(1 if sbc.lower() == subclass_map.get(int(infos_nft.get("crabada_subclass", "")), 'unknown').lower() else 0) for sbc in calc_subclass_info(infos_nft.get("dna", ""))])
-    return a >= nb_min
-
-def filter_by_pincers(infos_nft: dict, subclass: str = "freshie"):
-    from subclasses import calc_subclass_info
-    subclass_info = calc_subclass_info(infos_nft.get("dna", ""))
-    return subclass_info[-1].lower() == subclass.lower() and subclass_info[-2].lower() == subclass.lower() and subclass_info[-3].lower() == subclass.lower()
-
 
 """
         #Special
-        958728365861396550: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
-        959174623247868026: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 5000,
-        961248732945469511: lambda x: x[1] is None and round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 15200 and x[0].get("class_name", "").lower() == "bulk" and int(x[0].get("pure_number", -1)) == 6,
-        961701024089903104: lambda x: x[1] is None and filter_by_number_of_components(x[0], nb_min=15),
-        961752805742346360: lambda x: x[1] is None and x[0].get("class_name", "").lower() == "organic" and int(x[0].get("pure_number", -1)) == 6 and subclass_map.get(int(x[0].get("crabada_subclass", "")), "unknown").lower() == "freshie" and filter_by_pincers(x[0], subclass="freshie"),
+        959174623247868026: lambda x: round(float(x[0].get("price", float("+inf"))), 0) <= 5000,
         #Crabs and all
         968180866264223764: lambda x: True,
         932591668597776414: lambda x: True,
         933456755395006495: lambda x: True,
         935237809697095723: lambda x: True,
-        951797923086213140: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 10000,
-        951798251139522610: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 12000,
-        951798278691881000: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 14000,
-        951798307989114900: lambda x: round(float(x[0].get("price", float("+inf")))*10**-18, 0) <= 16000,
-        951797761601318912: lambda x: is_below_floor_price(float(x[0].get("price", float("+inf")))*10**-18),
+        951797923086213140: lambda x: round(float(x[0].get("price", float("+inf"))), 0) <= 10000,
+        951798251139522610: lambda x: round(float(x[0].get("price", float("+inf"))), 0) <= 12000,
+        951798278691881000: lambda x: round(float(x[0].get("price", float("+inf"))), 0) <= 14000,
+        951798307989114900: lambda x: round(float(x[0].get("price", float("+inf"))), 0) <= 16000,
+        951797761601318912: lambda x: is_below_floor_price(float(x[0].get("price", float("+inf")))),
         938865303167836230: lambda x: x[1] is None and x[0].get("class_name", None) is not None,
         933456911913848912: lambda x: x[1] is None and x[0].get("pure_number", -1) is not None and int(x[0].get("pure_number", -1)) == 6,
         933457087369978016: lambda x: x[1] is None and x[0].get("class_name", "") is not None and x[0].get("class_name", "").lower() == "prime",

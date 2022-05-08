@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 from datetime import datetime, timezone
+from distutils.log import info
 from requests import HTTPError, ReadTimeout
 from web3.middleware import geth_poa_middleware
 from web3.exceptions import TransactionNotFound
@@ -78,11 +79,6 @@ crabada_contracts = {
 nftinfo_apis = {
     "avalanche": "https://api.crabada.com/public/crabada/info",
     "swimmer_test": "https://subnet-test-api.crabada.com/public/crabada/info",
-}
-
-familyinfo_apis = {
-    "avalanche": "https://api.crabada.com/public/crabada/family",
-    "swimmer_test": "https://subnet-test-api.crabada.com/public/crabada/family",
 }
 
 def is_valid_marketplace_listing_transaction(transaction, blockchain="swimmer_test"):
@@ -356,7 +352,6 @@ def info_from_dna(dna):
 
     purity = 0
     for component in [shellr0_class, hornr0_class, bodyr0_class, mouthr0_class, eyer0_class, pincerr0_class]:
-        print(component)
         if component == class_name:
             purity += 1
 
@@ -490,10 +485,7 @@ class Crabfetcher:
                     _, _, dna, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
                     if dna is not None:
                         is_crab = dna != 0
-                        if is_crab:
-                            link_nft_crabada = f"{nftinfo_apis[self._blockchain]}/{token_id}"
-                        else:
-                            link_nft_crabada = f"{familyinfo_apis[self._blockchain]}/{token_id}"
+                        link_nft_crabada = f"{nftinfo_apis[self._blockchain]}/{token_id}"
                         #_recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=2, is_selling=True, buyer_wallet=None, seller_wallet=None)
                         #_fetch_and_store_crabada_entry_aux(self, infos_nft, selling_price, token_id, timestamp, is_crab, order_id, is_selling=True, buyer_wallet=None, seller_wallet=None)
                         tasks.append(async_http_get_request_with_callback_on_result_v2(
@@ -553,10 +545,7 @@ class Crabfetcher:
                     _, _, dna, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
                     if dna is not None:
                         is_crab = dna != 0
-                        if is_crab:
-                            link_nft_crabada = f"{nftinfo_apis[self._blockchain]}/{token_id}"
-                        else:
-                            link_nft_crabada = f"{familyinfo_apis[self._blockchain]}/{token_id}"
+                        link_nft_crabada = f"{nftinfo_apis[self._blockchain]}/{token_id}"
                         tasks.append(async_http_get_request_with_callback_on_result_v2(
                                 link_nft_crabada,
                                 self._recall_crabada_infos_api_after_sleep,
@@ -603,7 +592,9 @@ class Crabfetcher:
         self._set_sync_variable("apicrabada_timeout_counter", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
             #Create the whole infos_nft dict using only smart contract
-            dna1, dna2, dna, _, breeding_count = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
+            crab1, crab2, dna, _, breeding_count = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
+            _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
+            _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
             infos_nft = dict()
             infos_nft["owner_full_name"] = None
             if is_selling:
@@ -652,10 +643,7 @@ class Crabfetcher:
             asyncio.gather(task)
         else:
             await asyncio.sleep(seconds)
-            if is_crab:
-                link_nft_crabada = f"{nftinfo_apis[self._blockchain]}/{token_id}"
-            else:
-                link_nft_crabada = f"{familyinfo_apis[self._blockchain]}/{token_id}"
+            link_nft_crabada = f"{nftinfo_apis[self._blockchain]}/{token_id}"
             nft_pool = self._shared.get("nft_pool")
             if (token_id, timestamp_transaction, selling_price, False) not in nft_pool.keys():
                 task = async_http_get_request_with_callback_on_result_v2(
@@ -691,6 +679,25 @@ class Crabfetcher:
         async with self._get_variable(f"last_block_crabada_{type_entry}_transaction_semaphore_{token_id}_{timestamp}_{selling_price}", lambda: asyncio.Semaphore(value=1)):
             nft_pool = self._shared.get("nft_pool")
             if (token_id, timestamp, selling_price, is_selling) not in nft_pool.keys():
+                if not is_crab:
+                    crab1, crab2, dna, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
+                    _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
+                    _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
+                    if dna1 is not None and dna2 is not None and dna1 != 0 and dna2 != 0:
+                        infos_crab_1 = info_from_dna(dna1)
+                        infos_crab_2 = info_from_dna(dna2)
+                        infos_nft["crabada_parents"] = [
+                            {
+                                "class_name": infos_crab_1["class"],
+                                "dna": dna1
+                            },
+                            {
+                                "class_name": infos_crab_2["class"],
+                                "dna": dna2
+                            }
+                        ]
+                    else:
+                        return
                 infos_nft["price"] = selling_price * 10**-18
                 web3_avalanche = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"], request_kwargs={'timeout': 10}))
                 tus_price_in_avax = calculate_token_price(web3_avalanche, "avalanche", "0x565d20bd591b00ead0c927e4b6d7dd8a33b0b319", "0xf693248F96Fe03422FEa95aC0aFbBBc4a8FdD172")

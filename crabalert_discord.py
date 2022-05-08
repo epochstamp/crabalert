@@ -191,17 +191,13 @@ class CrabalertDiscord(commands.Bot):
                     human_deltatime = seconds_to_pretty_print(duration_min)
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
                 if buyer_wallet.lower() == infos_nft['owner'].lower():
-                    buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
-                    buyer_seller = buyer_wallet
                     buyer_seller_full_name = buyer_wallet
             else:
                 if seller_wallet.lower() == infos_nft['owner'].lower():
-                    buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
-                    buyer_seller = seller_wallet
                     buyer_seller_full_name = seller_wallet
                     
 
@@ -218,7 +214,7 @@ class CrabalertDiscord(commands.Bot):
                 )     
             else:
                 message = (
-                    f"{type_entry} :crab: {'**PURE**' if int(infos_nft['pure_number']) == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **NO-BREED**' if int(infos_nft['breed_count']) == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
+                    f"{type_entry} :crab: {'**PURE**' if int(infos_nft['pure_number']) == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **GENESIS**' if infos_nft['is_genesis'] == 1 else ''}{' **NO-BREED**' if int(infos_nft['breed_count']) == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
                     f"{first_column}\n" +
                     f"{second_column}\n" +
                     f"{third_column}"
