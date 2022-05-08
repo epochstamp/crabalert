@@ -1,7 +1,7 @@
 import discord
 from config import ID_SERVER, ID_COMMAND_CENTER
 import asyncio
-from . import in_channel
+from utils import in_channel
 
 class Alive(discord.ext.commands.Cog):
     def __init__(self, bot):

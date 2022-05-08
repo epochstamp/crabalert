@@ -1,7 +1,7 @@
 import asyncio
 import discord
 from config import ID_SERVER, ID_COMMAND_CENTER
-from . import in_channel
+from utils import in_channel
 
 class Reboot(discord.ext.commands.Cog):
     def __init__(self, bot):

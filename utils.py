@@ -658,6 +658,11 @@ async def iblock_near(web3, tunix_s, ipre=1, ipost=None, current_block_number=No
 
     return await iblock_near(web3, tunix_s, ipre=iexpected_adj - r, ipost=iexpected_adj + r, current_block_number=current_block_number)
 
+def in_channel(*channels):
+    def predicate(ctx):
+        return ctx.channel.id in channels
+    return commands.check(predicate)
+
 async def iblock_near_async(web3, tunix_s, ipre=1, ipost=None, current_block_number=None, callback=lambda b: None):
     
     try:
