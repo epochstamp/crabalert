@@ -6,6 +6,7 @@ from discord.ext import tasks
 from discord import Embed, File
 import memcache
 from config import (
+    LISTING_ITEM_EXPIRATION,
     SELLING_ITEM_EXPIRATION,
     channel_to_post_listings_with_filters,
     channel_to_post_sellings_with_filters,
@@ -79,7 +80,8 @@ class CrabalertDiscord(commands.Bot):
             nft_pool = self._shared.get("nft_pool")
             for keys_info, infos_nft in nft_pool.items():
                 token_id, timestamp, selling_price, is_selling = keys_info
-                if current_timestamp - timestamp <= SELLING_ITEM_EXPIRATION:
+                is_selling_integer = 1 if is_selling else 0
+                if current_timestamp - timestamp <= is_selling_integer*SELLING_ITEM_EXPIRATION + (1-is_selling_integer)*LISTING_ITEM_EXPIRATION:
                     if infos_nft["is_crab"]:
                         infos_family = None
                     else:
@@ -207,18 +209,12 @@ class CrabalertDiscord(commands.Bot):
                 selling_channels_to_display_shortdescrs
             )
             url_buyer_seller = infos_nft["url_wallet"]
-            if channel.id in channels_to_display_shortdescrs:
-                message = (
-                    f"{type_entry} :crab: {class_display}({subclass_display})\n" +
-                    f"{first_column}"
-                )     
-            else:
-                message = (
-                    f"{type_entry} :crab: {'**PURE**' if int(infos_nft['pure_number']) == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **GENESIS**' if infos_nft['is_genesis'] == 1 else ''}{' **NO-BREED**' if int(infos_nft['breed_count']) == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
-                    f"{first_column}\n" +
-                    f"{second_column}\n" +
-                    f"{third_column}"
-                )
+            message = (
+                f"{type_entry} :crab: {'**PURE**' if int(infos_nft['pure_number']) == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **GENESIS**' if infos_nft['is_genesis'] == 1 else ''}{' **NO-BREED**' if int(infos_nft['breed_count']) == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
+                f"{first_column}\n" +
+                f"{second_column}\n" +
+                f"{third_column}"
+            )
             asyncio.gather(asyncio.create_task(
                 self._send_crab_item_message(token_id, timestamp_transaction, channel, message, marketplace_link, photos_link, url_buyer_seller, buyer_seller_full_name, is_selling=is_selling)
             ))

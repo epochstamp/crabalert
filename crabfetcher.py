@@ -51,17 +51,21 @@ To find history of transactions. Might be useful...
 
 marketplace_link_per_blockchain = {
     "avalanche": "https://marketplace.crabada.com/crabada",
-    "swimmer_test": "https://marketplace-subnet-test.crabada.com/crabada"
+    "swimmer_test": "https://marketplace-subnet-test.crabada.com/crabada",
+    #Not definitive marketplace link, placeholder...
+    "swimmer": "https://marketplace-subnet.crabada.com/crabada"
 }
 
 photos_link_per_blockchain = {
     "avalanche": "https://photos.crabada.com",
-    "swimmer_test": "https://swimmer-testnet-photos.crabada.com"
+    "swimmer_test": "https://swimmer-testnet-photos.crabada.com",
+    "swimmer": "https://swimmer-photos.crabada.com"
 }
 
 explorer_link_per_blockchain = {
     "avalanche": "https://snowtrace.io/address",
-    "swimmer_test": "https://testnet-explorer.swimmer.network/address"
+    "swimmer_test": "https://testnet-explorer.swimmer.network/address",
+    "swimmer": "https://explorer.swimmer.network/"
 }
 
 crabada_contracts = {
@@ -74,6 +78,11 @@ crabada_contracts = {
         "crabada_contract": ("0xe56cb40A104cf2783EA912859B4Ca7dE77cdC961", "crabada_swimmer_abi.json"),
         "crabdata_contract": ("0x5b4E7C3508e01e9386d0d7dda2519DF18fe5953A", "crabdata_swimmer_abi.json")
     },
+    "swimmer": {
+        "marketplace_contract": ("0x134e84507b0FBc5136C2217B847BbbF4c1A074B1", "marketplace_swimmer_abi.json"),
+        "crabada_contract": ("0x620FF3d705EDBc1bd03e17E6afcaC36a9779f78D", "crabada_swimmer_abi.json"),
+        "crabdata_contract": ("0xE0Ba7f212C1DBb04Db1604b0616783F0dda0523a", "crabdata_swimmer_abi.json")
+    }
 }
 
 nftinfo_apis = {
@@ -757,8 +766,8 @@ class Crabfetcher:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Crab miner.')
-    parser.add_argument('--blockchain', choices=["avalanche", "swimmer_test"],
-                        help='Game blockchain', default="swimmer_test")
+    parser.add_argument('--blockchain', choices=["avalanche", "swimmer_test", "swimmer"],
+                        help='Game blockchain', default="swimmer")
     args = parser.parse_args()
     asyncio.run(Crabfetcher(blockchain=args.blockchain).run())
 
