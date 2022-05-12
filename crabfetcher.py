@@ -53,7 +53,7 @@ marketplace_link_per_blockchain = {
     "avalanche": "https://marketplace.crabada.com/crabada",
     "swimmer_test": "https://marketplace-subnet-test.crabada.com/crabada",
     #Not definitive marketplace link, placeholder...
-    "swimmer": "https://marketplace-subnet.crabada.com/crabada"
+    "swimmer": "https://marketplace.crabada.com/crabada"
 }
 
 photos_link_per_blockchain = {
@@ -88,6 +88,7 @@ crabada_contracts = {
 nftinfo_apis = {
     "avalanche": "https://api.crabada.com/public/crabada/info",
     "swimmer_test": "https://subnet-test-api.crabada.com/public/crabada/info",
+    "swimmer": "https://api.crabada.com/public/crabada/info",
 }
 
 def is_valid_marketplace_listing_transaction(transaction, blockchain="swimmer_test"):
