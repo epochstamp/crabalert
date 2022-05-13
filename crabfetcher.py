@@ -53,7 +53,7 @@ marketplace_link_per_blockchain = {
     "avalanche": "https://marketplace.crabada.com/crabada",
     "swimmer_test": "https://marketplace-subnet-test.crabada.com/crabada",
     #Not definitive marketplace link, placeholder...
-    "swimmer": "https://marketplace.crabada.com/crabada"
+    "swimmer": "https://market.crabada.com/"
 }
 
 photos_link_per_blockchain = {
@@ -88,7 +88,7 @@ crabada_contracts = {
 nftinfo_apis = {
     "avalanche": "https://api.crabada.com/public/crabada/info",
     "swimmer_test": "https://subnet-test-api.crabada.com/public/crabada/info",
-    "swimmer": "https://api.crabada.com/public/crabada/info",
+    "swimmer": "https://market-api.crabada.com/public/crabada/info/",
 }
 
 def is_valid_marketplace_listing_transaction(transaction, blockchain="swimmer_test"):
@@ -120,7 +120,7 @@ def dna2hex(dna):
 def lookup_class(value: int) -> str:
         if value == 0:
             return "UNKNOWN"
-        if (value <= 8):
+        elif (value <= 8):
             return 'SURGE'
         elif (value < 24):
             return 'SUNKEN'
@@ -399,11 +399,17 @@ def info_from_dna(dna):
     base_info = {**base_info, **legend_parts}
 
     crab_stats = dict(BASES_STATS[class_name])
+    #print(crab_stats)
     for k, v in comp_class_info.items():
         crab_stats[COMP_MAPPING_CHAR[k]] += COMP_STATS[v][COMP_MAPPING_CHAR[k]]
-
-    n_same_legendary_class = sum([1 for lp in legend_parts.values() if lp == class_name])
-    n_diff_legendary_class = sum([1 for lp in legend_parts.values() if lp != "UNKNOWN" and lp != class_name])
+    #print(crab_stats)
+    n_same_legendary_class = len([lp for lp in legend_parts.values() if lp == class_name])
+    n_diff_legendary_class = len([lp for lp in legend_parts.values() if lp.upper() != "UNKNOWN" and lp != class_name])
+    k = "HP"
+    #print(comp_class_info)
+    #print(COMP_I_MAPPING_CHAR[k])
+    #print(comp_class_info[COMP_I_MAPPING_CHAR[k]])
+    #print((1+(BONUS_PURITY[purity]*(1 if comp_class_info[COMP_I_MAPPING_CHAR[k]] == class_name else 0))))
     crab_stats = {
         k: int(int(v*(1+(BONUS_PURITY[purity]*(1 if comp_class_info[COMP_I_MAPPING_CHAR[k]] == class_name else 0))))*(1 + n_same_legendary_class*BONUS_LEGEND_SAME_CLASS + n_diff_legendary_class*BONUS_LEGEND_DIFF_CLASS)) for k, v in crab_stats.items()
     }
@@ -430,7 +436,6 @@ class Crabfetcher:
         self._blockchain = blockchain
         dt = datetime.now(timezone.utc)
         utc_time = dt.replace(tzinfo=timezone.utc)
-
         #Look for last block up to one day ago
         self._web3 = Web3(Web3.HTTPProvider(blockchain_urls[self._blockchain], request_kwargs={'timeout': 2}))
         try:
