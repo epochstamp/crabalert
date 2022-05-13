@@ -193,14 +193,20 @@ class CrabalertDiscord(commands.Bot):
                     human_deltatime = seconds_to_pretty_print(duration_min)
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
                 if buyer_wallet is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
-                    buyer_seller_full_name = buyer_wallet
+                    buyer_wallet = infos_nft["seller_wallet"]
+                    buyer_seller = buyer_wallet
+                    buyer_seller_full_name = buyer_seller
             else:
                 if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
-                    buyer_seller_full_name = seller_wallet
+                    seller_wallet = infos_nft["seller_wallet"]
+                    buyer_seller = seller_wallet
+                    buyer_seller_full_name = buyer_seller
                 
             url_buyer_seller = infos_nft["url_wallet"]
             message = (

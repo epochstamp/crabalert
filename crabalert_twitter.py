@@ -123,15 +123,17 @@ class CrabalertTwitter:
                         buyer_seller = infos_nft['owner']
                         buyer_seller_full_name = infos_nft['owner_full_name']
                     else:
+                        buyer_wallet = infos_nft["seller_wallet"]
                         buyer_seller = buyer_wallet
-                        buyer_seller_full_name = buyer_wallet
+                        buyer_seller_full_name = buyer_seller
                 else:
                     if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
                         buyer_seller = infos_nft['owner']
                         buyer_seller_full_name = infos_nft['owner_full_name']
                     else:
+                        seller_wallet = infos_nft["seller_wallet"]
                         buyer_seller = seller_wallet
-                        buyer_seller_full_name = seller_wallet
+                        buyer_seller_full_name = buyer_seller
                 buyer_seller_type = "Listed by" if not is_selling else "Bought by"
                 url_buyer_seller = infos_nft["url_wallet"]
                 message = (
@@ -196,7 +198,7 @@ class CrabalertTwitter:
                     else:
                         buyer_wallet = infos_nft["seller_wallet"]
                         buyer_seller = buyer_wallet
-                        buyer_seller_full_name = buyer_wallet
+                        buyer_seller_full_name = buyer_seller
                 else:
                     if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
                         buyer_seller = infos_nft['owner']
@@ -204,7 +206,7 @@ class CrabalertTwitter:
                     else:
                         seller_wallet = infos_nft["seller_wallet"]
                         buyer_seller = seller_wallet
-                        buyer_seller_full_name = seller_wallet
+                        buyer_seller_full_name = buyer_seller
                         
 
                     
