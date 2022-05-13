@@ -131,7 +131,7 @@ class CrabalertTelegram:
                 url_buyer_seller = infos_nft["url_wallet"]
                 message = (
                     f"[{type_entry}] 🦀 {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18) No.{token_id} at {first_column} on Crabada Marketplace\n" +
-                    f"{infos_nft['marketplace_link']}\n" +
+                    f"{infos_nft['photos_link']}\n" +
                     f"Per-category and speed-enhanced alerts in https://discord.gg/KYwprbzpFd\n" +
                     f"#snibsnib\n" +
                     f"{infos_nft['marketplace_link']}\n" +
@@ -200,14 +200,14 @@ class CrabalertTelegram:
                     else:
                         human_deltatime = seconds_to_pretty_print(duration_min)
                         type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                    if buyer_wallet.lower() == infos_nft['owner'].lower():
+                    if buyer_wallet is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
                         buyer_seller = infos_nft['owner']
                         buyer_seller_full_name = infos_nft['owner_full_name']
                     else:
                         buyer_seller = buyer_wallet
                         buyer_seller_full_name = buyer_wallet
                 else:
-                    if seller_wallet.lower() == infos_nft['owner'].lower():
+                    if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
                         buyer_seller = infos_nft['owner']
                         buyer_seller_full_name = infos_nft['owner_full_name']
                     else:

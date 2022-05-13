@@ -192,22 +192,16 @@ class CrabalertDiscord(commands.Bot):
                 else:
                     human_deltatime = seconds_to_pretty_print(duration_min)
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                if buyer_wallet.lower() == infos_nft['owner'].lower():
+                if buyer_wallet is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
                     buyer_seller_full_name = buyer_wallet
             else:
-                if seller_wallet.lower() == infos_nft['owner'].lower():
+                if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
                     buyer_seller_full_name = seller_wallet
-                    
-
                 
-            channels_to_display_shortdescrs = (
-                listing_channels_to_display_shortdescrs if not is_selling else
-                selling_channels_to_display_shortdescrs
-            )
             url_buyer_seller = infos_nft["url_wallet"]
             message = (
                 f"{type_entry} :crab: {'**PURE**' if int(infos_nft['pure_number']) == 6 else ''}{' **ORIGIN**' if infos_nft['is_origin'] == 1 else ''}{' **GENESIS**' if infos_nft['is_genesis'] == 1 else ''}{' **NO-BREED**' if int(infos_nft['breed_count']) == 0 else ''} {class_display}({emoji_subclass_type} {subclass_display} {n_comp_subclass}/18)\n" +
@@ -355,6 +349,7 @@ class CrabalertDiscord(commands.Bot):
                 try:
                     await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
                 except BaseException as e:
+                    print(e)
                     already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
                     
@@ -379,6 +374,7 @@ class CrabalertDiscord(commands.Bot):
                 try:
                     await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
                 except BaseException as e:
+                    print(e)
                     already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 

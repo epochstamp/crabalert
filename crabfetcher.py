@@ -312,7 +312,7 @@ COMP_STATS = {
     }
 }
 
-BONUS_PURITY = {**{i: i*0.02 for i in range(1, 6)}, **{6: 0.15}}
+BONUS_PURITY = {**{i: i*0.02 for i in range(0, 6)}, **{6: 0.15}}
 BONUS_LEGEND_DIFF_CLASS = 0.05
 BONUS_LEGEND_SAME_CLASS = 0.1
 
