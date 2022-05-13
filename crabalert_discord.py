@@ -235,6 +235,7 @@ class CrabalertDiscord(commands.Bot):
                     buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
+                    buyer_wallet = infos_nft["seller_wallet"]
                     buyer_seller = buyer_wallet
                     buyer_seller_full_name = buyer_wallet
             else:
@@ -242,6 +243,7 @@ class CrabalertDiscord(commands.Bot):
                     buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
+                    seller_wallet = infos_nft["seller_wallet"]
                     buyer_seller = seller_wallet
                     buyer_seller_full_name = seller_wallet
             url_buyer_seller = infos_nft["url_wallet"]

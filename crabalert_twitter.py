@@ -178,31 +178,33 @@ class CrabalertTwitter:
                 order_id_pool = self._shared.get("order_id_pool")
                 seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None, None))
                 if is_selling:
-                    if timestamp_listing is not None:
-                        if timestamp_selling is None:
-                            duration_min = abs(timestamp_transaction - float(timestamp_listing))
-                        else:
-                            duration_min = abs(float(timestamp_selling) - float(timestamp_listing))
+                if timestamp_listing is not None:
+                    if timestamp_selling is None:
+                        duration_min = abs(timestamp_transaction - float(timestamp_listing))
                     else:
-                        duration_min = None
-                    if duration_min is None:
-                        type_entry = type_entry.replace("<aftertime>", "")
-                    else:
-                        human_deltatime = seconds_to_pretty_print(duration_min)
-                        type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                    if buyer_wallet is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
-                        buyer_seller = infos_nft['owner']
-                        buyer_seller_full_name = infos_nft['owner_full_name']
-                    else:
-                        buyer_seller = buyer_wallet
-                        buyer_seller_full_name = buyer_wallet
+                        duration_min = abs(float(timestamp_selling) - float(timestamp_listing))
                 else:
-                    if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
-                        buyer_seller = infos_nft['owner']
-                        buyer_seller_full_name = infos_nft['owner_full_name']
-                    else:
-                        buyer_seller = seller_wallet
-                        buyer_seller_full_name = seller_wallet
+                    duration_min = None
+                if duration_min is None:
+                    type_entry = type_entry.replace("<aftertime>", "")
+                else:
+                    human_deltatime = seconds_to_pretty_print(duration_min)
+                    type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
+                if buyer_wallet is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                else:
+                    buyer_wallet = infos_nft["seller_wallet"]
+                    buyer_seller = buyer_wallet
+                    buyer_seller_full_name = buyer_wallet
+            else:
+                if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
+                    buyer_seller = infos_nft['owner']
+                    buyer_seller_full_name = infos_nft['owner_full_name']
+                else:
+                    seller_wallet = infos_nft["seller_wallet"]
+                    buyer_seller = seller_wallet
+                    buyer_seller_full_name = seller_wallet
                         
 
                     
