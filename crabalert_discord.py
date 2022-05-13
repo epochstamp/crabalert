@@ -237,7 +237,7 @@ class CrabalertDiscord(commands.Bot):
                 else:
                     buyer_wallet = infos_nft["seller_wallet"]
                     buyer_seller = buyer_wallet
-                    buyer_seller_full_name = buyer_wallet
+                    buyer_seller_full_name = buyer_seller
             else:
                 if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
                     buyer_seller = infos_nft['owner']
@@ -245,7 +245,7 @@ class CrabalertDiscord(commands.Bot):
                 else:
                     seller_wallet = infos_nft["seller_wallet"]
                     buyer_seller = seller_wallet
-                    buyer_seller_full_name = seller_wallet
+                    buyer_seller_full_name = buyer_seller
             url_buyer_seller = infos_nft["url_wallet"]
             channel_id = channel.id
             price_usd = infos_nft["price_usd"]
