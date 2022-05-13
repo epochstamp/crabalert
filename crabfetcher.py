@@ -6,6 +6,7 @@ from requests import HTTPError, ReadTimeout
 from web3.middleware import geth_poa_middleware
 from web3.exceptions import TransactionNotFound
 import memcache
+from urllib3.exceptions import ReadTimeoutError
 from is_origin import is_origin
 from is_genesis import is_genesis
 from config import (
@@ -714,31 +715,36 @@ class Crabfetcher:
                     else:
                         return
                 infos_nft["price"] = selling_price * 10**-18
-                web3_avalanche = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"], request_kwargs={'timeout': 10}))
-                tus_price_in_avax = calculate_token_price(web3_avalanche, "avalanche", "0x565d20bd591b00ead0c927e4b6d7dd8a33b0b319", "0xf693248F96Fe03422FEa95aC0aFbBBc4a8FdD172")
-                avax_price_in_fiat = calculate_token_price(web3_avalanche, "avalanche", "0xf4003f4efbe8691b60249e6afbd307abe7758adb", "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")
-                infos_nft["price_usd"] = tus_price_in_avax * infos_nft["price"] * avax_price_in_fiat
-                infos_nft["is_crab"] = is_crab
-                infos_nft["order_id"] = order_id
-                infos_nft["seller_wallet"] = seller_wallet
-                infos_nft["buyer_wallet"] = buyer_wallet
-                
-                if is_selling:
-                    infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{buyer_wallet}"
-                    if infos_nft["owner_full_name"] is None:
-                        infos_nft["owner_full_name"] = buyer_wallet
-                else:
-                    infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{seller_wallet}"
-                    if infos_nft["owner_full_name"] is None:
-                        infos_nft["owner_full_name"] = seller_wallet
-                infos_nft["marketplace_link"] = f"{marketplace_link_per_blockchain[self._blockchain]}/{token_id}"
-                if is_crab:
-                    infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
-                else:
-                    infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
-                import pprint
-                nft_pool = {**nft_pool, **{(token_id, timestamp, selling_price, is_selling): infos_nft}}
-                self._shared.set("nft_pool", nft_pool)
+                web3_avalanche = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"], request_kwargs={'timeout': 15}))
+                try:
+                    tus_price_in_avax = calculate_token_price(web3_avalanche, "avalanche", "0x565d20bd591b00ead0c927e4b6d7dd8a33b0b319", "0xf693248F96Fe03422FEa95aC0aFbBBc4a8FdD172")
+                    avax_price_in_fiat = calculate_token_price(web3_avalanche, "avalanche", "0xf4003f4efbe8691b60249e6afbd307abe7758adb", "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")
+                except ReadTimeoutError as _:
+                    tus_price_in_avax = None
+                    avax_price_in_fiat = None
+                if tus_price_in_avax is not None and avax_price_in_fiat is not None:
+                    infos_nft["price_usd"] = tus_price_in_avax * infos_nft["price"] * avax_price_in_fiat
+                    infos_nft["is_crab"] = is_crab
+                    infos_nft["order_id"] = order_id
+                    infos_nft["seller_wallet"] = seller_wallet
+                    infos_nft["buyer_wallet"] = buyer_wallet
+                    
+                    if is_selling:
+                        infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{buyer_wallet}"
+                        if infos_nft["owner_full_name"] is None:
+                            infos_nft["owner_full_name"] = buyer_wallet
+                    else:
+                        infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{seller_wallet}"
+                        if infos_nft["owner_full_name"] is None:
+                            infos_nft["owner_full_name"] = seller_wallet
+                    infos_nft["marketplace_link"] = f"{marketplace_link_per_blockchain[self._blockchain]}/{token_id}"
+                    if is_crab:
+                        infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
+                    else:
+                        infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
+                    import pprint
+                    nft_pool = {**nft_pool, **{(token_id, timestamp, selling_price, is_selling): infos_nft}}
+                    self._shared.set("nft_pool", nft_pool)
 
     async def _cleanup_shared_memory(self):
         #Cleanup nft pool
