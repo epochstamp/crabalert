@@ -53,7 +53,7 @@ marketplace_link_per_blockchain = {
     "avalanche": "https://marketplace.crabada.com/crabada",
     "swimmer_test": "https://marketplace-subnet-test.crabada.com/crabada",
     #Not definitive marketplace link, placeholder...
-    "swimmer": "https://market.crabada.com/"
+    "swimmer": "https://market.crabada.com/crabada"
 }
 
 photos_link_per_blockchain = {
@@ -65,7 +65,7 @@ photos_link_per_blockchain = {
 explorer_link_per_blockchain = {
     "avalanche": "https://snowtrace.io/address",
     "swimmer_test": "https://testnet-explorer.swimmer.network/address",
-    "swimmer": "https://explorer.swimmer.network/"
+    "swimmer": "https://explorer.swimmer.network/address"
 }
 
 crabada_contracts = {
