@@ -88,7 +88,7 @@ crabada_contracts = {
 nftinfo_apis = {
     "avalanche": "https://api.crabada.com/public/crabada/info",
     "swimmer_test": "https://subnet-test-api.crabada.com/public/crabada/info",
-    "swimmer": "https://market-api.crabada.com/public/crabada/info/",
+    "swimmer": "https://market-api.crabada.com/public/crabada/info",
 }
 
 def is_valid_marketplace_listing_transaction(transaction, blockchain="swimmer_test"):
