@@ -223,7 +223,7 @@ class CrabalertDiscord(commands.Bot):
         async with self._get_variable(f"sem_{EGGMESSAGE_SEM_ID}_{token_id}_{timestamp_transaction}_{channel.id}_{is_selling}", lambda: asyncio.Semaphore(value=1)):
             type_entry = "**[SOLD<aftertime>]**" if is_selling else "**[LISTING]**"
             order_id_pool = self._shared.get("order_id_pool")
-            seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None))
+            seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None, None))
             if is_selling:
                 if timestamp_listing is not None:
                     if timestamp_selling is None:

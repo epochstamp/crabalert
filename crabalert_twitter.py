@@ -105,7 +105,7 @@ class CrabalertTwitter:
                 class_display = class_display if class_display.lower() not in cool_classes else bold(class_display)
                 type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
                 order_id_pool = self._shared.get("order_id_pool")
-                seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None))
+                seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None, None))
                 if is_selling:
                     if timestamp_listing is not None:
                         if timestamp_selling is None:
@@ -176,7 +176,7 @@ class CrabalertTwitter:
                     class_display = f"{class_display_1}┃{class_display_2}"
                 type_entry = bold("LISTING") if not is_selling else bold("SOLD") + "<aftertime>"
                 order_id_pool = self._shared.get("order_id_pool")
-                seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None))
+                seller_wallet, buyer_wallet, _, _, timestamp_listing, timestamp_selling = order_id_pool.get(infos_nft["order_id"], (None, None, None, None, None, None))
                 if is_selling:
                     if timestamp_listing is not None:
                         if timestamp_selling is None:
