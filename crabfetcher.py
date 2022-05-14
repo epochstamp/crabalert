@@ -645,7 +645,7 @@ class Crabfetcher:
                     infos_nft["crabada_parents"][i]["class_name"] = parents_infos[i]["class"]
                     infos_nft["crabada_parents"][i]["dna"] = dnas[i]
 
-            task = self._fetch_and_store_crabada_entry_aux(
+            task = asyncio.create_task(self._fetch_and_store_crabada_entry_aux(
                     infos_nft,
                     selling_price,
                     token_id,
@@ -655,7 +655,7 @@ class Crabfetcher:
                     is_selling=is_selling,
                     buyer_wallet=buyer_wallet,
                     seller_wallet=seller_wallet
-                )
+                ))
             asyncio.gather(task)
         else:
             await asyncio.sleep(seconds)

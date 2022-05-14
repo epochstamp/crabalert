@@ -247,7 +247,7 @@ class CrabalertTwitter:
                         if infos_nft["is_crab"]:
                             tasks.append(asyncio.create_task(self._notify_crab_item(infos_nft, token_id, selling_price, timestamp, is_selling=is_selling)))
                         else:
-                            tasks.append(asyncio.create_task(self._notify_egg_item(self, infos_nft, infos_nft, token_id, selling_price, timestamp, is_selling=is_selling)))
+                            tasks.append(asyncio.create_task(self._notify_egg_item(infos_nft, infos_nft, token_id, selling_price, timestamp, is_selling=is_selling)))
                         
                 asyncio.gather(*tasks)
             await asyncio.sleep(seconds)
