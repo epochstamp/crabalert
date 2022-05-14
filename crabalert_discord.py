@@ -146,7 +146,12 @@ class CrabalertDiscord(commands.Bot):
             tus_text = f"{tus_emoji} **{price_formatted}**"
             tus_text_len_in_space_bars = sum([1 if c == "1" or c == "." or c == "," else 2 for c in str(price)]) + 6 + 1
             usd_text = f":moneybag: **{price_in_usd_formatted}**"
-            purity_text = (':gem: **PURE**' if int(infos_nft['pure_number']) == 6 else ':diamond_shape_with_a_dot_inside: ' + str(infos_nft['pure_number']))
+            try:
+                purity_text = (':gem: **PURE**' if int(infos_nft['pure_number']) == 6 else ':diamond_shape_with_a_dot_inside: ' + str(infos_nft['pure_number']))
+            except Exception as e:
+                print(infos_nft)
+                raise e
+
             purity_text_len_in_space_bars = 3 + 1 + (12 if int(infos_nft['pure_number']) == 6 else (1 if int(infos_nft['pure_number']) == 1 else 2))
             breed_text = f"{crabadegg_emoji} {infos_nft['breed_count'] if int(infos_nft['breed_count']) > 0 else '**NO-BREED**'}"
             mining_text = f":pick: {infos_nft['speed'] + infos_nft['critical']}"
