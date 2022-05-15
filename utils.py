@@ -35,7 +35,7 @@ blockchain_urls = {
     "avalanche": "https://api.avax.network/ext/bc/C/rpc",#"https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/avalanche/mainnet",
     "binance_smart_chain": "https://speedy-nodes-nyc.moralis.io/5dd5cce6646e002a1a9c9272/bsc/mainnet",
     "swimmer_test": "https://testnet-rpc.swimmer.network/ext/bc/2hUULz82ZYMKwjBHZybVRyouk38EmcW7UKP4iocf9rghpvfm84/rpc",
-    "swimmer": "https://rpc.swimmer.network/ext/bc/2K33xS9AyP9oCDiHYKVrHe7F54h2La5D8erpTChaAhdzeSu2RX/rpc"
+    "swimmer": "https://avax-cra-rpc.gateway.pokt.network"
 }
 
 explorer_api_link_per_blockchain = {
