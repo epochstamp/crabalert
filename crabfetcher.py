@@ -651,7 +651,7 @@ class Crabfetcher:
                         infos_nft["crabada_parents"][i]["class_name"] = parents_infos[i]["class"]
                         infos_nft["crabada_parents"][i]["dna"] = dnas[i]
             else:
-                self._recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=seconds, is_selling=True, buyer_wallet=None, seller_wallet=None):
+                self._recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=seconds, is_selling=True, buyer_wallet=None, seller_wallet=None)
 
             task = asyncio.create_task(self._fetch_and_store_crabada_entry_aux(
                     infos_nft,
