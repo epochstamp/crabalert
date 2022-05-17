@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+from calendar import c
 from datetime import datetime, timezone
 from distutils.log import info
 from requests import HTTPError, ReadTimeout
@@ -607,6 +608,47 @@ class Crabfetcher:
         except ConnectionError:
             exit(1)
 
+    def _fetch_and_store_crabada_infos_by_smart_contract(self, token_id, dna, crab1, crab2, is_crab, breeding_count, is_selling=True, buyer_wallet=None, seller_wallet=None):
+        _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
+        _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
+        infos_nft = None
+        if dna1 is not None and dna2 is not None:
+            infos_nft = dict()
+            infos_nft["owner_full_name"] = None
+            if is_selling:
+                infos_nft["owner"] = buyer_wallet
+            else:
+                infos_nft["owner"] = seller_wallet
+            if is_crab:
+                crabada_infos = info_from_dna(dna)
+                infos_nft = {**infos_nft, **crabada_infos}
+                
+                for crab_stats in ["HP", "ARMOR", "ATTACK", "SPEED", "CRITICAL"]:
+                    infos_nft[API_MAPPING_CHAR[crab_stats]] = crabada_infos[crab_stats]
+                infos_nft["id"] = token_id
+                infos_nft["crabada_id"] = token_id
+                infos_nft["dna"] = str(dna)
+                infos_nft["crabada_subclass"] = [k for k,v in subclass_map.items() if v.lower() == crabada_infos["subclass"].lower()][0]
+                infos_nft["pure_number"] = crabada_infos["purity"]
+                infos_nft["breed_count"] = breeding_count
+                infos_nft["class_name"] = crabada_infos["class"]
+                infos_nft["is_genesis"] = (1 if token_id in is_genesis else 0)
+                infos_nft["is_origin"] = (1 if token_id in is_origin else 0)
+
+
+            
+            else:
+                crabada_1_infos = info_from_dna(dna1)
+                crabada_2_infos = info_from_dna(dna2)
+                parents_infos = [crabada_1_infos, crabada_2_infos]
+                infos_nft["crabada_parents"] = parents_infos
+                dnas = [dna1, dna2]
+                for i in [0, 1]:
+                    infos_nft["crabada_parents"][i]["class_name"] = parents_infos[i]["class"]
+                    infos_nft["crabada_parents"][i]["dna"] = dnas[i]
+
+        return infos_nft
+
     async def _recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=2, is_selling=True, buyer_wallet=None, seller_wallet=None):
         timeout_counter = self._get_variable(f"apicrabada_timeout_counter_{token_id}_{timestamp_transaction}_{is_selling}", lambda: 0)
         self._set_sync_variable(f"apicrabada_timeout_counter_{token_id}_{timestamp_transaction}_{is_selling}", timeout_counter + 1)
@@ -615,56 +657,26 @@ class Crabfetcher:
             self._remove_variable(f"apicrabada_timeout_counter_{token_id}_{timestamp_transaction}_{is_selling}")
             crab1, crab2, dna, _, breeding_count = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
             if dna is not None:
-                _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
-                _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
-                infos_nft = dict()
-                infos_nft["owner_full_name"] = None
-                if is_selling:
-                    infos_nft["owner"] = buyer_wallet
+                infos_nft = self._fetch_and_store_crabada_infos_by_smart_contract(token_id, dna, crab1, crab2, is_crab, breeding_count, is_selling=True, buyer_wallet=None, seller_wallet=None)
+                if infos_nft is not None:
+                    task = asyncio.create_task(self._fetch_and_store_crabada_entry_aux(
+                        infos_nft,
+                        selling_price,
+                        token_id,
+                        timestamp_transaction,
+                        is_crab,
+                        order_id,
+                        is_selling=is_selling,
+                        buyer_wallet=buyer_wallet,
+                        seller_wallet=seller_wallet
+                    ))
                 else:
-                    infos_nft["owner"] = seller_wallet
-                if is_crab:
-                    crabada_infos = info_from_dna(dna)
-                    infos_nft = {**infos_nft, **crabada_infos}
-                    
-                    for crab_stats in ["HP", "ARMOR", "ATTACK", "SPEED", "CRITICAL"]:
-                        infos_nft[API_MAPPING_CHAR[crab_stats]] = crabada_infos[crab_stats]
-                    infos_nft["id"] = token_id
-                    infos_nft["crabada_id"] = token_id
-                    infos_nft["dna"] = str(dna)
-                    infos_nft["crabada_subclass"] = [k for k,v in subclass_map.items() if v.lower() == crabada_infos["subclass"].lower()][0]
-                    infos_nft["pure_number"] = crabada_infos["purity"]
-                    infos_nft["breed_count"] = breeding_count
-                    infos_nft["class_name"] = crabada_infos["class"]
-                    infos_nft["is_genesis"] = (1 if token_id in is_genesis else 0)
-                    infos_nft["is_origin"] = (1 if token_id in is_origin else 0)
-
-
-                
-                else:
-                    crabada_1_infos = info_from_dna(dna1)
-                    crabada_2_infos = info_from_dna(dna2)
-                    parents_infos = [crabada_1_infos, crabada_2_infos]
-                    infos_nft["crabada_parents"] = parents_infos
-                    dnas = [dna1, dna2]
-                    for i in [0, 1]:
-                        infos_nft["crabada_parents"][i]["class_name"] = parents_infos[i]["class"]
-                        infos_nft["crabada_parents"][i]["dna"] = dnas[i]
+                    task = None
             else:
-                self._recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=seconds, is_selling=True, buyer_wallet=None, seller_wallet=None)
+                task = asyncio.create_task(self._recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=seconds, is_selling=True, buyer_wallet=None, seller_wallet=None))
 
-            task = asyncio.create_task(self._fetch_and_store_crabada_entry_aux(
-                    infos_nft,
-                    selling_price,
-                    token_id,
-                    timestamp_transaction,
-                    is_crab,
-                    order_id,
-                    is_selling=is_selling,
-                    buyer_wallet=buyer_wallet,
-                    seller_wallet=seller_wallet
-                ))
-            asyncio.gather(task)
+            if task is not None:
+                asyncio.gather(task)
         else:
             await asyncio.sleep(seconds)
             link_nft_crabada = f"{nftinfo_apis[self._blockchain]}/{token_id}"
@@ -703,56 +715,62 @@ class Crabfetcher:
         async with self._get_variable(f"last_block_crabada_{type_entry}_transaction_semaphore_{token_id}_{timestamp}_{selling_price}", lambda: asyncio.Semaphore(value=1)):
             nft_pool = self._shared.get("nft_pool")
             if (token_id, timestamp, selling_price, is_selling) not in nft_pool.keys():
-                if not is_crab:
-                    crab1, crab2, dna, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
-                    _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
-                    _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
-                    if dna1 is not None and dna2 is not None and dna1 != 0 and dna2 != 0:
-                        infos_crab_1 = info_from_dna(dna1)
-                        infos_crab_2 = info_from_dna(dna2)
-                        infos_nft["crabada_parents"] = [
-                            {
-                                "class_name": infos_crab_1["class"],
-                                "dna": dna1
-                            },
-                            {
-                                "class_name": infos_crab_2["class"],
-                                "dna": dna2
-                            }
-                        ]
+                crab1, crab2, dna, _, breeding_count = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
+                if dna is not None:
+                    if not is_crab:
+                        
+                        _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
+                        _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
+                        if dna1 is not None and dna2 is not None and dna1 != 0 and dna2 != 0:
+                            infos_crab_1 = info_from_dna(dna1)
+                            infos_crab_2 = info_from_dna(dna2)
+                            infos_nft["crabada_parents"] = [
+                                {
+                                    "class_name": infos_crab_1["class"],
+                                    "dna": dna1
+                                },
+                                {
+                                    "class_name": infos_crab_2["class"],
+                                    "dna": dna2
+                                }
+                            ]
+                        else:
+                            infos_nft = None
                     else:
-                        return
-                infos_nft["price"] = selling_price * 10**-18
-                web3_avalanche = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"], request_kwargs={'timeout': 15}))
-                try:
-                    tus_price_in_avax = calculate_token_price(web3_avalanche, "avalanche", "0x565d20bd591b00ead0c927e4b6d7dd8a33b0b319", "0xf693248F96Fe03422FEa95aC0aFbBBc4a8FdD172")
-                    avax_price_in_fiat = calculate_token_price(web3_avalanche, "avalanche", "0xf4003f4efbe8691b60249e6afbd307abe7758adb", "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")
-                except ReadTimeoutError as _:
-                    tus_price_in_avax = None
-                    avax_price_in_fiat = None
-                if tus_price_in_avax is not None and avax_price_in_fiat is not None:
-                    infos_nft["price_usd"] = tus_price_in_avax * infos_nft["price"] * avax_price_in_fiat
-                    infos_nft["is_crab"] = is_crab
-                    infos_nft["order_id"] = order_id
-                    infos_nft["seller_wallet"] = seller_wallet
-                    infos_nft["buyer_wallet"] = buyer_wallet
-                    
-                    if is_selling:
-                        infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{buyer_wallet}"
-                        if infos_nft["owner_full_name"] is None:
-                            infos_nft["owner_full_name"] = buyer_wallet
-                    else:
-                        infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{seller_wallet}"
-                        if infos_nft["owner_full_name"] is None:
-                            infos_nft["owner_full_name"] = seller_wallet
-                    infos_nft["marketplace_link"] = f"{marketplace_link_per_blockchain[self._blockchain]}/{token_id}"
-                    if is_crab:
-                        infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
-                    else:
-                        infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
-                    import pprint
-                    nft_pool = {**nft_pool, **{(token_id, timestamp, selling_price, is_selling): infos_nft}}
-                    self._shared.set("nft_pool", nft_pool)
+                        if infos_nft["pure_number"] is None:
+                            infos_nft = self._fetch_and_store_crabada_infos_by_smart_contract(token_id, dna, crab1, crab2, is_crab, breeding_count, is_selling=is_selling, buyer_wallet=buyer_wallet, seller_wallet=seller_wallet)
+                if infos_nft is not None:
+                    infos_nft["price"] = selling_price * 10**-18
+                    web3_avalanche = Web3(Web3.HTTPProvider(blockchain_urls["avalanche"], request_kwargs={'timeout': 15}))
+                    try:
+                        tus_price_in_avax = calculate_token_price(web3_avalanche, "avalanche", "0x565d20bd591b00ead0c927e4b6d7dd8a33b0b319", "0xf693248F96Fe03422FEa95aC0aFbBBc4a8FdD172")
+                        avax_price_in_fiat = calculate_token_price(web3_avalanche, "avalanche", "0xf4003f4efbe8691b60249e6afbd307abe7758adb", "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7")
+                    except ReadTimeoutError as _:
+                        tus_price_in_avax = None
+                        avax_price_in_fiat = None
+                    if tus_price_in_avax is not None and avax_price_in_fiat is not None:
+                        infos_nft["price_usd"] = tus_price_in_avax * infos_nft["price"] * avax_price_in_fiat
+                        infos_nft["is_crab"] = is_crab
+                        infos_nft["order_id"] = order_id
+                        infos_nft["seller_wallet"] = seller_wallet
+                        infos_nft["buyer_wallet"] = buyer_wallet
+                        
+                        if is_selling:
+                            infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{buyer_wallet}"
+                            if infos_nft["owner_full_name"] is None:
+                                infos_nft["owner_full_name"] = buyer_wallet
+                        else:
+                            infos_nft["url_wallet"] = f"{explorer_link_per_blockchain[self._blockchain]}/{seller_wallet}"
+                            if infos_nft["owner_full_name"] is None:
+                                infos_nft["owner_full_name"] = seller_wallet
+                        infos_nft["marketplace_link"] = f"{marketplace_link_per_blockchain[self._blockchain]}/{token_id}"
+                        if is_crab:
+                            infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
+                        else:
+                            infos_nft["photos_link"] = f"{photos_link_per_blockchain[self._blockchain]}/{token_id}.png"
+                        import pprint
+                        nft_pool = {**nft_pool, **{(token_id, timestamp, selling_price, is_selling): infos_nft}}
+                        self._shared.set("nft_pool", nft_pool)
 
     async def _cleanup_shared_memory(self):
         #Cleanup nft pool
