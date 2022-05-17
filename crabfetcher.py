@@ -439,7 +439,7 @@ class Crabfetcher:
         dt = datetime.now(timezone.utc)
         utc_time = dt.replace(tzinfo=timezone.utc)
         #Look for last block up to one day ago
-        self._web3 = Web3(Web3.HTTPProvider(blockchain_urls[self._blockchain], request_kwargs={'timeout': 2}))
+        self._web3 = Web3(Web3.HTTPProvider(blockchain_urls[self._blockchain], request_kwargs={'timeout': 4}))
         try:
             self._web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         except:
