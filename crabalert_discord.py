@@ -197,7 +197,7 @@ class CrabalertDiscord(commands.Bot):
                 else:
                     human_deltatime = seconds_to_pretty_print(duration_min)
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                if buyer_wallet is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
+                if buyer_wallet is not None and infos_nft['owner']is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
                     buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
@@ -205,7 +205,7 @@ class CrabalertDiscord(commands.Bot):
                     buyer_seller = buyer_wallet
                     buyer_seller_full_name = buyer_seller
             else:
-                if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
+                if seller_wallet is not None and infos_nft['owner'] is not None and seller_wallet.lower() == infos_nft['owner'].lower():
                     buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
@@ -242,7 +242,7 @@ class CrabalertDiscord(commands.Bot):
                 else:
                     human_deltatime = seconds_to_pretty_print(duration_min)
                     type_entry = type_entry.replace("<aftertime>", " after "+ str(human_deltatime))
-                if buyer_wallet is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
+                if buyer_wallet is not None and infos_nft['owner'] is not None and buyer_wallet.lower() == infos_nft['owner'].lower():
                     buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
@@ -250,7 +250,7 @@ class CrabalertDiscord(commands.Bot):
                     buyer_seller = buyer_wallet
                     buyer_seller_full_name = buyer_seller
             else:
-                if seller_wallet is not None and seller_wallet.lower() == infos_nft['owner'].lower():
+                if seller_wallet is not None and infos_nft['owner'] is not None and seller_wallet.lower() == infos_nft['owner'].lower():
                     buyer_seller = infos_nft['owner']
                     buyer_seller_full_name = infos_nft['owner_full_name']
                 else:
