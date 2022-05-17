@@ -657,7 +657,7 @@ class Crabfetcher:
             self._remove_variable(f"apicrabada_timeout_counter_{token_id}_{timestamp_transaction}_{is_selling}")
             crab1, crab2, dna, _, breeding_count = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
             if dna is not None:
-                infos_nft = self._fetch_and_store_crabada_infos_by_smart_contract(token_id, dna, crab1, crab2, is_crab, breeding_count, is_selling=True, buyer_wallet=None, seller_wallet=None)
+                infos_nft = self._fetch_and_store_crabada_infos_by_smart_contract(token_id, dna, crab1, crab2, is_crab, breeding_count, is_selling=True, buyer_wallet=buyer_wallet, seller_wallet=seller_wallet)
                 if infos_nft is not None:
                     task = asyncio.create_task(self._fetch_and_store_crabada_entry_aux(
                         infos_nft,
