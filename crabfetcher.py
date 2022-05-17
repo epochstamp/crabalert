@@ -467,6 +467,10 @@ class Crabfetcher:
 
     def _set_sync_variable(self, name: str, value):
         self._variables[name] = value
+
+    def _remove_variable(self, name: str):
+        if name in self._variables.keys():
+            self._variables.pop(name)
             
             
     """
@@ -604,46 +608,50 @@ class Crabfetcher:
             exit(1)
 
     async def _recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=2, is_selling=True, buyer_wallet=None, seller_wallet=None):
-        timeout_counter = self._get_variable("apicrabada_timeout_counter", lambda: 0)
-        self._set_sync_variable("apicrabada_timeout_counter", timeout_counter + 1)
+        timeout_counter = self._get_variable(f"apicrabada_timeout_counter_{token_id}_{timestamp_transaction}_{is_selling}", lambda: 0)
+        self._set_sync_variable(f"apicrabada_timeout_counter_{token_id}_{timestamp_transaction}_{is_selling}", timeout_counter + 1)
         if timeout_counter + 1 >= MAX_TIMEOUT_BEFORE_KILL_CRABADAPI:
             #Create the whole infos_nft dict using only smart contract
+            self._remove_variable(f"apicrabada_timeout_counter_{token_id}_{timestamp_transaction}_{is_selling}")
             crab1, crab2, dna, _, breeding_count = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(token_id), n_values=5)
-            _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
-            _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
-            infos_nft = dict()
-            infos_nft["owner_full_name"] = None
-            if is_selling:
-                infos_nft["owner"] = buyer_wallet
-            else:
-                infos_nft["owner"] = seller_wallet
-            if is_crab:
-                crabada_infos = info_from_dna(dna)
-                infos_nft = {**infos_nft, **crabada_infos}
-                
-                for crab_stats in ["HP", "ARMOR", "ATTACK", "SPEED", "CRITICAL"]:
-                    infos_nft[API_MAPPING_CHAR[crab_stats]] = crabada_infos[crab_stats]
-                infos_nft["id"] = token_id
-                infos_nft["crabada_id"] = token_id
-                infos_nft["dna"] = str(dna)
-                infos_nft["crabada_subclass"] = [k for k,v in subclass_map.items() if v.lower() == crabada_infos["subclass"].lower()][0]
-                infos_nft["pure_number"] = crabada_infos["purity"]
-                infos_nft["breed_count"] = breeding_count
-                infos_nft["class_name"] = crabada_infos["class"]
-                infos_nft["is_genesis"] = (1 if token_id in is_genesis else 0)
-                infos_nft["is_origin"] = (1 if token_id in is_origin else 0)
+            if dna is not None:
+                _, _, dna1, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab1), n_values=5)
+                _, _, dna2, _, _ = self._call_contract_function(self._crabada_contract.functions.crabadaInfo(crab2), n_values=5)
+                infos_nft = dict()
+                infos_nft["owner_full_name"] = None
+                if is_selling:
+                    infos_nft["owner"] = buyer_wallet
+                else:
+                    infos_nft["owner"] = seller_wallet
+                if is_crab:
+                    crabada_infos = info_from_dna(dna)
+                    infos_nft = {**infos_nft, **crabada_infos}
+                    
+                    for crab_stats in ["HP", "ARMOR", "ATTACK", "SPEED", "CRITICAL"]:
+                        infos_nft[API_MAPPING_CHAR[crab_stats]] = crabada_infos[crab_stats]
+                    infos_nft["id"] = token_id
+                    infos_nft["crabada_id"] = token_id
+                    infos_nft["dna"] = str(dna)
+                    infos_nft["crabada_subclass"] = [k for k,v in subclass_map.items() if v.lower() == crabada_infos["subclass"].lower()][0]
+                    infos_nft["pure_number"] = crabada_infos["purity"]
+                    infos_nft["breed_count"] = breeding_count
+                    infos_nft["class_name"] = crabada_infos["class"]
+                    infos_nft["is_genesis"] = (1 if token_id in is_genesis else 0)
+                    infos_nft["is_origin"] = (1 if token_id in is_origin else 0)
 
 
                 
+                else:
+                    crabada_1_infos = info_from_dna(dna1)
+                    crabada_2_infos = info_from_dna(dna2)
+                    parents_infos = [crabada_1_infos, crabada_2_infos]
+                    infos_nft["crabada_parents"] = parents_infos
+                    dnas = [dna1, dna2]
+                    for i in [0, 1]:
+                        infos_nft["crabada_parents"][i]["class_name"] = parents_infos[i]["class"]
+                        infos_nft["crabada_parents"][i]["dna"] = dnas[i]
             else:
-                crabada_1_infos = info_from_dna(dna1)
-                crabada_2_infos = info_from_dna(dna2)
-                parents_infos = [crabada_1_infos, crabada_2_infos]
-                infos_nft["crabada_parents"] = parents_infos
-                dnas = [dna1, dna2]
-                for i in [0, 1]:
-                    infos_nft["crabada_parents"][i]["class_name"] = parents_infos[i]["class"]
-                    infos_nft["crabada_parents"][i]["dna"] = dnas[i]
+                self._recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=seconds, is_selling=True, buyer_wallet=None, seller_wallet=None):
 
             task = asyncio.create_task(self._fetch_and_store_crabada_entry_aux(
                     infos_nft,

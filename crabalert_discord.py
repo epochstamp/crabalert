@@ -362,7 +362,7 @@ class CrabalertDiscord(commands.Bot):
                 try:
                     await channel.send(message, embed=embed, file=File(f"images/{token_id}.png"))
                 except BaseException as e:
-                    print(e)
+                    print(e, type(e))
                     already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
                     
@@ -387,7 +387,7 @@ class CrabalertDiscord(commands.Bot):
                 try:
                     await channel.send(message_egg, embed=embed, file=File("images/egg.png"))
                 except BaseException as e:
-                    print(e)
+                    print(e, type(e))
                     already_seen = self._get_variable(f"already_seen", f_value_if_not_exists=lambda:set())
                     self._set_sync_variable("already_seen", already_seen.difference({(token_id, timestamp_transaction, channel.id, is_selling)}))
                 
