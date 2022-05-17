@@ -673,7 +673,7 @@ class Crabfetcher:
                 else:
                     task = None
             else:
-                task = asyncio.create_task(self._recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=seconds, is_selling=True, buyer_wallet=None, seller_wallet=None))
+                task = asyncio.create_task(self._recall_crabada_infos_api_after_sleep(self, e, token_id, selling_price, timestamp_transaction, is_crab, order_id, seconds=seconds, is_selling=is_selling, buyer_wallet=buyer_wallet, seller_wallet=seller_wallet))
 
             if task is not None:
                 asyncio.gather(task)
